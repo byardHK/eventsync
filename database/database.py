@@ -71,9 +71,9 @@ class Item(db.Model):
     event = db.Column(db.Integer, db.ForeignKey('Event.id'))
 
 class UserItem(db.Model):
- 	__tablename__ = 'UserItem'
+    __tablename__ = 'UserItem'
     item = db.Column(db.Integer, db.ForeignKey(Item.id), primary_key=True)
-    user = db.Column(db.Unicode, db.ForeignKey(User.email), primary_key=True) 
+    user = db.Column(db.Unicode, db.ForeignKey(User.email), primary_key=True)
 
 with app.app_context():
     db.drop_all()
