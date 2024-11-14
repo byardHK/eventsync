@@ -31,10 +31,11 @@ class ReportType(enum.Enum):
     group =3
 
 class Report(db.model):
-    __tablename__ = 'Reports'
+    tablename = 'Reports'
     id = db.Column(db.Integer, primary_key=True)
     reportedBy = db.Column(db.Text, nullable=False)
     reportedUser = db.Column(db.Text, nullable=False)
+    numReports = db.Column(db.Integer, nullable=False)
     details = db.Column(db.Text, nullable=False)
     contentID = db.Column(db.Text, nullable=False)
     type = db.Column(db.Enum(ReportType), nullable=False)
@@ -74,6 +75,36 @@ class UserItem(db.Model):
     __tablename__ = 'UserItem'
     item = db.Column(db.Integer, db.ForeignKey(Item.id), primary_key=True)
     user = db.Column(db.Unicode, db.ForeignKey(User.email), primary_key=True)
+
+class Event(db.Model):
+  tablename = 'Event'
+  id = db.Column(db.Integer, primary_key=True)
+  groupId = db.Column(db.Integer, nullable = False)
+  timesReported = db.Column(db.Integer, nullable = False)
+  startDate = db.Column(db.DateTime, nullable=False)
+  endDate = db.Column(db.DateTime, nullable=False)
+
+class EventInfo(db.Model):
+  tablename = 'EventInfo'
+  id = db.Column(db.Integer, primary_key=True)
+  title = db.Column(db.Unicode, nullable=False)
+  description = db.Column(db.Unicode, nullable=False)
+  location = db.Column(db.Unicode, nullable=False)
+  RSVPlimit = db.Column(db.Integer, nullable=False)
+  isPrivate = db.Column(db.Boolean, nullable=False)
+  isWeatherDependent = db.Column(db.Boolean, nullable=False)
+
+class EventToEventInfo(db.Model):
+   tablename = 'EventToEventInfo'
+   id = db.Column(db.Integer, primary_key=True)
+   eventId = db.Column(db.Integer, db.ForeignKey(Event.id), primary_key=True)
+   eventInfoId = db.Column(db.Integer, db.ForeignKey(EventInfo.id), primary_key=True)
+
+class Tags(db.model):
+    tablename = 'Tags'
+    id = db.Column(db.Integer, primary_key=True)
+    value = db.Column(db.Text, nullable=False)
+    owner = db.Column(db.Text, nullable=False)
 
 with app.app_context():
     db.drop_all()
