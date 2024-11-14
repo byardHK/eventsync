@@ -30,7 +30,7 @@ class ReportType(enum.Enum):
     event = 2
     group =3
 
-class Report(db.model):
+class Report(db.Model):
     tablename = 'Reports'
     id = db.Column(db.Integer, primary_key=True)
     reportedBy = db.Column(db.Text, nullable=False)
@@ -62,6 +62,14 @@ class Group(db.Model):
     chat = db.relationship('Chat', backref='group')
     user = db.relationship('User', backref='group')
 
+class Event(db.Model):
+    tablename = 'Event'
+    id = db.Column(db.Integer, primary_key=True)
+    groupId = db.Column(db.Integer, nullable = False)
+    timesReported = db.Column(db.Integer, nullable = False)
+    startDate = db.Column(db.DateTime, nullable=False)
+    endDate = db.Column(db.DateTime, nullable=False)
+
 class Item(db.Model):
     __tablename__ = 'Item'
     id = db.Column(db.Integer, primary_key=True)
@@ -75,14 +83,6 @@ class UserItem(db.Model):
     __tablename__ = 'UserItem'
     item = db.Column(db.Integer, db.ForeignKey(Item.id), primary_key=True)
     user = db.Column(db.Unicode, db.ForeignKey(User.email), primary_key=True)
-
-class Event(db.Model):
-  tablename = 'Event'
-  id = db.Column(db.Integer, primary_key=True)
-  groupId = db.Column(db.Integer, nullable = False)
-  timesReported = db.Column(db.Integer, nullable = False)
-  startDate = db.Column(db.DateTime, nullable=False)
-  endDate = db.Column(db.DateTime, nullable=False)
 
 class EventInfo(db.Model):
   tablename = 'EventInfo'
@@ -100,11 +100,23 @@ class EventToEventInfo(db.Model):
    eventId = db.Column(db.Integer, db.ForeignKey(Event.id), primary_key=True)
    eventInfoId = db.Column(db.Integer, db.ForeignKey(EventInfo.id), primary_key=True)
 
-class Tags(db.model):
+class Tags(db.Model):
     tablename = 'Tags'
     id = db.Column(db.Integer, primary_key=True)
     value = db.Column(db.Text, nullable=False)
     owner = db.Column(db.Text, nullable=False)
+
+class Chat(db.Model):
+    tablename = 'Chats'
+    id = db.Column(db.Integer, primary_key=True)
+
+class Message(db.Model):
+    __tablename__ = 'Messages'
+    id = db.Column(db.Integer, primary_key=True)
+    isReported = db.Column(db.Boolean, nullable=False)
+    senderEmail = db.Column(db.Unicode, db.ForeignKey(User.email),)
+    timeSent = db.Column(db.Unicode, nullable=False)
+    chat = db.Column(db.Integer, db.ForeignKey(Chat.id))
 
 with app.app_context():
     db.drop_all()
