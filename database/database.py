@@ -77,7 +77,7 @@ class Item(db.Model):
     amountNeeded = db.Column(db.Integer, nullable=False)
     quantityAccountFor = db.Column(db.Integer, nullable=False)
     isFull = db.Column(db.Boolean, nullable=False)
-    event = db.Column(db.Integer, db.ForeignKey('Event.id'))
+    event = db.Column(db.Integer, db.ForeignKey(Event.id))
 
 class UserItem(db.Model):
     __tablename__ = 'UserItem'
