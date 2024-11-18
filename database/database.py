@@ -50,8 +50,8 @@ class Profile(db.Model):
     digestFrequency = db.Column(db.Integer, nullable=False)
     customTags = db.Column(db.Unicode, nullable=False)
     notifications = db.relationship('Notifications', backref='profile')
-    tags = db.relationship('Tags', backref='profile')
-    user = db.relationship('User', backref='profile')
+    # tags = db.relationship('Tags', backref='profile')
+    # user = db.relationship('User', backref='profile')
 
 
 class Group(db.Model):
@@ -59,8 +59,8 @@ class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode, nullable=False)
     numTimesReported = db.Column(db.Integer, nullable=False)
-    chat = db.relationship('Chat', backref='group')
-    user = db.relationship('User', backref='group')
+    # chat = db.relationship('Chat', backref='group')
+    # user = db.relationship('User', backref='group')
 
 class Event(db.Model):
     tablename = 'Event'
@@ -93,6 +93,7 @@ class EventInfo(db.Model):
   RSVPlimit = db.Column(db.Integer, nullable=False)
   isPrivate = db.Column(db.Boolean, nullable=False)
   isWeatherDependent = db.Column(db.Boolean, nullable=False)
+  numTimesReported = db.Column(db.Integer, nullable=False)
 
 class EventToEventInfo(db.Model):
    tablename = 'EventToEventInfo'
@@ -117,6 +118,21 @@ class Message(db.Model):
     senderEmail = db.Column(db.Unicode, db.ForeignKey(User.email),)
     timeSent = db.Column(db.Unicode, nullable=False)
     chat = db.Column(db.Integer, db.ForeignKey(Chat.id))
+
+class NotificationType(enum.Enum):
+    eventInvite = 1
+    receiveFriendRequest = 2
+    eventCancellation = 3
+
+class Notifications(db.Model):
+    __tablename__ = 'Notifications'
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.Unicode, nullable=False)
+    dateTime = db.Column(db.DateTime)
+    linkToEvent = db.Column(db.Unicode, nullable=True)
+    linkToUser = db.Column(db.Unicode, nullable=True)
+    profileId = db.Column(db.Unicode, db.ForeignKey(Profile.id), primary_key=True)
+    type = db.Column(db.Enum(NotificationType), nullable=False)
 
 with app.app_context():
     db.drop_all()
