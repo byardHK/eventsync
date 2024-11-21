@@ -85,6 +85,16 @@ class UserItem(db.Model):
     user = db.Column(db.Unicode, db.ForeignKey(User.email), primary_key=True)
     quantity = db.Column(db.Integer, nullable=False)
 
+class UserHostsEvent(db.Model):
+    __tablename__ = 'UserHostsEvent'
+    event = db.Column(db.Integer, db.ForeignKey(Event.id), primary_key=True)
+    host = db.Column(db.Unicode, db.ForeignKey(User.email), primary_key=True)
+
+class UserAttendsEvent(db.Model):
+    __tablename__ = 'UserAttendsEvent'
+    event = db.Column(db.Integer, db.ForeignKey(Event.id), primary_key=True)
+    attendee = db.Column(db.Unicode, db.ForeignKey(User.email), primary_key=True)
+
 class EventInfo(db.Model):
   tablename = 'EventInfo'
   id = db.Column(db.Integer, primary_key=True)
