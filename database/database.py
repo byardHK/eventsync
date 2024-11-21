@@ -109,9 +109,14 @@ class Tag(db.Model):
     frequency = db.Column(db.Integer, nullable=False)
 
 class TagToEventInfo(db.Model):
-   tablename = 'EventToEventInfo'
+   tablename = 'TagToEventInfo'
    tag = db.Column(db.Integer, db.ForeignKey(Tag.id), primary_key=True)
    eventInfo = db.Column(db.Integer, db.ForeignKey(EventInfo.id), primary_key=True)
+
+class TagToProfile(db.Model):
+   tablename = 'TagToProfile'
+   tag = db.Column(db.Integer, db.ForeignKey(Tag.id), primary_key=True)
+   profile = db.Column(db.Integer, db.ForeignKey(Profile.id), primary_key=True)
 
 class Chat(db.Model):
     tablename = 'Chats'
