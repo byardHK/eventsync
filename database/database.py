@@ -15,40 +15,40 @@ db = SQLAlchemy(app)
 
 class User(db.Model):
 	__tablename__ = 'Users'
-	email = db.Column(db.Unicode, primary_key=True)
-	fname = db.Column(db.Unicode, nullable=False)
-	lname = db.Column(db.Unicode, nullable=False)
+	email = db.Column(db.Text, primary_key=True)
+	fname = db.Column(db.Text, nullable=False)
+	lname = db.Column(db.Text, nullable=False)
 	
 class Friend(db.Model):
 	__tablename__ = 'Friends'
-	user1 = db.Column(db.Unicode, db.ForeignKey(User.email), primary_key=True)
-	user2 = db.Column(db.Unicode, db.ForeignKey(User.email), primary_key=True)
+	user1 = db.Column(db.Text, db.ForeignKey(User.email), primary_key=True)
+	user2 = db.Column(db.Text, db.ForeignKey(User.email), primary_key=True)
 	isFriend = db.Column(db.Boolean, nullable=False)
 	
 class ReportType(enum.Enum):
     user = 1
     event = 2
-    group =3
+    group = 3
 
 class Report(db.Model):
     tablename = 'Reports'
     id = db.Column(db.Integer, primary_key=True)
-    reportedBy = db.Column(db.Text, nullable=False)
-    reportedUser = db.Column(db.Text, nullable=False)
+    reportedBy = db.Column(db.Text, db.ForeignKey(User.email), nullable=False)
+    reportedUser = db.Column(db.Text, db.ForeignKey(User.email), nullable=False)
     numReports = db.Column(db.Integer, nullable=False)
     details = db.Column(db.Text, nullable=False)
     contentID = db.Column(db.Text, nullable=False)
     type = db.Column(db.Enum(ReportType), nullable=False)
-    date = db.Column(db.Text, nullable=False)
+    date = db.Column(db.DateTime, nullable=False)
 
 class Profile(db.Model):
     __tablename__ = 'Profile'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, db.ForeignKey(User.email), primary_key=True)
     isPublic = db.Column(db.Boolean, nullable=False)
-    profilePicture= db.Column(db.Unicode, nullable=False)
-    bio = db.Column(db.Unicode, nullable=False)
+    profilePicture= db.Column(db.Text, nullable=False)
+    bio = db.Column(db.Text, nullable=False)
     digestFrequency = db.Column(db.Integer, nullable=False)
-    customTags = db.Column(db.Unicode, nullable=False)
+    customTags = db.Column(db.Text, nullable=False)
     notifications = db.relationship('Notifications', backref='profile')
     # tags = db.relationship('Tags', backref='profile')
     # user = db.relationship('User', backref='profile')
@@ -57,10 +57,16 @@ class Profile(db.Model):
 class Group(db.Model):
     __tablename__ = 'Group'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Unicode, nullable=False)
+    name = db.Column(db.Text, nullable=False)
     numTimesReported = db.Column(db.Integer, nullable=False)
     # chat = db.relationship('Chat', backref='group')
     # user = db.relationship('User', backref='group')
+
+class UserToGroup(db.Model):
+    __tablename__ = 'UserToGroup'
+    groupId = db.Column(db.Integer, db.foreignKey(Group.id), nullable=False, primary_key=True)
+    userId = db.Column(db.Text, db.ForeignKey(User.email), nullable=False, primary_key=True)
+
 
 class Event(db.Model):
     tablename = 'Event'
@@ -70,10 +76,15 @@ class Event(db.Model):
     startDate = db.Column(db.DateTime, nullable=False)
     endDate = db.Column(db.DateTime, nullable=False)
 
+class GroupToEvent(db.Model):
+     __tablename__ = 'GroupToEvent'
+     groupId = db.Column(db.Text, db.foreignKey(Group.id), nullable=False, primary_key=True)
+     eventId = db.Column(db.Integer, db.foreignKey(Event.id), nullable=False, primary_key=True)
+
 class Item(db.Model):
     __tablename__ = 'Item'
     id = db.Column(db.Integer, primary_key=True)
-    description = db.Column(db.Unicode, nullable=False)
+    description = db.Column(db.Text, nullable=False)
     amountNeeded = db.Column(db.Integer, nullable=False)
     quantityAccountFor = db.Column(db.Integer, nullable=False)
     isFull = db.Column(db.Boolean, nullable=False)
@@ -82,15 +93,15 @@ class Item(db.Model):
 class UserItem(db.Model):
     __tablename__ = 'UserItem'
     item = db.Column(db.Integer, db.ForeignKey(Item.id), primary_key=True)
-    user = db.Column(db.Unicode, db.ForeignKey(User.email), primary_key=True)
+    user = db.Column(db.Text, db.ForeignKey(User.email), primary_key=True)
     quantity = db.Column(db.Integer, nullable=False)
 
 class EventInfo(db.Model):
   tablename = 'EventInfo'
   id = db.Column(db.Integer, primary_key=True)
-  title = db.Column(db.Unicode, nullable=False)
-  description = db.Column(db.Unicode, nullable=False)
-  location = db.Column(db.Unicode, nullable=False)
+  title = db.Column(db.Text, nullable=False)
+  description = db.Column(db.Text, nullable=False)
+  location = db.Column(db.Text, nullable=False)
   RSVPlimit = db.Column(db.Integer, nullable=False)
   isPrivate = db.Column(db.Boolean, nullable=False)
   isWeatherDependent = db.Column(db.Boolean, nullable=False)
@@ -126,8 +137,8 @@ class Message(db.Model):
     __tablename__ = 'Messages'
     id = db.Column(db.Integer, primary_key=True)
     isReported = db.Column(db.Boolean, nullable=False)
-    senderEmail = db.Column(db.Unicode, db.ForeignKey(User.email),)
-    timeSent = db.Column(db.Unicode, nullable=False)
+    senderEmail = db.Column(db.Text, db.ForeignKey(User.email),)
+    timeSent = db.Column(db.Text, nullable=False)
     chat = db.Column(db.Integer, db.ForeignKey(Chat.id))
 
 class NotificationType(enum.Enum):
@@ -138,11 +149,11 @@ class NotificationType(enum.Enum):
 class Notifications(db.Model):
     __tablename__ = 'Notifications'
     id = db.Column(db.Integer, primary_key=True)
-    message = db.Column(db.Unicode, nullable=False)
+    message = db.Column(db.Text, nullable=False)
     dateTime = db.Column(db.DateTime)
-    linkToEvent = db.Column(db.Unicode, nullable=True)
-    linkToUser = db.Column(db.Unicode, nullable=True)
-    profileId = db.Column(db.Unicode, db.ForeignKey(Profile.id), primary_key=True)
+    linkToEvent = db.Column(db.Text, nullable=True)
+    linkToUser = db.Column(db.Text, nullable=True)
+    profileId = db.Column(db.Text, db.ForeignKey(Profile.id), primary_key=True)
     type = db.Column(db.Enum(NotificationType), nullable=False)
 
 with app.app_context():
