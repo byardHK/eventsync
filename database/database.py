@@ -83,6 +83,7 @@ class UserItem(db.Model):
     __tablename__ = 'UserItem'
     item = db.Column(db.Integer, db.ForeignKey(Item.id), primary_key=True)
     user = db.Column(db.Unicode, db.ForeignKey(User.email), primary_key=True)
+    quantity = db.Column(db.Integer, nullable=False)
 
 class EventInfo(db.Model):
   tablename = 'EventInfo'
