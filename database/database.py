@@ -98,15 +98,20 @@ class EventInfo(db.Model):
 
 class EventToEventInfo(db.Model):
    tablename = 'EventToEventInfo'
-   id = db.Column(db.Integer, primary_key=True)
    eventId = db.Column(db.Integer, db.ForeignKey(Event.id), primary_key=True)
    eventInfoId = db.Column(db.Integer, db.ForeignKey(EventInfo.id), primary_key=True)
 
-class Tags(db.Model):
-    tablename = 'Tags'
+class Tag(db.Model):
+    tablename = 'Tag'
     id = db.Column(db.Integer, primary_key=True)
     value = db.Column(db.Text, nullable=False)
     owner = db.Column(db.Text, nullable=False)
+    frequency = db.Column(db.Integer, nullable=False)
+
+class TagToEventInfo(db.Model):
+   tablename = 'EventToEventInfo'
+   tag = db.Column(db.Integer, db.ForeignKey(Tag.id), primary_key=True)
+   eventInfo = db.Column(db.Integer, db.ForeignKey(EventInfo.id), primary_key=True)
 
 class Chat(db.Model):
     tablename = 'Chats'
