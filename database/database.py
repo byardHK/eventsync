@@ -64,7 +64,7 @@ class Group(db.Model):
 
 class UserToGroup(db.Model):
     __tablename__ = 'UserToGroup'
-    groupId = db.Column(db.Integer, db.foreignKey(Group.id), nullable=False, primary_key=True)
+    groupId = db.Column(db.Integer, db.ForeignKey(Group.id), nullable=False, primary_key=True)
     userId = db.Column(db.Text, db.ForeignKey(User.email), nullable=False, primary_key=True)
 
 
@@ -78,8 +78,8 @@ class Event(db.Model):
 
 class GroupToEvent(db.Model):
      __tablename__ = 'GroupToEvent'
-     groupId = db.Column(db.Text, db.foreignKey(Group.id), nullable=False, primary_key=True)
-     eventId = db.Column(db.Integer, db.foreignKey(Event.id), nullable=False, primary_key=True)
+     groupId = db.Column(db.Text, db.ForeignKey(Group.id), nullable=False, primary_key=True)
+     eventId = db.Column(db.Integer, db.ForeignKey(Event.id), nullable=False, primary_key=True)
 
 class Item(db.Model):
     __tablename__ = 'Item'
