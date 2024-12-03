@@ -11,15 +11,19 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+class Base(db.Model):
+    __abstract__ = True
 
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
-class User(db.Model):
+class User(Base):
 	__tablename__ = 'Users'
 	email = db.Column(db.Text, primary_key=True)
 	fname = db.Column(db.Text, nullable=False)
 	lname = db.Column(db.Text, nullable=False)
 	
-class Friend(db.Model):
+class Friend(Base):
 	__tablename__ = 'Friends'
 	user1 = db.Column(db.Text, db.ForeignKey(User.email), primary_key=True)
 	user2 = db.Column(db.Text, db.ForeignKey(User.email), primary_key=True)
@@ -30,7 +34,7 @@ class ReportType(enum.Enum):
     event = 2
     group = 3
 
-class Report(db.Model):
+class Report(Base):
     tablename = 'Reports'
     id = db.Column(db.Integer, primary_key=True)
     reportedBy = db.Column(db.Text, db.ForeignKey(User.email), nullable=False)
@@ -41,7 +45,7 @@ class Report(db.Model):
     type = db.Column(db.Enum(ReportType), nullable=False)
     date = db.Column(db.DateTime, nullable=False)
 
-class Profile(db.Model):
+class Profile(Base):
     __tablename__ = 'Profile'
     id = db.Column(db.Integer, db.ForeignKey(User.email), primary_key=True)
     isPublic = db.Column(db.Boolean, nullable=False)
@@ -54,7 +58,7 @@ class Profile(db.Model):
     # user = db.relationship('User', backref='profile')
 
 
-class Group(db.Model):
+class Group(Base):
     __tablename__ = 'Group'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
@@ -62,13 +66,13 @@ class Group(db.Model):
     # chat = db.relationship('Chat', backref='group')
     # user = db.relationship('User', backref='group')
 
-class UserToGroup(db.Model):
+class UserToGroup(Base):
     __tablename__ = 'UserToGroup'
     groupId = db.Column(db.Integer, db.ForeignKey(Group.id), nullable=False, primary_key=True)
     userId = db.Column(db.Text, db.ForeignKey(User.email), nullable=False, primary_key=True)
 
 
-class Event(db.Model):
+class Event(Base):
     tablename = 'Event'
     id = db.Column(db.Integer, primary_key=True)
     groupId = db.Column(db.Integer, nullable = False)
@@ -76,12 +80,12 @@ class Event(db.Model):
     startDate = db.Column(db.DateTime, nullable=False)
     endDate = db.Column(db.DateTime, nullable=False)
 
-class GroupToEvent(db.Model):
+class GroupToEvent(Base):
      __tablename__ = 'GroupToEvent'
      groupId = db.Column(db.Text, db.ForeignKey(Group.id), nullable=False, primary_key=True)
      eventId = db.Column(db.Integer, db.ForeignKey(Event.id), nullable=False, primary_key=True)
 
-class Item(db.Model):
+class Item(Base):
     __tablename__ = 'Item'
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.Text, nullable=False)
@@ -90,23 +94,23 @@ class Item(db.Model):
     isFull = db.Column(db.Boolean, nullable=False)
     event = db.Column(db.Integer, db.ForeignKey(Event.id))
 
-class UserItem(db.Model):
+class UserItem(Base):
     __tablename__ = 'UserItem'
     item = db.Column(db.Integer, db.ForeignKey(Item.id), primary_key=True)
     user = db.Column(db.Text, db.ForeignKey(User.email), primary_key=True)
     quantity = db.Column(db.Integer, nullable=False)
 
-class UserHostsEvent(db.Model):
+class UserHostsEvent(Base):
     __tablename__ = 'UserHostsEvent'
     event = db.Column(db.Integer, db.ForeignKey(Event.id), primary_key=True)
     host = db.Column(db.Unicode, db.ForeignKey(User.email), primary_key=True)
 
-class UserAttendsEvent(db.Model):
+class UserAttendsEvent(Base):
     __tablename__ = 'UserAttendsEvent'
     event = db.Column(db.Integer, db.ForeignKey(Event.id), primary_key=True)
     attendee = db.Column(db.Unicode, db.ForeignKey(User.email), primary_key=True)
 
-class EventInfo(db.Model):
+class EventInfo(Base):
   tablename = 'EventInfo'
   id = db.Column(db.Integer, primary_key=True)
   title = db.Column(db.Text, nullable=False)
@@ -117,33 +121,33 @@ class EventInfo(db.Model):
   isWeatherDependent = db.Column(db.Boolean, nullable=False)
   numTimesReported = db.Column(db.Integer, nullable=False)
 
-class EventToEventInfo(db.Model):
+class EventToEventInfo(Base):
    tablename = 'EventToEventInfo'
    eventId = db.Column(db.Integer, db.ForeignKey(Event.id), primary_key=True)
    eventInfoId = db.Column(db.Integer, db.ForeignKey(EventInfo.id), primary_key=True)
 
-class Tag(db.Model):
+class Tag(Base):
     tablename = 'Tag'
     id = db.Column(db.Integer, primary_key=True)
     value = db.Column(db.Text, nullable=False)
     owner = db.Column(db.Text, nullable=False)
     frequency = db.Column(db.Integer, nullable=False)
 
-class TagToEventInfo(db.Model):
+class TagToEventInfo(Base):
    tablename = 'TagToEventInfo'
    tag = db.Column(db.Integer, db.ForeignKey(Tag.id), primary_key=True)
    eventInfo = db.Column(db.Integer, db.ForeignKey(EventInfo.id), primary_key=True)
 
-class TagToProfile(db.Model):
+class TagToProfile(Base):
    tablename = 'TagToProfile'
    tag = db.Column(db.Integer, db.ForeignKey(Tag.id), primary_key=True)
    profile = db.Column(db.Integer, db.ForeignKey(Profile.id), primary_key=True)
 
-class Chat(db.Model):
+class Chat(Base):
     tablename = 'Chats'
     id = db.Column(db.Integer, primary_key=True)
 
-class Message(db.Model):
+class Message(Base):
     __tablename__ = 'Messages'
     id = db.Column(db.Integer, primary_key=True)
     isReported = db.Column(db.Boolean, nullable=False)
@@ -156,7 +160,7 @@ class NotificationType(enum.Enum):
     receiveFriendRequest = 2
     eventCancellation = 3
 
-class Notifications(db.Model):
+class Notifications(Base):
     __tablename__ = 'Notifications'
     id = db.Column(db.Integer, primary_key=True)
     message = db.Column(db.Text, nullable=False)
@@ -180,6 +184,9 @@ with app.app_context():
 		Friend(user1="3", user2="2", isFriend=False),	
     ]
 
+    user = User(email="1", fname="f", lname="l")
+    print(user.to_dict())
+    
     db.session.add_all(users)
 
     db.session.commit()
