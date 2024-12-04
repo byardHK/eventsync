@@ -1,8 +1,7 @@
 import mysql.connector
 
-# Replace with your actual details
 db_config = {
-    'host': '10.18.101.62',  # VM's public IP
+    'host': '10.18.101.62',  
     'port': 3306,
     'user': 'jminnich1',
     'password': 'EventSync1!@',
