@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Link } from "react-router-dom";
+import Box from '@mui/material/Box';
 
 function HomePage() {
     return <>
-        <h1>Home Page</h1>
-        <EventList/>
-        <Link to="/createEvent">Create Event Page</Link>
+        <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center" 
+            justifyContent="center"
+        >
+            <h1>Home Page</h1>
+            <EventList/>
+            <Link to="/createEvent">Create Event Page</Link>
+        </Box>
     </>;
 };
 
