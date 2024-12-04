@@ -1,9 +1,17 @@
+import HomePage from "./HomePage";
+import CreateEventPage from "./CreateEventPage";
+import { BrowserRouter, Routes, Route } from "react-router-dom"
+
+
 function App() {
   return (
-    <>
-      <h1>EventSync</h1>
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomePage/>}/>
+        <Route path="/createEvent" element={<CreateEventPage/>}/>
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App
