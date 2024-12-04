@@ -2,6 +2,7 @@ import HomePage from "./HomePage";
 import CreateEventPage from "./CreateEventPage";
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 
+
 function App() {
   return (
     <BrowserRouter>
@@ -13,4 +14,4 @@ function App() {
   );
 }
 
-export default App;
+export default App
