@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from "react-router-dom";
 import Box from '@mui/material/Box';
+import axios from "axios";
 
 function HomePage() {
     return <>
@@ -21,7 +22,16 @@ function EventList() {
     const [events, setEvents] = useState<EventSyncEvent[]>([]);    
 
     useEffect(() => {
-        flask_getEvents().then(setEvents);
+        const fetchData = async () => {
+          try {
+            const response = await axios.get('http://localhost:5000/get_events'); // Replace with your API endpoint
+            const res: EventSyncEvent[] = response.data.events;
+            setEvents(res);
+          } catch (error) {
+            console.error('Error fetching data:', error);
+          }
+        };
+        fetchData();
     }, []);
 
     return <ul>
@@ -31,22 +41,23 @@ function EventList() {
     </ul>;
 };
 
-async function flask_getEvents() : Promise<EventSyncEvent[]> {
-    return [
-        {
-            eventName: "Event 1",
-            attendees: 2
-        },
-        {
-            eventName: "Event 2",
-            attendees: 3
-        },
-    ];
-};
-
 type EventSyncEvent = {
     eventName : String;
     attendees : Number;
+}
+
+/**
+ * Validate a response to ensure the HTTP status code indcates success.
+ * 
+ * @param {Response} response HTTP response to be checked
+ * @returns {object} object encoded by JSON in the response
+ */
+async function validateJSON(response: Response) {
+    if (response.ok) {
+        return response.json();
+    } else {
+        return Promise.reject(response);
+    }
 }
 
 export default HomePage;
