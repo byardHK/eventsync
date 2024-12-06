@@ -17,10 +17,6 @@ try:
     conn = mysql.connector.connect(**db_config)
     print("Connection successful!")
     mycursor = conn.cursor()
-    mycursor.execute("SELECT * FROM User")
-    myresult = mycursor.fetchall()
-    for x in myresult:
-        print(x)
 except mysql.connector.Error as err:
     print(f"Error: {err}")
 
