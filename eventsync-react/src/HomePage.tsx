@@ -24,8 +24,8 @@ function EventList() {
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const response = await axios.get('http://localhost:5000/get_events'); // Replace with your API endpoint
-            const res: EventSyncEvent[] = response.data.events;
+            const response = await axios.get('http://localhost:5000/get_events');
+            const res: EventSyncEvent[] = response.data;
             setEvents(res);
           } catch (error) {
             console.error('Error fetching data:', error);
@@ -36,14 +36,16 @@ function EventList() {
 
     return <ul>
         {events.map((event) =>
-            <li>{`Name: ${event.eventName} | Attendees: ${event.attendees}`}</li>
+            <li>{`Name: ${event.eventName} | Start Date: ${event.startTime} | End Date: ${event.endTime}`}</li>
         )}
     </ul>;
 };
 
 type EventSyncEvent = {
     eventName : String;
-    attendees : Number;
+    // attendees : Number; TODO
+    startTime: String;
+    endTime: String;
 }
 
 export default HomePage;

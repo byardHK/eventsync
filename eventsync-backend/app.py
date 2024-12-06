@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request, jsonify
 import mysql.connector
 from flask_cors import CORS
 
@@ -16,22 +16,28 @@ db_config = {
 try:
     conn = mysql.connector.connect(**db_config)
     print("Connection successful!")
+    mycursor = conn.cursor()
+    mycursor.execute("SELECT * FROM User")
+    myresult = mycursor.fetchall()
+    for x in myresult:
+        print(x)
 except mysql.connector.Error as err:
     print(f"Error: {err}")
 
 @app.route('/get_events/')
 def get_events():
+    mycursor.execute("""
+                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName
+                        from Event
+                        JOIN EventInfo 
+                        ON Event.eventInfoId = EventInfo.id
+                     """)
+    return sqlResponseToJson(mycursor.fetchall())
 
-    # Returning an api for showing in  reactjs
-    return {
-        "events": [
-        {
-            "eventName": "Event 3",
-            "attendees": 5
-        },
-        {
-            "eventName": "Event 4",
-            "attendees": 6
-        },
-    ]
-        }
+# Returns the response of a SQL query as a JSON
+def sqlResponseToJson(response):
+    fields = [x[0] for x in mycursor.description]
+    arr = []
+    for result in response:
+        arr.append(dict(zip(fields,result)))
+    return jsonify(arr)
