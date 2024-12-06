@@ -1,4 +1,6 @@
 from flask import Flask, request, jsonify
+# INSTALL THESE:
+# pip install mysql-connector-python
 import mysql.connector
 from flask_cors import CORS
 
