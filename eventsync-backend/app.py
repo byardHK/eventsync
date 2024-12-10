@@ -34,6 +34,74 @@ def get_events():
         print(f"Error: {err}")
     return {}
 
+@app.route('/get_users/')
+def get_users():
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("""
+                        SELECT id, fname, lname 
+                        FROM User
+                     """)
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        res = sqlResponseToJson(response, headers)
+        return res
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_friends/')
+def get_friends():
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("""
+                        
+                     """)
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        res = sqlResponseToJson(response, headers)
+        return res
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/delete_one_event/<int:eventId>')
+def delete_one_event(eventId):
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("""
+                        DELETE FROM Event
+                        WHERE id = {eventId};
+                     """)
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        res = sqlResponseToJson(response, headers)
+        return res
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/delete_multiple_events/<int:eventInfoId>')
+def delete_one_event(eventInfoId):
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("""
+                        DELETE FROM Event
+                        WHERE eventInfoId = {eventInfoId};
+                     """)
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        res = sqlResponseToJson(response, headers)
+        return res
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+
 # Returns the response of a SQL query as a JSON
 def sqlResponseToJson(response, headers):
     fields = [x[0] for x in headers]
