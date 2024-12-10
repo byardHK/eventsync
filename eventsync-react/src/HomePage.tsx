@@ -14,6 +14,7 @@ function HomePage() {
             <h1>Home Page</h1>
             <EventList/>
             <Link to="/createEvent">Create Event Page</Link>
+            <Link to="/friendsPage">Friends Page</Link>
         </Box>
     </>;
 };
