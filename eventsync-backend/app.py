@@ -1,3 +1,4 @@
+from flask import Flask, request, jsonify, Response
 from flask import Flask, request, jsonify
 # INSTALL THESE:
 # pip install mysql-connector-python
@@ -41,3 +42,31 @@ def sqlResponseToJson(response, headers):
     for result in response:
         arr.append(dict(zip(fields,result)))
     return jsonify(arr)
+
+@app.route('/post_event/')
+def getpost_event():
+    return "You should not be here..."
+
+@app.before_request
+def basic_authentication():
+    if request.method.lower() == 'options':
+        return Response()
+
+@app.post('/post_event/')
+def post_event():
+    res = request.json
+    # f = open("verify.txt", "w")
+    # f.write(res)
+    # f.close()
+    # TODO: save data to database
+    conn = mysql.connector.connect(**db_config)
+    mycursor = conn.cursor()
+    # mycursor.execute("""
+    #                 INSERT INTO EventInfo (CustomerName, ContactName, Address, City, PostalCode, Country)
+    #                 VALUES ('Cardinal', 'Tom B. Erichsen', 'Skagen 21', 'Stavanger', '4006', 'Norway');
+    #                 SELECT Event.startTime, Event.endTime, EventInfo.title as eventName
+    #                 from Event
+    #                 JOIN EventInfo 
+    #                 ON Event.eventInfoId = EventInfo.id
+    #             """)
+    return res, 201

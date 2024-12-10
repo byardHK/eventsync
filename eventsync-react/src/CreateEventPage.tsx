@@ -12,6 +12,29 @@ function CreateEventPage() {
     const [locationText, setLocationText] = useState<String>("");      
     const [tags, setTags] = useState<String[]>([]); 
 
+<<<<<<< Updated upstream
+=======
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+    
+        try {
+            const data = {
+                "eventName": "Event 4",
+                "attendees": 6
+            }
+            const response = await fetch('http://localhost:5000/post_event', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+            console.log('Data sent successfully:', response.json());
+        } catch (error) {
+          console.error('Error sending data:', error);
+        }
+    };
+>>>>>>> Stashed changes
     return <>
         <Box
             display="flex"
