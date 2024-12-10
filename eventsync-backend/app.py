@@ -15,22 +15,24 @@ db_config = {
     'database': 'event_sync'
 }
 
-try:
-    conn = mysql.connector.connect(**db_config)
-    print("Connection successful!")
-    mycursor = conn.cursor()
-except mysql.connector.Error as err:
-    print(f"Error: {err}")
-
 @app.route('/get_events/')
 def get_events():
-    mycursor.execute("""
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("""
                         SELECT Event.startTime, Event.endTime, EventInfo.title as eventName
                         from Event
                         JOIN EventInfo 
                         ON Event.eventInfoId = EventInfo.id
                      """)
-    return sqlResponseToJson(mycursor.fetchall())
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        res = sqlResponseToJson(response, headers)
+        return res
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
 
 # Returns the response of a SQL query as a JSON
 def sqlResponseToJson(response):
