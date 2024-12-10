@@ -35,8 +35,8 @@ def get_events():
     return {}
 
 # Returns the response of a SQL query as a JSON
-def sqlResponseToJson(response):
-    fields = [x[0] for x in mycursor.description]
+def sqlResponseToJson(response, headers):
+    fields = [x[0] for x in headers]
     arr = []
     for result in response:
         arr.append(dict(zip(fields,result)))
