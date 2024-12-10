@@ -1,5 +1,6 @@
 import HomePage from "./HomePage";
 import CreateEventPage from "./CreateEventPage";
+import FriendsPage from "./FriendsPage"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 
 
@@ -9,6 +10,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage/>}/>
         <Route path="/createEvent" element={<CreateEventPage/>}/>
+        <Route path="/friends" element={<FriendsPage/>}/>
       </Routes>
     </BrowserRouter>
   );

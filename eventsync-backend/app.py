@@ -1,3 +1,4 @@
+from flask import Flask, request, jsonify, Response
 from flask import Flask, request, jsonify
 # INSTALL THESE:
 # pip install mysql-connector-python
@@ -109,3 +110,17 @@ def sqlResponseToJson(response, headers):
     for result in response:
         arr.append(dict(zip(fields,result)))
     return jsonify(arr)
+
+@app.route('/post_event/')
+def getpost_event():
+    return "You should not be here..."
+
+@app.before_request
+def basic_authentication():
+    if request.method.lower() == 'options':
+        return Response()
+
+@app.post('/post_event/')
+def post_event():
+    res = request.json
+    return res, 201

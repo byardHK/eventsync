@@ -14,6 +14,7 @@ function HomePage() {
             <h1>Home Page</h1>
             <EventList/>
             <Link to="/createEvent">Create Event Page</Link>
+            <Link to="/friendsPage">Friends Page</Link>
         </Box>
     </>;
 };
@@ -35,8 +36,8 @@ function EventList() {
     }, []);
 
     return <ul>
-        {events.map((event) =>
-            <li>{`Name: ${event.eventName} | Start Date: ${event.startTime} | End Date: ${event.endTime}`}</li>
+        {events.map((event, index) =>
+            <li key={index}>{`Name: ${event.eventName} | Start Date: ${event.startTime} | End Date: ${event.endTime}`}</li>
         )}
     </ul>;
 };

@@ -12,6 +12,29 @@ function CreateEventPage() {
     const [locationText, setLocationText] = useState<String>("");      
     const [tags, setTags] = useState<String[]>([]); 
 
+    const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
+
+        e.preventDefault();
+        console.log("It worked!");
+    
+        try {
+            const data = {
+                "eventName": "Event 4",
+                "attendees": 6
+            }
+            const response = await fetch('http://localhost:5000/post_event', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+            console.log('Data sent successfully:', response.json());
+        } catch (error) {
+          console.error('Error sending data:', error);
+        }
+    };
+
     return <>
         <Box
             display="flex"
@@ -67,7 +90,9 @@ function CreateEventPage() {
                 sx={{ width: '500px' }}
                 onChange={(_event, value) => { setTags(value); }} 
             />
-            <Button variant="contained">Submit</Button>
+            {/* <Button variant="contained" onChange={(e) => handleSubmit(e) }>Submit</Button> */}
+            <Button variant="contained" onClick={(e) => handleSubmit(e) }>Submit</Button>
+
             <Link to="/">Home Page</Link>
       </Box>
     </>;
