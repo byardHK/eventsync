@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify
 # pip install mysql-connector-python
 import mysql.connector
 from flask_cors import CORS
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
@@ -58,12 +59,19 @@ def post_event():
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+        dateStr = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         insertEventInfo = f"""
                         INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated)
-                        VALUES ("harnlyam20@gcc.edu", 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "2024-12-09");
+                        VALUES ("harnlyam20@gcc.edu", 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{dateStr}");
                      """
         insertEvent = """INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
                         VALUES (last_insert_id(), "2024-12-10 14:00:00", "2024-12-10 18:00:00", "2024-12-10 10:00:00");"""
+        # tags = data["tags"]
+        # for tag in tags:
+        #     insertTag = """
+        #                 INSERT INTO Tag (name, numTimesUsed, userId)
+        #                 VALUES ("{tag}", 0, 1)
+        #              """
         mycursor.execute(insertEventInfo)
         mycursor.execute(insertEvent)
         conn.commit()
