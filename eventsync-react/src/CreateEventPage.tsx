@@ -15,7 +15,6 @@ function CreateEventPage() {
     const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
 
         e.preventDefault();
-        console.log("It worked!");
     
         try {
             const data = {

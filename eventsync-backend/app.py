@@ -132,7 +132,7 @@ def post_event():
                         INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated)
                         VALUES ("harnlyam20@gcc.edu", 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{dateStr}");
                      """
-        insertEvent = """INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
+        insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
                         VALUES (last_insert_id(), "2024-12-10 14:00:00", "2024-12-10 18:00:00", "{dateStr}");"""
         mycursor.execute(insertEventInfo)
         mycursor.execute(insertEvent)
