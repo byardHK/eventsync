@@ -55,7 +55,6 @@ def basic_authentication():
 @app.post('/post_event/')
 def post_event():
     data = request.json
-    # data = res.body
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -65,12 +64,9 @@ def post_event():
                      """
         insertEvent = """INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
                         VALUES (last_insert_id(), "2024-12-10 14:00:00", "2024-12-10 18:00:00", "2024-12-10 10:00:00");"""
-        mycursor.execute([insertEventInfo, insertEvent])
+        mycursor.execute(insertEventInfo)
+        mycursor.execute(insertEvent)
         conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
-    # EventInfo
-    #     have: title, locationName, 
     return data, 201
-    return data["title"]
-    return 
