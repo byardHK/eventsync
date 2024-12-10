@@ -35,8 +35,8 @@ function EventList() {
     }, []);
 
     return <ul>
-        {events.map((event) =>
-            <li>{`Name: ${event.eventName} | Start Date: ${event.startTime} | End Date: ${event.endTime}`}</li>
+        {events.map((event, index) =>
+            <li key={index}>{`Name: ${event.eventName} | Start Date: ${event.startTime} | End Date: ${event.endTime}`}</li>
         )}
     </ul>;
 };
