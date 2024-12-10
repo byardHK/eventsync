@@ -19,8 +19,10 @@ function CreateEventPage() {
     
         try {
             const data = {
-                "eventName": "Event 4",
-                "attendees": 6
+                "title": titleText,
+                "date": dateText,
+                "locationName": locationText,
+                "tags": tags
             }
             const response = await fetch('http://localhost:5000/post_event', {
                 method: 'POST',
