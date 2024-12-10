@@ -92,7 +92,6 @@ function CreateEventPage() {
                 sx={{ width: '500px' }}
                 onChange={(_event, value) => { setTags(value); }} 
             />
-            {/* <Button variant="contained" onChange={(e) => handleSubmit(e) }>Submit</Button> */}
             <Button variant="contained" onClick={(e) => handleSubmit(e) }>Submit</Button>
 
             <Link to="/">Home Page</Link>

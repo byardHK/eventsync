@@ -66,12 +66,6 @@ def post_event():
                      """
         insertEvent = """INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
                         VALUES (last_insert_id(), "2024-12-10 14:00:00", "2024-12-10 18:00:00", "{dateStr}");"""
-        # tags = data["tags"]
-        # for tag in tags:
-        #     insertTag = """
-        #                 INSERT INTO Tag (name, numTimesUsed, userId)
-        #                 VALUES ("{tag}", 0, 1)
-        #              """
         mycursor.execute(insertEventInfo)
         mycursor.execute(insertEvent)
         conn.commit()
