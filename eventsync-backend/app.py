@@ -65,7 +65,7 @@ def post_event():
                         VALUES ("harnlyam20@gcc.edu", 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{dateStr}");
                      """
         insertEvent = """INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
-                        VALUES (last_insert_id(), "2024-12-10 14:00:00", "2024-12-10 18:00:00", "2024-12-10 10:00:00");"""
+                        VALUES (last_insert_id(), "2024-12-10 14:00:00", "2024-12-10 18:00:00", "{dateStr}");"""
         # tags = data["tags"]
         # for tag in tags:
         #     insertTag = """
