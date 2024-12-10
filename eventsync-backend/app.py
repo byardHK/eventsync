@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify
 # pip install mysql-connector-python
 import mysql.connector
 from flask_cors import CORS
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
@@ -122,5 +123,20 @@ def basic_authentication():
 
 @app.post('/post_event/')
 def post_event():
-    res = request.json
-    return res, 201
+    data = request.json
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        dateStr = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        insertEventInfo = f"""
+                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated)
+                        VALUES ("harnlyam20@gcc.edu", 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{dateStr}");
+                     """
+        insertEvent = """INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
+                        VALUES (last_insert_id(), "2024-12-10 14:00:00", "2024-12-10 18:00:00", "{dateStr}");"""
+        mycursor.execute(insertEventInfo)
+        mycursor.execute(insertEvent)
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return data, 201
