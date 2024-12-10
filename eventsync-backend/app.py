@@ -87,7 +87,7 @@ def delete_one_event(eventId):
     return {}
 
 @app.route('/delete_multiple_events/<int:eventInfoId>')
-def delete_one_event(eventInfoId):
+def delete_mult_event(eventInfoId):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
