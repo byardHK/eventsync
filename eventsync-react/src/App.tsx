@@ -10,7 +10,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage/>}/>
         <Route path="/createEvent" element={<CreateEventPage/>}/>
-        <Route path="/friends" element={<FriendsPage/>}/>
+        <Route path="/friendsPage" element={<FriendsPage/>}/>
       </Routes>
     </BrowserRouter>
   );

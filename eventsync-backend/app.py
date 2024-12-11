@@ -59,7 +59,19 @@ def get_friends():
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         mycursor.execute("""
-                        
+                        SELECT u.fname, u.lname, u.bio
+                        FROM User u
+                        WHERE u.id IN (
+                            SELECT user2ID 
+                            FROM UserToUser 
+                            WHERE user1ID = 'wolfebd@gcc.edu' 
+                            AND isFriend = true
+                            UNION
+                            SELECT user1ID 
+                            FROM UserToUser 
+                            WHERE user2ID = 'wolfebd@gcc.edu' 
+                            AND isFriend = true
+                        );
                      """)
         response = mycursor.fetchall()
         headers = mycursor.description
@@ -69,7 +81,7 @@ def get_friends():
         print(f"Error: {err}")
     return {}
 
-@app.route('/delete_one_event/<int:eventId>')
+@app.route('/delete_one_event/<int:eventId>/')
 def delete_one_event(eventId):
     try:  
         conn = mysql.connector.connect(**db_config)
@@ -78,15 +90,12 @@ def delete_one_event(eventId):
                         DELETE FROM Event
                         WHERE id = {eventId};
                      """)
-        response = mycursor.fetchall()
-        headers = mycursor.description
-        res = sqlResponseToJson(response, headers)
-        return res
+        conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
 
-@app.route('/delete_multiple_events/<int:eventInfoId>')
+@app.route('/delete_multiple_events/<int:eventInfoId>/')
 def delete_mult_event(eventInfoId):
     try:  
         conn = mysql.connector.connect(**db_config)
@@ -96,9 +105,7 @@ def delete_mult_event(eventInfoId):
                         WHERE eventInfoId = {eventInfoId};
                      """)
         response = mycursor.fetchall()
-        headers = mycursor.description
-        res = sqlResponseToJson(response, headers)
-        return res
+        conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
