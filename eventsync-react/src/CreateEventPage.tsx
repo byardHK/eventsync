@@ -30,10 +30,18 @@ function CreateEventPage() {
                 },
                 body: JSON.stringify(data),
             });
-            console.log('Data sent successfully:', response.json());
+            if(response.ok){
+                console.log('Data sent successfully:', response.json());
+                setTitleText("");
+                setDateText("");
+                setLocationText("");
+                setTags([]);
+            }
+           
         } catch (error) {
           console.error('Error sending data:', error);
         }
+          
     };
 
     return <>
