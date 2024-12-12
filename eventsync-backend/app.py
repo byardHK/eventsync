@@ -64,12 +64,12 @@ def get_friends():
                         WHERE u.id IN (
                             SELECT user2ID 
                             FROM UserToUser 
-                            WHERE user1ID = 'wolfebd@gcc.edu' 
+                            WHERE user1ID = 5
                             AND isFriend = true
                             UNION
                             SELECT user1ID 
                             FROM UserToUser 
-                            WHERE user2ID = 'wolfebd@gcc.edu' 
+                            WHERE user2ID = 5
                             AND isFriend = true
                         );
                      """)
