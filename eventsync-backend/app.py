@@ -81,21 +81,25 @@ def get_friends():
         print(f"Error: {err}")
     return {}
 
-@app.route('/delete_one_event/<int:eventId>/')
+@app.route('/delete_one_event/<int:eventId>/', methods=['DELETE'])
 def delete_one_event(eventId):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute("""
-                        DELETE FROM Event
-                        WHERE id = {eventId};
-                     """)
+        mycursor.execute("DELETE FROM EventToUser WHERE eventId = %s", (eventId,))
+        mycursor.execute("DELETE FROM Event WHERE id = %s", (eventId,))
         conn.commit()
+
+        if mycursor.rowcount == 0:
+            return jsonify({"Message":"Event not found"}), 404
+        else:
+            return jsonify({"Message":"Event deleted successfully"}), 200
+        
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
 
-@app.route('/delete_multiple_events/<int:eventInfoId>/')
+@app.route('/delete_multiple_events/<int:eventInfoId>/', methods=['DELETE'])
 def delete_mult_event(eventInfoId):
     try:  
         conn = mysql.connector.connect(**db_config)
