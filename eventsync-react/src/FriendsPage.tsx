@@ -11,6 +11,8 @@ function FriendsPage() {
             alignItems="center" 
             justifyContent="center"
         >
+            <h1>Users to friend</h1>
+            <UserList/>
             <h1>Friends of Current User</h1>
             <FriendsList/>
             <Link to="/">Home Page</Link>
@@ -41,6 +43,28 @@ function FriendsList() {
     </ul>;
 };
 
+function UserList() {
+    const [users, getUsers] = useState<EventSyncUser[]>([]);    
+
+    useEffect(() => {
+        const fetchData = async () => {
+          try {
+            const response = await axios.get('http://localhost:5000/get_users/');
+            const res: EventSyncUser[] = response.data;
+            getUsers(res);
+          } catch (error) {
+            console.error('Error fetching data:', error);
+          }
+        };
+        fetchData();
+    }, []);
+
+    return <ul>
+        {users.map((user, index) =>
+            <li key={index}>{`User name: ${user.fname} ${user.lname}`}</li>
+        )}
+    </ul>;
+};
 
 enum NotificationFrequency{
     None = "none",

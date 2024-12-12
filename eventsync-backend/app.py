@@ -81,6 +81,22 @@ def get_friends():
         print(f"Error: {err}")
     return {}
 
+@app.route('/add_friend/<String: friendEmail>/')
+def add_friend(friendEmail):
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("""
+                            INSERT INTO UserToUser(user1Id, user2Id, isFriend)
+                            SELECT 5, id, TRUE
+                            FROM User
+                            WHERE email = '{friendEmail}';
+                        """)
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
 @app.route('/delete_one_event/<int:eventId>/', methods=['DELETE'])
 def delete_one_event(eventId):
     try:  
