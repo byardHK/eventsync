@@ -23,7 +23,7 @@ def get_events():
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         mycursor.execute("""
-                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName
+                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName,Event.id
                         from Event
                         JOIN EventInfo 
                         ON Event.eventInfoId = EventInfo.id
@@ -81,7 +81,7 @@ def get_friends():
         print(f"Error: {err}")
     return {}
 
-@app.route('/add_friend/<String: friendEmail>/')
+@app.route('/add_friend/<string:friendEmail>/')
 def add_friend(friendEmail):
     try:  
         conn = mysql.connector.connect(**db_config)
@@ -98,7 +98,7 @@ def add_friend(friendEmail):
         print(f"Error: {err}")
     return {}
 
-@app.route('/remove_friend/<String: friendEmail>/')
+@app.route('/remove_friend/<string:friendEmail>/')
 def remove_friend(friendEmail):
     try:
         conn = mysql.connector.connect(**db_config)
@@ -121,6 +121,7 @@ def delete_one_event(eventId):
         mycursor.execute("DELETE FROM EventToItem WHERE eventId = %s", (eventId,))
         mycursor.execute("DELETE FROM EventToUser WHERE eventId = %s", (eventId,))
         mycursor.execute("DELETE FROM Event WHERE id = %s", (eventId,))
+        mycursor.execute
         conn.commit()
 
         if mycursor.rowcount == 0:
