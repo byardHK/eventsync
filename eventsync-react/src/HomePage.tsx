@@ -38,14 +38,12 @@ function EventList() {
 
     return <ul>
         {events.map((event, index) =>
-            <>
-            <Box
+            <Box key={index}
                 display="flex"
                 flexDirection="row">
-                    <li key={index}>{`Name: ${event.eventName} | Start Date: ${event.startTime} | End Date: ${event.endTime}`}</li>
-                    <Button variant="contained" key={index} onClick={() => deleteEvent() }>Delete Event</Button>
+                    <li>{`Name: ${event.eventName} | Start Date: ${event.startTime} | End Date: ${event.endTime}`}</li>
+                    <Button variant="contained" onClick={() => deleteEvent()}>Delete Event</Button>
             </Box>
-            </>
         )}
     </ul>;
 };
