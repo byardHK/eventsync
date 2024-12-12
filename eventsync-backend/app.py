@@ -134,30 +134,18 @@ def delete_one_event(eventId):
     return {}
 
 
-@app.route('/delete_one_event/<int:userId>/', methods=['DELETE'])
+@app.route('/delete_user/<int:userId>/', methods=['DELETE'])
 def delete_user(userId):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute("DELETE FROM UserToTag WHERE userId = %s", (userId,))
-        mycursor.execute("DELETE FROM GroupOfUserToUser WHERE userId = %s", (userId,))
-        mycursor.execute("DELETE FROM ChatToUser WHERE userId = %s", (userId,))
-        mycursor.execute("DELETE FROM EventToUser WHERE userId = %s", (userId,))
-        mycursor.execute("DELETE FROM UserToNotification WHERE userId = %s", (userId,))
-        mycursor.execute("DELETE FROM Report WHERE reportedBy = %s", (userId,))
-        mycursor.execute("DELETE FROM Report WHERE reportedUserId = %s", (userId,))
-        mycursor.execute("DELETE FROM Message WHERE senderId = %s", (userId,))
-        mycursor.execute("DELETE FROM Item WHERE creatorId = %s", (userId,))
-        mycursor.execute("DELETE FROM Tag WHERE userId = %s", (userId,))
-        mycursor.execute("DELETE FROM EventInfo WHERE creatorId = %s", (userId,))
-        mycursor.execute("DELETE FROM UserToUser WHERE creatorId = %s", (userId,))
-        mycursor.execute("DELETE FROM User WHERE userId = %s", (userId,))
+        mycursor.execute("DELETE FROM User WHERE id = %s", (userId,))
         conn.commit()
 
         if mycursor.rowcount == 0:
-            return jsonify({"Message":"Event not found"}), 404
+            return jsonify({"Message":"User not found"}), 404
         else:
-            return jsonify({"Message":"Event deleted successfully"}), 200
+            return jsonify({"Message":"User deleted successfully"}), 200
         
     except mysql.connector.Error as err:
         print(f"Error: {err}")
