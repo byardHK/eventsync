@@ -64,12 +64,12 @@ def get_friends():
                         WHERE u.id IN (
                             SELECT user2ID 
                             FROM UserToUser 
-                            WHERE user1ID = 'wolfebd@gcc.edu' 
+                            WHERE user1ID = 5
                             AND isFriend = true
                             UNION
                             SELECT user1ID 
                             FROM UserToUser 
-                            WHERE user2ID = 'wolfebd@gcc.edu' 
+                            WHERE user2ID = 5
                             AND isFriend = true
                         );
                      """)
@@ -137,10 +137,18 @@ def post_event():
         dateStr = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         insertEventInfo = f"""
                         INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated)
-                        VALUES ("harnlyam20@gcc.edu", 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{dateStr}");
+                        VALUES (1, 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{dateStr}");
                      """
         insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
                         VALUES (last_insert_id(), "2024-12-10 14:00:00", "2024-12-10 18:00:00", "{dateStr}");"""
+        tags = data["tags"]
+        for tag in tags:
+            updateTag = f"""
+                            UPDATE Tag
+                            SET numTimesUsed = numTimesUsed + 1
+                            WHERE name="{tag}"
+                        """
+            mycursor.execute(updateTag)
         mycursor.execute(insertEventInfo)
         mycursor.execute(insertEvent)
         conn.commit()

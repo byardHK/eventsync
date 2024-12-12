@@ -15,7 +15,6 @@ function CreateEventPage() {
     const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
 
         e.preventDefault();
-    
         try {
             const data = {
                 "title": titleText,
@@ -107,9 +106,9 @@ function CreateEventPage() {
 }
 
 const tagOptions = [
-    "movie",
-    "game",
-    "outside"
+    "Movies",
+    "Bible Study",
+    "Games"
 ]
 
 
