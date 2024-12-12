@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from "react-router-dom";
 import Box from '@mui/material/Box';
 import axios from "axios";
+import { Button } from '@mui/material';
 
 function HomePage() {
     return <>
@@ -37,10 +38,21 @@ function EventList() {
 
     return <ul>
         {events.map((event, index) =>
-            <li key={index}>{`Name: ${event.eventName} | Start Date: ${event.startTime} | End Date: ${event.endTime}`}</li>
+            <>
+            <Box
+                display="flex"
+                flexDirection="row">
+                    <li key={index}>{`Name: ${event.eventName} | Start Date: ${event.startTime} | End Date: ${event.endTime}`}</li>
+                    <Button variant="contained" key={index} onClick={() => deleteEvent() }>Delete Event</Button>
+            </Box>
+            </>
         )}
     </ul>;
 };
+
+const deleteEvent = () => {
+
+}
 
 type EventSyncEvent = {
     eventName : String;
