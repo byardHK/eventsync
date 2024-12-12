@@ -10,7 +10,7 @@ function CreateEventPage() {
     const [titleText, setTitleText] = useState<String>("");    
     const [dateText, setDateText] = useState<String>(""); 
     const [locationText, setLocationText] = useState<String>("");      
-    const [tags, setTags] = useState<String[]>([]); 
+    const [tags, setTags] = useState<string[]>([]); 
 
     const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
 
@@ -88,17 +88,18 @@ function CreateEventPage() {
                 multiple
                 id="multiple-limit-tags"
                 options={tagOptions}
+                value={tags}
                 getOptionLabel={(option) => option}
                 renderInput={(params) => (
                     <TextField {...params} label="Tags" 
                         type="text" 
-                        value={tags} 
                     />
                 )}
                 sx={{ width: '500px' }}
-                onChange={(_event, value) => { setTags(value); }} 
+                onChange={(_event, value) => { setTags(value);}} 
             />
-            <Button variant="contained" onClick={(e) => handleSubmit(e) }>Submit</Button>
+            <Button variant="contained" onClick={(e) => handleSubmit(e)}>Submit</Button>
+            
 
             <Link to="/">Home Page</Link>
       </Box>
