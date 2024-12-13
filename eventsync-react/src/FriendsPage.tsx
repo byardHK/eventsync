@@ -4,86 +4,106 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 function FriendsPage() {
-    return <>
+    const [users, setUsers] = useState<EventSyncUser[]>([]);
+    const [friends, setFriends] = useState<EventSyncUser[]>([]);
+
+    const refreshData = async () => {
+        try {
+            const [usersResponse, friendsResponse] = await Promise.all([
+                axios.get('http://localhost:5000/get_users/'),
+                axios.get('http://localhost:5000/get_friends/'),
+            ]);
+
+            setUsers(usersResponse.data);
+            setFriends(friendsResponse.data);
+        } catch (error) {
+            console.error('Error refreshing data:', error);
+        }
+    };
+
+    useEffect(() => {
+        refreshData();
+    }, []);
+
+    return (
         <Box
             display="flex"
             flexDirection="column"
-            alignItems="center" 
+            alignItems="center"
             justifyContent="center"
         >
-            <h1>Users to friend</h1>
-            <UserList/>
+            <h1>Users to Friend</h1>
+            <UserList users={users} refreshData={refreshData} />
             <h1>Friends of Current User</h1>
-            <FriendsList/>
+            <FriendsList friends={friends} refreshData={refreshData} />
             <Link to="/">Home Page</Link>
         </Box>
-    </>
-};
+    );
+}
 
-function FriendsList() {
-    const [friends, getFriends] = useState<EventSyncUser[]>([]);    
+function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refreshData: () => void }) {
+    const removeFriend = async (friendEmail: string) => {
+        try {
+            await axios.delete(`http://localhost:5000/remove_friend/${friendEmail}/`);
+            refreshData();
+        } catch (error) {
+            console.error('Error removing friend:', error);
+        }
+    };
 
-    useEffect(() => {
-        const fetchData = async () => {
-          try {
-            const response = await axios.get('http://localhost:5000/get_friends/');
-            const res: EventSyncUser[] = response.data;
-            getFriends(res);
-          } catch (error) {
-            console.error('Error fetching data:', error);
-          }
-        };
-        fetchData();
-    }, []);
+    return (
+        <ul>
+            {friends.map((friend, index) => (
+                <li key={index}>
+                    {`Friend name: ${friend.fname} ${friend.lname}   Bio: ${friend.bio}`}
+                    <button onClick={() => removeFriend(friend.email)}>Remove Friend</button>
+                </li>
+            ))}
+        </ul>
+    );
+}
 
-    return <ul>
-        {friends.map((friend, index) =>
-            <li key={index}>{`Friend name: ${friend.fname} ${friend.lname}   Bio: ${friend.bio}`}</li>
-        )}
-    </ul>;
-};
+function UserList({ users, refreshData }: { users: EventSyncUser[]; refreshData: () => void }) {
+    const addFriend = async (userEmail: string) => {
+        try {
+            await axios.get(`http://localhost:5000/add_friend/${userEmail}/`);
+            refreshData();
+        } catch (error) {
+            console.error('Error adding friend:', error);
+        }
+    };
 
-function UserList() {
-    const [users, getUsers] = useState<EventSyncUser[]>([]);    
+    return (
+        <ul>
+            {users.map((user, index) => (
+                <li key={index}>
+                    {`User name: ${user.fname} ${user.lname}   Bio: ${user.bio}`}
+                    <button onClick={() => addFriend(user.email)}>Add Friend</button>
+                </li>
+            ))}
+        </ul>
+    );
+}
 
-    useEffect(() => {
-        const fetchData = async () => {
-          try {
-            const response = await axios.get('http://localhost:5000/get_users/');
-            const res: EventSyncUser[] = response.data;
-            getUsers(res);
-          } catch (error) {
-            console.error('Error fetching data:', error);
-          }
-        };
-        fetchData();
-    }, []);
-
-    return <ul>
-        {users.map((user, index) =>
-            <li key={index}>{`User name: ${user.fname} ${user.lname}`}</li>
-        )}
-    </ul>;
-};
-
-enum NotificationFrequency{
+enum NotificationFrequency {
     None = "none",
-    Low = "low", 
+    Low = "low",
     Normal = "normal",
-    High = "high"
+    High = "high",
 }
 
 type EventSyncUser = {
-    id: String;
-    fname: String;
-    lname: String;
-    isAdmin: Boolean;
-    bio: String;
-    profilePicture: String;
+    id: string;
+    fname: string;
+    lname: string;
+    isAdmin: boolean;
+    bio: string;
+    profilePicture: string;
     notificationFrequency: NotificationFrequency;
-    isPublic: Boolean;
-    isBanned: Boolean;
+    isPublic: boolean;
+    isBanned: boolean;
     numTimesReported: number;
-}
+    email: string;
+};
 
 export default FriendsPage;

@@ -42,8 +42,19 @@ def get_users():
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         mycursor.execute("""
-                        SELECT id, fname, lname 
-                        FROM User
+                        SELECT u.fname, u.lname, u.bio, u.email
+                        FROM User u
+                        WHERE u.id != 5 AND u.id NOT IN (
+                            SELECT user2ID 
+                            FROM UserToUser 
+                            WHERE user1ID = 5
+                            AND isFriend = true
+                            UNION
+                            SELECT user1ID 
+                            FROM UserToUser 
+                            WHERE user2ID = 5
+                            AND isFriend = true
+                        );
                      """)
         response = mycursor.fetchall()
         headers = mycursor.description
@@ -59,7 +70,7 @@ def get_friends():
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         mycursor.execute("""
-                        SELECT u.fname, u.lname, u.bio
+                        SELECT u.fname, u.lname, u.bio, u.email
                         FROM User u
                         WHERE u.id IN (
                             SELECT user2ID 
@@ -98,7 +109,8 @@ def add_friend(friendEmail):
         print(f"Error: {err}")
     return {}
 
-@app.route('/remove_friend/<string:friendEmail>/')
+
+@app.route('/remove_friend/<string:friendEmail>/', methods=['DELETE'])
 def remove_friend(friendEmail):
     try:
         conn = mysql.connector.connect(**db_config)
@@ -110,8 +122,14 @@ def remove_friend(friendEmail):
                 """
         mycursor.execute(query)
         conn.commit()
+        if mycursor.rowcount == 0:
+            return jsonify({"Message":"Friend not found"}), 404
+        else:
+            return jsonify({"Message":"Friend removed successfully"}), 200
+        
     except mysql.connector.Error as err:
         print(f"Error: {err}")
+    return {}
 
 @app.route('/delete_one_event/<int:eventId>/', methods=['DELETE'])
 def delete_one_event(eventId):
