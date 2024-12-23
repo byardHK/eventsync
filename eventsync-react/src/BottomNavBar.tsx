@@ -12,12 +12,12 @@ function BottomNavBar(){
         gap={2}
         padding={3}
     >
-        <Link to="/createEvent">
+        <Link to="/">
             <Button variant="contained">
                 <HomeIcon/>
             </Button>
         </Link>
-        <Link to="/createEvent">
+        <Link to="/myEventsPage">
             <Button variant="contained">
                 <CalendarMonthIcon/>
             </Button>
