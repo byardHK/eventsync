@@ -8,6 +8,7 @@ import Card from '@mui/material/Card';
 import BottomNavBar from './BottomNavBar';
 
 function HomePage() {
+    const [isComingSoon, setIsComingSoon] = useState<Boolean>(true); 
     return <>
         <Box
             display="flex"
@@ -27,8 +28,20 @@ function HomePage() {
             padding={2}
             gap={2}
         >
-            <Button variant="contained" fullWidth>Coming Soon</Button>
-            <Button variant="contained" fullWidth>Recommended</Button>
+           <Button 
+                variant={isComingSoon ? "contained" : "outlined"} 
+                fullWidth
+                onClick={() => {setIsComingSoon(true)}}
+            >
+                Coming Soon
+            </Button>
+            <Button 
+                variant={!isComingSoon ? "contained" : "outlined"} 
+                fullWidth
+                onClick={() => {setIsComingSoon(false)}}
+            >
+                Recommended
+            </Button>
         </Box>
         <Box
             display="flex"
