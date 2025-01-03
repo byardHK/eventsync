@@ -41,10 +41,7 @@ function MyEventsPage() {
                 </Button>
 
             </Box>
-            <h3>Hosting</h3>
-            <EventList></EventList>
-            <h3>Attending</h3>
-            <EventList></EventList>
+            <EventLists></EventLists>
         </Box>
         <Box
             display="flex"
@@ -60,21 +57,33 @@ function MyEventsPage() {
     </>;
 };
 
-function EventList() {
-    const [events, setEvents] = useState<EventSyncEvent[]>([]);    
+function EventLists() {
+    const [attendingEvents, setAttendingEvents] = useState<EventSyncEvent[]>([]);  
+    const [hostingEvents, setHostingEvents] = useState<EventSyncEvent[]>([]);    
 
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const response = await axios.get('http://localhost:5000/get_events');
-            const res: EventSyncEvent[] = response.data;
-            setEvents(res);
+            const response = await axios.get('http://localhost:5000/get_my_events/2'); // TODO: fill user placeholder
+            const res: EventSyncMyEvents = response.data;
+            setAttendingEvents(res.attending);
+            setHostingEvents(res.hosting);
           } catch (error) {
             console.error('Error fetching data:', error);
           }
         };
         fetchData();
     }, []);
+
+    return <div>
+            <h3>Hosting</h3>
+            <EventList events={attendingEvents}></EventList>
+            <h3>Hosting</h3>
+            <EventList events={hostingEvents}></EventList>
+        </div>;
+};
+
+function EventList({ events }: { events: EventSyncEvent[] }) {
 
     return <Grid2
         container spacing={3}
@@ -108,6 +117,11 @@ type EventSyncEvent = {
     startTime: String;
     endTime: String;
     id: number;
+}
+
+type EventSyncMyEvents = {
+    hosting: EventSyncEvent[];
+    attending: EventSyncEvent[];
 }
 
 export default MyEventsPage;
