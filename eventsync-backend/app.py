@@ -244,14 +244,13 @@ def get_my_events(user_id: int):
                         FROM Event
                         JOIN EventInfo 
                         ON Event.eventInfoId = EventInfo.id
-                        WHERE EventInfo.creatorId = 1
+                        WHERE EventInfo.creatorId = {user_id}
                      """)
         response = mycursor.fetchall()
         headers = mycursor.description
         hosting_events = sqlResponseToList(response, headers)
-        #TODO: events you are attending
         mycursor.execute(f"""
-                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName, Event.id 
+                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName, Event.id, EventInfo.locationName
                         FROM Event
                         JOIN EventInfo
                         ON Event.eventInfoId = EventInfo.id

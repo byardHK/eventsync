@@ -5,6 +5,7 @@ import { Button, Card, Grid2 } from '@mui/material';
 import axios from 'axios';
 import AddIcon from '@mui/icons-material/Add';
 
+const currentUserId = 2; // Placeholder for the current user that is logged in. TODO: get the actual current user
 
 function MyEventsPage() {
 
@@ -64,7 +65,7 @@ function EventLists() {
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const response = await axios.get('http://localhost:5000/get_my_events/2'); // TODO: fill user placeholder
+            const response = await axios.get(`http://localhost:5000/get_my_events/${currentUserId}`);
             const res: EventSyncMyEvents = response.data;
             setAttendingEvents(res.attending);
             setHostingEvents(res.hosting);
@@ -76,7 +77,7 @@ function EventLists() {
     }, []);
 
     return <div>
-            <h3>Hosting</h3>
+            <h3>Attending</h3>
             <EventList events={attendingEvents}></EventList>
             <h3>Hosting</h3>
             <EventList events={hostingEvents}></EventList>
@@ -93,10 +94,9 @@ function EventList({ events }: { events: EventSyncEvent[] }) {
         style={{maxHeight: '19vh', overflow: 'auto'}}
         padding={2}
     >
-        {events.map((event, index) =>
-            <Card variant ="outlined">
-                <Box key={index}
-                    display="flex"
+        {events.map(event =>
+            <Card variant ="outlined" key={event.id}>
+                <Box display="flex"
                     flexDirection="column"
                     alignItems="center" 
                     justifyContent="center"
@@ -104,7 +104,10 @@ function EventList({ events }: { events: EventSyncEvent[] }) {
                     minWidth={250}
                     gap={1}
                 >
-                    <p>{`Name: ${event.eventName}`}</p>
+                    <p>{event.eventName}</p>
+                    <p>{event.locationName}</p>
+                    <p>{event.startTime}</p>
+                    <p>{event.endTime}</p>
                 </Box>
             </Card>
         )}
@@ -112,10 +115,11 @@ function EventList({ events }: { events: EventSyncEvent[] }) {
 };
 
 type EventSyncEvent = {
-    eventName : String;
+    eventName : string;
     // attendees : Number; TODO
-    startTime: String;
-    endTime: String;
+    locationName: string;
+    startTime: string;
+    endTime: string;
     id: number;
 }
 
