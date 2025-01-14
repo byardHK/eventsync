@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify
 # pip install mysql-connector-python
 import mysql.connector
 from flask_cors import CORS
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 CORS(app)
@@ -263,3 +263,39 @@ def get_my_events(user_id: int):
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
+
+
+@app.post('/post_recurring_event/')
+def post_recurring_event():
+    data = request.json
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        dateStr = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        insertEventInfo = f"""
+                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated)
+                        VALUES (1, 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{dateStr}");
+                     """
+        mycursor.execute(insertEventInfo)
+        # TODO: save last insert id
+
+        # get event dates through start date and end date
+        curStartDate = datetime.datetime(data["startDate"])
+        curEndDate = datetime.datetime(data["endDate"])
+        endDate = datetime.datetime(data["endRecuringEventDate"])
+        delta = data["delta"]
+        while curStartDate < endDate:
+            insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
+                        VALUES (last_insert_id(), "{curStartDate}", "{curEndDate}", "{dateStr}");"""
+            mycursor.execute(insertEvent)
+            if delta == "daily":
+                curStartDate = datetime.timedelta(days=1)
+                curEndDate = datetime.timedelta(days=1)
+            elif delta == "weekly":
+                curStartDate = datetime.timedelta(weeks=1)
+                curEndDate = datetime.timedelta(weeks=1)
+            # TODO: monthly events
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return data, 201
