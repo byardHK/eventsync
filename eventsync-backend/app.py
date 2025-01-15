@@ -208,13 +208,21 @@ def post_event():
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        dateStr = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        startDateTime = data["startDateTime"]
+        endDateTime = data["endDateTime"]
+
+
+        db_startDateTime = datetime.strptime(startDateTime, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
+        db_endDateTime = datetime.strptime(endDateTime, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
+       
         insertEventInfo = f"""
                         INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated)
-                        VALUES (1, 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{dateStr}");
+                        VALUES (1, 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{currentDateTime}");
                      """
-        insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
-                        VALUES (last_insert_id(), "2024-12-10 14:00:00", "2024-12-10 18:00:00", "{dateStr}");"""
+        insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views)
+                        VALUES (last_insert_id(), "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", "0");"""
         tags = data["tags"]
         for tag in tags:
             updateTag = f"""

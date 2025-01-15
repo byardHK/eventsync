@@ -6,6 +6,7 @@ import axios from 'axios';
 import AddIcon from '@mui/icons-material/Add';
 
 
+
 function MyEventsPage() {
 
     const [isListView, setIsListView] = useState<Boolean>(true); 
