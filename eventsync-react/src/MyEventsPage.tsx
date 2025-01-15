@@ -4,13 +4,21 @@ import Box from '@mui/material/Box';
 import { Button, Card, Grid2 } from '@mui/material';
 import axios from 'axios';
 import AddIcon from '@mui/icons-material/Add';
+import Link from '@mui/icons-material/Link';
+import { useNavigate } from 'react-router-dom';
 
 const currentUserId = 2; // Placeholder for the current user that is logged in. TODO: get the actual current user
+
 
 function MyEventsPage() {
 
     const [isListView, setIsListView] = useState<Boolean>(true); 
     
+    const navigate = useNavigate()
+
+    const handleCreatEventClick = () => {
+        navigate("/createEvent")
+    }
 
     return <>
         <Box
@@ -50,9 +58,11 @@ function MyEventsPage() {
             justifyContent="right"
             paddingRight={4}
         >
-            <Button variant="contained">
+        
+            <Button variant="contained" onClick={handleCreatEventClick}>
                 <AddIcon/>
             </Button>
+           
         </Box>
         <BottomNavBar></BottomNavBar>
     </>;
