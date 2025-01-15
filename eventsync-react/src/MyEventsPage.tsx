@@ -6,6 +6,7 @@ import axios from 'axios';
 import AddIcon from '@mui/icons-material/Add';
 import Link from '@mui/icons-material/Link';
 import { useNavigate } from 'react-router-dom';
+import { format } from "date-fns";
 
 const currentUserId = 2; // Placeholder for the current user that is logged in. TODO: get the actual current user
 
@@ -122,11 +123,18 @@ function EventList({ events }: { events: EventSyncEvent[] }) {
                 >
                     <p>{event.eventName}</p>
                     <p>{event.locationName}</p>
-                    {/* {event.startTime.getDay == event.endTime.getDay ? (
-                        <p>{(event.startTime.getDay}</p>
-                    )} */}
-                    {/* <p>{event.startTime.toDateString()}</p>
-                    <p>{event.endTime.toDateString()}</p> */}
+                    {(event.startTime.getDay == event.endTime.getDay) ?
+                        <>
+                            <p>{format(event.startTime, "EEEE, LLL. Mo")}</p>
+                            <p>{format(event.startTime, "p")} - {format(event.endTime, "p")}</p>
+
+                        </> 
+                        
+                    : <>
+                        <p>{event.startTime.toDateString()}</p>
+                        <p>{event.endTime.toDateString()}</p>
+                    </>
+                    }
                 </Box>
             </Card>
         )}
