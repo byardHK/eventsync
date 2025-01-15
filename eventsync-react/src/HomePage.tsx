@@ -112,9 +112,9 @@ function EventList() {
         style={{maxHeight: '55vh', overflow: 'auto'}}
         padding={2}
     >
-        {events.map((event, index) =>
-            <Card variant ="outlined">
-                <Box key={index}
+        {events.map(event =>
+            <Card variant ="outlined" key={event.id}>
+                <Box 
                     display="flex"
                     flexDirection="column"
                     alignItems="center" 
