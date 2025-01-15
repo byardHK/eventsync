@@ -67,13 +67,19 @@ function EventLists() {
           try {
             const response = await axios.get(`http://localhost:5000/get_my_events/${currentUserId}`);
             const res: EventSyncMyEvents = response.data;
+            // for(const event of res.attending){
+            //     event.startTimeDate = new Date(event.startTime);
+            //     event.endTimeDate = new Date(event.)
+            // }
             setAttendingEvents(res.attending);
             setHostingEvents(res.hosting);
+            
           } catch (error) {
             console.error('Error fetching data:', error);
           }
         };
         fetchData();
+        console.log(attendingEvents[0]);
     }, []);
 
     return <div>
@@ -106,8 +112,11 @@ function EventList({ events }: { events: EventSyncEvent[] }) {
                 >
                     <p>{event.eventName}</p>
                     <p>{event.locationName}</p>
-                    <p>{event.startTime}</p>
-                    <p>{event.endTime}</p>
+                    {/* {event.startTime.getDay == event.endTime.getDay ? (
+                        <p>{(event.startTime.getDay}</p>
+                    )} */}
+                    {/* <p>{event.startTime.toDateString()}</p>
+                    <p>{event.endTime.toDateString()}</p> */}
                 </Box>
             </Card>
         )}
@@ -118,9 +127,11 @@ type EventSyncEvent = {
     eventName : string;
     // attendees : Number; TODO
     locationName: string;
-    startTime: string;
-    endTime: string;
+    // startTime: string;
+    // endTime: string;
     id: number;
+    startTime: Date;
+    endTime: Date;
 }
 
 type EventSyncMyEvents = {
