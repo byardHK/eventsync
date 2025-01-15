@@ -78,10 +78,6 @@ function EventLists() {
           try {
             const response = await axios.get(`http://localhost:5000/get_my_events/${currentUserId}`);
             const res: EventSyncMyEvents = response.data;
-            // for(const event of res.attending){
-            //     event.startTimeDate = new Date(event.startTime);
-            //     event.endTimeDate = new Date(event.)
-            // }
             setAttendingEvents(res.attending);
             setHostingEvents(res.hosting);
             
@@ -90,7 +86,6 @@ function EventLists() {
           }
         };
         fetchData();
-        console.log(attendingEvents[0]);
     }, []);
 
     return <div>
@@ -127,9 +122,7 @@ function EventList({ events }: { events: EventSyncEvent[] }) {
                         <>
                             <p>{format(event.startTime, "EEEE, LLL. Mo")}</p>
                             <p>{format(event.startTime, "p")} - {format(event.endTime, "p")}</p>
-
                         </> 
-                        
                     : <>
                         <p>{event.startTime.toDateString()}</p>
                         <p>{event.endTime.toDateString()}</p>
