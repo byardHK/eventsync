@@ -126,6 +126,7 @@ function EventList() {
                     <p>{`Name: ${event.eventName}`}</p>
                     <p>{`Start Date: ${event.startTime}`}</p>
                     <p>{`End Date: ${event.endTime}`}</p>
+                    <p>{`${event.views} Views`}</p>
                     <Button variant="contained" onClick={() => deleteEvent(event)}>Delete Event</Button>
                 </Box>
             </Card>
@@ -139,6 +140,7 @@ type EventSyncEvent = {
     // attendees : Number; TODO
     startTime: String;
     endTime: String;
+    views: number;
     id: number;
 }
 
