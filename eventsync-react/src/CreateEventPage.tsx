@@ -1,19 +1,18 @@
 import { Link } from "react-router-dom";
 import Box from '@mui/material/Box';
-import TextField, { FilledTextFieldProps, OutlinedTextFieldProps, StandardTextFieldProps, TextFieldVariants } from '@mui/material/TextField';
+import TextField, {  } from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Autocomplete from '@mui/material/Autocomplete';
-import { useState } from 'react';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { SetStateAction, useState } from 'react';
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { JSX } from "react/jsx-runtime";
 import { MobileDateTimePicker } from "@mui/x-date-pickers/MobileDateTimePicker";
+import { Dayjs } from "dayjs";
 
 function CreateEventPage() {
     const [titleText, setTitleText] = useState<String>("");    
-    const [startDateTime, setStartDateTime] = useState<Date | null>(null); 
-    const [endDateTime, setEndDateTime] = useState<Date | null>(null); 
+    const [startDateTime, setStartDateTime] = useState<Dayjs | null>(null); 
+    const [endDateTime, setEndDateTime] = useState<Dayjs | null>(null); 
     const [locationText, setLocationText] = useState<String>("");      
     const [tags, setTags] = useState<string[]>([]); 
 
@@ -79,12 +78,12 @@ function CreateEventPage() {
                     <MobileDateTimePicker
                         label="Start"
                         value={startDateTime}
-                        onChange={(newValue) => setStartDateTime(newValue)} 
+                        onChange={(newValue: SetStateAction<Dayjs | null>) => setStartDateTime(newValue)} 
                     />
                     <MobileDateTimePicker
                         label="End"
                         value={startDateTime}
-                        onChange={(newValue) => setEndDateTime(newValue)} 
+                        onChange={(newValue: SetStateAction<Dayjs | null>) => setEndDateTime(newValue)} 
                     />
                     <TextField 
                         id="outlined-basic" 
