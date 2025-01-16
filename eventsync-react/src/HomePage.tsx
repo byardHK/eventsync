@@ -7,6 +7,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import Card from '@mui/material/Card';
 import BottomNavBar from './BottomNavBar';
 import TagModal from './TagModal';
+import ItemModal from './ItemModal';
 
 function HomePage() {
     const [isComingSoon, setIsComingSoon] = useState<Boolean>(true); 
@@ -66,7 +67,8 @@ function HomePage() {
             />
             <EventList/>
             <BottomNavBar></BottomNavBar>
-            <TagModal></TagModal>
+            {/* <TagModal></TagModal> */}
+            <ItemModal></ItemModal>
         </Box>
     </>;
 };

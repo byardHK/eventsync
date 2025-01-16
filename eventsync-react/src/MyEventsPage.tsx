@@ -56,7 +56,12 @@ function MyEventsPage() {
                 <AddIcon/>
             </Button>
         </Box>
-        <BottomNavBar></BottomNavBar>
+        <Box 
+            display="flex"
+            alignItems="center" 
+        >
+            <BottomNavBar></BottomNavBar>
+        </Box>
     </>;
 };
 

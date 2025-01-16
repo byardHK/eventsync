@@ -18,7 +18,6 @@ function TagModal(){
         getCustomTags().then(setCustomTags);
     }, []);
 
-
     return <>
         <Button onClick={handleOpen}>Open modal</Button>
         <Dialog onClose={handleClose} open={open}>
@@ -101,7 +100,6 @@ function TagModal(){
                     >    
                         <Chip label={tag} onDelete={() => {
                             setChosenTags(chosenTags.filter((_tag) => { return _tag !== tag; }))
-
                         }
                         }></Chip>
                     </Box>
