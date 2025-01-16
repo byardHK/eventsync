@@ -5,6 +5,7 @@ from flask import Flask, request, jsonify
 import mysql.connector
 from flask_cors import CORS
 from datetime import datetime, timedelta
+from dateutil.relativedelta import *
 
 app = Flask(__name__)
 CORS(app)
@@ -285,8 +286,7 @@ def post_recurring_event():
                         VALUES (1, 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{dateStr}");
                      """
         mycursor.execute(insertEventInfo)
-        # TODO: save last insert id
-
+        mycursor.execute("SET @eventInfoId = last_insert_id();")
         # get event dates through start date and end date
         curStartDate = datetime.datetime(data["startDate"])
         curEndDate = datetime.datetime(data["endDate"])
@@ -294,14 +294,24 @@ def post_recurring_event():
         delta = data["delta"]
         while curStartDate < endDate:
             insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
-                        VALUES (last_insert_id(), "{curStartDate}", "{curEndDate}", "{dateStr}");"""
+                        VALUES (@eventInfoId, "{curStartDate}", "{curEndDate}", "{dateStr}");"""
             mycursor.execute(insertEvent)
             if delta == "daily":
-                curStartDate = datetime.timedelta(days=1)
-                curEndDate = datetime.timedelta(days=1)
+                curStartDate = timedelta(days=1)
+                curEndDate = timedelta(days=1)
             elif delta == "weekly":
-                curStartDate = datetime.timedelta(weeks=1)
-                curEndDate = datetime.timedelta(weeks=1)
+                curStartDate = timedelta(weeks=1)
+                curEndDate = timedelta(weeks=1)
+            elif delta == "monthly":
+                pass
+                weekdays = [MO, TU, WE, TH, FR, SA, SU]
+                dayOfWeek = weekdays[curStartDate.weekday()] # day of the week of event
+                nthWeekday = (curStartDate.day // 7) + 1 # what number ___day of the month is it?
+                curStartDate = (curStartDate + relativedelta(months=1)).replace(day=1) # first day of the next month
+                curStartDate = curStartDate + relativedelta(weekday=dayOfWeek(nthWeekday)) # next event date
+                # TODO: change end date
+            else:
+                "Invalid recurring frequency", 400
             # TODO: monthly events
         conn.commit()
     except mysql.connector.Error as err:
