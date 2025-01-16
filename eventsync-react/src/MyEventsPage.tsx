@@ -4,12 +4,21 @@ import Box from '@mui/material/Box';
 import { Button, Card, Grid2 } from '@mui/material';
 import axios from 'axios';
 import AddIcon from '@mui/icons-material/Add';
+import Link from '@mui/icons-material/Link';
+import { useNavigate } from 'react-router-dom';
+
+const currentUserId = 2; // Placeholder for the current user that is logged in. TODO: get the actual current user
 
 
 function MyEventsPage() {
 
     const [isListView, setIsListView] = useState<Boolean>(true); 
     
+    const navigate = useNavigate()
+
+    const handleCreatEventClick = () => {
+        navigate("/createEvent")
+    }
 
     return <>
         <Box
@@ -41,10 +50,7 @@ function MyEventsPage() {
                 </Button>
 
             </Box>
-            <h3>Hosting</h3>
-            <EventList></EventList>
-            <h3>Attending</h3>
-            <EventList></EventList>
+            <EventLists></EventLists>
         </Box>
         <Box
             display="flex"
@@ -52,9 +58,11 @@ function MyEventsPage() {
             justifyContent="right"
             paddingRight={4}
         >
-            <Button variant="contained">
+        
+            <Button variant="contained" onClick={handleCreatEventClick}>
                 <AddIcon/>
             </Button>
+           
         </Box>
         <Box 
             display="flex"
@@ -65,21 +73,33 @@ function MyEventsPage() {
     </>;
 };
 
-function EventList() {
-    const [events, setEvents] = useState<EventSyncEvent[]>([]);    
+function EventLists() {
+    const [attendingEvents, setAttendingEvents] = useState<EventSyncEvent[]>([]);  
+    const [hostingEvents, setHostingEvents] = useState<EventSyncEvent[]>([]);    
 
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const response = await axios.get('http://localhost:5000/get_events');
-            const res: EventSyncEvent[] = response.data;
-            setEvents(res);
+            const response = await axios.get(`http://localhost:5000/get_my_events/${currentUserId}`);
+            const res: EventSyncMyEvents = response.data;
+            setAttendingEvents(res.attending);
+            setHostingEvents(res.hosting);
           } catch (error) {
             console.error('Error fetching data:', error);
           }
         };
         fetchData();
     }, []);
+
+    return <div>
+            <h3>Attending</h3>
+            <EventList events={attendingEvents}></EventList>
+            <h3>Hosting</h3>
+            <EventList events={hostingEvents}></EventList>
+        </div>;
+};
+
+function EventList({ events }: { events: EventSyncEvent[] }) {
 
     return <Grid2
         container spacing={3}
@@ -89,10 +109,9 @@ function EventList() {
         style={{maxHeight: '19vh', overflow: 'auto'}}
         padding={2}
     >
-        {events.map((event, index) =>
-            <Card variant ="outlined">
-                <Box key={index}
-                    display="flex"
+        {events.map(event =>
+            <Card variant ="outlined" key={event.id}>
+                <Box display="flex"
                     flexDirection="column"
                     alignItems="center" 
                     justifyContent="center"
@@ -100,7 +119,10 @@ function EventList() {
                     minWidth={250}
                     gap={1}
                 >
-                    <p>{`Name: ${event.eventName}`}</p>
+                    <p>{event.eventName}</p>
+                    <p>{event.locationName}</p>
+                    <p>{event.startTime}</p>
+                    <p>{event.endTime}</p>
                 </Box>
             </Card>
         )}
@@ -108,11 +130,17 @@ function EventList() {
 };
 
 type EventSyncEvent = {
-    eventName : String;
+    eventName : string;
     // attendees : Number; TODO
-    startTime: String;
-    endTime: String;
+    locationName: string;
+    startTime: string;
+    endTime: string;
     id: number;
+}
+
+type EventSyncMyEvents = {
+    hosting: EventSyncEvent[];
+    attending: EventSyncEvent[];
 }
 
 export default MyEventsPage;

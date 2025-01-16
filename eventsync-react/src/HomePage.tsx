@@ -114,9 +114,9 @@ function EventList() {
         style={{maxHeight: '55vh', overflow: 'auto'}}
         padding={2}
     >
-        {events.map((event, index) =>
-            <Card variant ="outlined">
-                <Box key={index}
+        {events.map(event =>
+            <Card variant ="outlined" key={event.id}>
+                <Box 
                     display="flex"
                     flexDirection="column"
                     alignItems="center" 
@@ -128,6 +128,7 @@ function EventList() {
                     <p>{`Name: ${event.eventName}`}</p>
                     <p>{`Start Date: ${event.startTime}`}</p>
                     <p>{`End Date: ${event.endTime}`}</p>
+                    <p>{`${event.views} Views`}</p>
                     <Button variant="contained" onClick={() => deleteEvent(event)}>Delete Event</Button>
                 </Box>
             </Card>
@@ -141,6 +142,7 @@ type EventSyncEvent = {
     // attendees : Number; TODO
     startTime: String;
     endTime: String;
+    views: number;
     id: number;
 }
 
