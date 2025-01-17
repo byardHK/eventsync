@@ -65,7 +65,12 @@ function MyEventsPage() {
             </Button>
            
         </Box>
-        <BottomNavBar></BottomNavBar>
+        <Box 
+            display="flex"
+            alignItems="center" 
+        >
+            <BottomNavBar></BottomNavBar>
+        </Box>
     </>;
 };
 

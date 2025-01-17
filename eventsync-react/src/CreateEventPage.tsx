@@ -55,7 +55,7 @@ function CreateEventPage() {
         <Box
             display="flex"
             flexDirection="column"
-             alignItems="center" 
+            alignItems="center" 
             justifyContent="center"
         >
             <h1>Create Event Page</h1>
