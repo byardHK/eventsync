@@ -130,7 +130,7 @@ function CreateEventPage() {
             <Box>
                 <Checkbox
                     checked={checked}
-                    onChange={onCheckBoxChange}
+                    onChange={(event) => setChecked(event.target.checked)}
                     
                 />
                 {checked ? 
@@ -138,7 +138,7 @@ function CreateEventPage() {
                         <Select
                             value={recurFrequency}
                             label="Frequency"
-                            // onChange={handleRecurFrequencyChange("hi")}
+                            onChange={(event) => setRecurFrequency(event.target.value)}
                         >
                             <MenuItem value={"Daily"}>Daily</MenuItem>
                             <MenuItem value={"Weekly"}>Weekly</MenuItem>
