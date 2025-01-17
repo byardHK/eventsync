@@ -55,6 +55,9 @@ function CreateEventPage() {
                 setEndDateTime(null);
                 setLocationText("");
                 setTags([]);
+                setChecked(false);
+                setRecurFrequency("Weekly");
+                setEndRecurDateTime(null);
             }
            
         } catch (error) {
