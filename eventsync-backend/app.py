@@ -280,39 +280,39 @@ def post_recurring_event():
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        dateStr = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        reqStrFormat = '%Y-%m-%dT%H:%M:%S.%fZ'
+        dateCreated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         insertEventInfo = f"""
                         INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated)
-                        VALUES (1, 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{dateStr}");
+                        VALUES (1, 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{dateCreated}");
                      """
         mycursor.execute(insertEventInfo)
         mycursor.execute("SET @eventInfoId = last_insert_id();")
         # get event dates through start date and end date
-        curStartDate = datetime.datetime(data["startDate"])
-        curEndDate = datetime.datetime(data["endDate"])
-        endDate = datetime.datetime(data["endRecuringEventDate"])
-        delta = data["delta"]
+        curStartDate = datetime.strptime(data["startDateTime"], reqStrFormat)
+        curEndDate = datetime.strptime(data["endDateTime"], reqStrFormat)
+        endDate = datetime.strptime(data["endRecurDateTime"], reqStrFormat)
+        delta = data["recurFrequency"]
+        duration = curEndDate - curStartDate
+        if delta == "Monthly":
+            weekdays = [MO, TU, WE, TH, FR, SA, SU]
+            dayOfWeek = weekdays[curStartDate.weekday()] # day of the week of event
+            nthWeekday = (curStartDate.day // 7) + 1 # what number ___day of the month is this event on?
+        
+        # while datetime.strptime(str(curStartDate), "%Y-%m-%d %H:%M:%S") < endDate:
         while curStartDate < endDate:
             insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
-                        VALUES (@eventInfoId, "{curStartDate}", "{curEndDate}", "{dateStr}");"""
+                        VALUES (@eventInfoId, "{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}", "{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}", "{dateCreated}");"""
             mycursor.execute(insertEvent)
-            if delta == "daily":
-                curStartDate = timedelta(days=1)
-                curEndDate = timedelta(days=1)
-            elif delta == "weekly":
-                curStartDate = timedelta(weeks=1)
-                curEndDate = timedelta(weeks=1)
-            elif delta == "monthly":
-                pass
-                weekdays = [MO, TU, WE, TH, FR, SA, SU]
-                dayOfWeek = weekdays[curStartDate.weekday()] # day of the week of event
-                nthWeekday = (curStartDate.day // 7) + 1 # what number ___day of the month is it?
+            if delta == "Daily":
+                curStartDate = curStartDate + timedelta(days=1)
+            elif delta == "Weekly":
+                curStartDate = curStartDate + timedelta(weeks=1)
+            elif delta == "Monthly":
                 curStartDate = (curStartDate + relativedelta(months=1)).replace(day=1) # first day of the next month
                 curStartDate = curStartDate + relativedelta(weekday=dayOfWeek(nthWeekday)) # next event date
-                # TODO: change end date
             else:
                 "Invalid recurring frequency", 400
-            # TODO: monthly events
         conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
