@@ -12,6 +12,10 @@ import { MobileDateTimePicker } from "@mui/x-date-pickers/MobileDateTimePicker";
 import Checkbox from "@mui/material/Checkbox";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
+import FormControlLabel from '@mui/material/FormControlLabel';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
+
 
 function CreateEventPage() {
     const [titleText, setTitleText] = useState<String>("");    
@@ -127,41 +131,54 @@ function CreateEventPage() {
                 sx={{ width: '500px' }}
                 onChange={(_event, value) => { setTags(value);}} 
             />
-            <Box>
-                <Checkbox
-                    checked={checked}
-                    onChange={(event) => setChecked(event.target.checked)}
-                    
+            <Box
+                alignItems="center" 
+                justifyContent="center"
+            >
+                <FormControlLabel
+                    label="Recurring Event"
+                    control={<Checkbox
+                                checked={checked}
+                                onChange={(event) => setChecked(event.target.checked)} 
+                            />}
                 />
                 {checked ? 
                     <div>
-                        <Select
-                            value={recurFrequency}
-                            label="Frequency"
-                            onChange={(event) => setRecurFrequency(event.target.value)}
+                        <Box alignItems="center" 
+                            justifyContent="center"
                         >
-                            <MenuItem value={"Daily"}>Daily</MenuItem>
-                            <MenuItem value={"Weekly"}>Weekly</MenuItem>
-                            <MenuItem value={"Monthly"}>Monthly</MenuItem>
-                        </Select>
+                            <FormControl>
+                                <InputLabel id="select-frequency">Frequency</InputLabel>
+                                <Select
+                                    value={recurFrequency}
+                                    label="Frequency"
+                                    labelId="select-frequency"
+                                    onChange={(event) => setRecurFrequency(event.target.value)}
+                                >
+                                    <MenuItem value={"Daily"}>Daily</MenuItem>
+                                    <MenuItem value={"Weekly"}>Weekly</MenuItem>
+                                    <MenuItem value={"Monthly"}>Monthly</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Box>
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                <Box display="flex" 
-                                    alignItems="center" 
-                                    justifyContent="center"
-                                    component="form"
-                                    sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
-                                    noValidate
-                                    autoComplete="off">
-                                <MobileDateTimePicker
-                                    label="End Date"
-                                    value={endRecurDateTime}
-                                    onChange={(newValue) => setEndRecurDateTime(newValue)} 
-                                />
-                                </Box>
-                            </LocalizationProvider>
+                            <Box display="flex" 
+                                alignItems="center" 
+                                justifyContent="center"
+                                component="form"
+                                sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
+                                noValidate
+                                autoComplete="off">
+                            <MobileDateTimePicker
+                                label="End Date"
+                                value={endRecurDateTime}
+                                onChange={(newValue) => setEndRecurDateTime(newValue)} 
+                            />
+                            </Box>
+                        </LocalizationProvider>
                     </div>
                 : null}
-            </Box>
+                </Box>
             <Button variant="contained" onClick={(e) => handleSubmit(e)}>Submit</Button>
             
 

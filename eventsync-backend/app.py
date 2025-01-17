@@ -312,7 +312,8 @@ def post_recurring_event():
                 curStartDate = (curStartDate + relativedelta(months=1)).replace(day=1) # first day of the next month
                 curStartDate = curStartDate + relativedelta(weekday=dayOfWeek(nthWeekday)) # next event date
             else:
-                "Invalid recurring frequency", 400
+                return "Invalid recurring frequency", 400
+            curEndDate = curStartDate + duration
         conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
