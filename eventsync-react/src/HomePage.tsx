@@ -7,7 +7,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import PersonIcon from '@mui/icons-material/Person';
 import Card from '@mui/material/Card';
 import BottomNavBar from './BottomNavBar';
-import TagModal from './TagModal';
+import ItemModal from './ItemModal';
 
 function HomePage() {
     const [isComingSoon, setIsComingSoon] = useState<Boolean>(true); 
@@ -67,7 +67,8 @@ function HomePage() {
             />
             <EventList/>
             <BottomNavBar></BottomNavBar>
-            <TagModal></TagModal>
+            {/* <TagModal></TagModal> */}
+            <ItemModal></ItemModal>
         </Box>
     </>;
 };
@@ -134,6 +135,7 @@ function EventList() {
                     <p>{`Name: ${event.eventName}`}</p>
                     <p>{`Start Date: ${event.startTime}`}</p>
                     <p>{`End Date: ${event.endTime}`}</p>
+                    <p>{`${event.views} Views`}</p>
                     <Button variant="contained" onClick={() => viewEvent(event)}>View Event</Button>
                     <Button variant="contained" onClick={() => deleteEvent(event)}>Delete Event</Button>
                 </Box>
@@ -148,6 +150,7 @@ type EventSyncEvent = {
     // attendees : Number; TODO
     startTime: String;
     endTime: String;
+    views: number;
     id: number;
 }
 

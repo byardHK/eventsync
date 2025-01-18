@@ -1,14 +1,18 @@
 import { Link } from "react-router-dom";
 import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
+import TextField, {  } from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Autocomplete from '@mui/material/Autocomplete';
-import { useState } from 'react';
-
+import { SetStateAction, useState } from 'react';
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { MobileDateTimePicker } from "@mui/x-date-pickers/MobileDateTimePicker";
+import { Dayjs } from "dayjs";
 
 function CreateEventPage() {
     const [titleText, setTitleText] = useState<String>("");    
-    const [dateText, setDateText] = useState<String>(""); 
+    const [startDateTime, setStartDateTime] = useState<Dayjs | null>(null); 
+    const [endDateTime, setEndDateTime] = useState<Dayjs | null>(null); 
     const [locationText, setLocationText] = useState<String>("");      
     const [tags, setTags] = useState<string[]>([]); 
 
@@ -18,7 +22,8 @@ function CreateEventPage() {
         try {
             const data = {
                 "title": titleText,
-                "date": dateText,
+                "startDateTime": startDateTime,
+                "endDateTime": endDateTime,
                 "locationName": locationText,
                 "tags": tags
             }
@@ -32,7 +37,8 @@ function CreateEventPage() {
             if(response.ok){
                 console.log('Data sent successfully:', response.json());
                 setTitleText("");
-                setDateText("");
+                setStartDateTime(null);
+                setEndDateTime(null);
                 setLocationText("");
                 setTags([]);
             }
@@ -44,46 +50,51 @@ function CreateEventPage() {
     };
 
     return <>
+        
         <Box
             display="flex"
             flexDirection="column"
-             alignItems="center" 
+            alignItems="center" 
             justifyContent="center"
         >
             <h1>Create Event Page</h1>
-            <Box 
-                display="flex" 
-                alignItems="center" 
-                justifyContent="center"
-                component="form"
-                sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
-                noValidate
-                autoComplete="off">
-                <TextField 
-                    id="outlined-basic" 
-                    label="Title" 
-                    variant="outlined" 
-                    type="text" 
-                    value={titleText} 
-                    onChange={(event) => setTitleText(event.target.value)}  
-                />
-                <TextField 
-                    id="outlined-basic" 
-                    label="Date" 
-                    variant="outlined" 
-                    type="text" 
-                    value={dateText} 
-                    onChange={(event) => setDateText(event.target.value)}  
-                />
-                <TextField 
-                    id="outlined-basic" 
-                    label="Location" 
-                    variant="outlined" 
-                    type="text" 
-                    value={locationText} 
-                    onChange={(event) => setLocationText(event.target.value)}  
-                />
-            </Box>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <Box 
+                    display="flex" 
+                    alignItems="center" 
+                    justifyContent="center"
+                    component="form"
+                    sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
+                    noValidate
+                    autoComplete="off">
+                    <TextField 
+                        id="outlined-basic" 
+                        label="Title" 
+                        variant="outlined" 
+                        type="text" 
+                        value={titleText} 
+                        onChange={(event) => setTitleText(event.target.value)}  
+                    />
+                    <MobileDateTimePicker
+                        label="Start"
+                        value={startDateTime}
+                        onChange={(newValue: SetStateAction<Dayjs | null>) => setStartDateTime(newValue)} 
+                    />
+                    <MobileDateTimePicker
+                        label="End"
+                        value={startDateTime}
+                        onChange={(newValue: SetStateAction<Dayjs | null>) => setEndDateTime(newValue)} 
+                    />
+                    <TextField 
+                        id="outlined-basic" 
+                        label="Location" 
+                        variant="outlined" 
+                        type="text" 
+                        value={locationText} 
+                        onChange={(event) => setLocationText(event.target.value)}  
+                    />
+                </Box>
+            </LocalizationProvider>
             <Autocomplete
                 multiple
                 id="multiple-limit-tags"
