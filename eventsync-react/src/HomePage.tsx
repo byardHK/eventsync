@@ -6,6 +6,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import PersonIcon from '@mui/icons-material/Person';
 import Card from '@mui/material/Card';
 import BottomNavBar from './BottomNavBar';
+import DeleteRecurEventModal from './DeleteRecurEventModal';
 import TagModal from './TagModal';
 
 function HomePage() {
@@ -67,6 +68,8 @@ function HomePage() {
             <EventList/>
             <BottomNavBar></BottomNavBar>
             <TagModal></TagModal>
+            <DeleteRecurEventModal >
+            </DeleteRecurEventModal>
         </Box>
     </>;
 };
