@@ -109,6 +109,36 @@ def add_friend(friendEmail):
         print(f"Error: {err}")
     return {}
 
+# @app.route('/add_custom_tag/<string:customTag>')
+# def add_custom_tag(customTag):
+#     try:  
+#         conn = mysql.connector.connect(**db_config)
+#         mycursor = conn.cursor()
+#         query = f"""
+#                 INSERT INTO UserToUser(user1Id, user2Id, isFriend)
+#                 SELECT 5, id, TRUE
+#                 FROM User
+#                 WHERE email = '{customTag}';
+#                 """
+#         mycursor.execute(query)
+#         conn.commit()
+#     except mysql.connector.Error as err:
+#         print(f"Error: {err}")
+#     return {}
+
+@app.route('/get_tags/')
+def get_tags():
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("SELECT Tag.id, Tag.name FROM Tag")
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        res = sqlResponseToJson(response, headers)
+        return res
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
 
 @app.route('/remove_friend/<string:friendEmail>/', methods=['DELETE'])
 def remove_friend(friendEmail):

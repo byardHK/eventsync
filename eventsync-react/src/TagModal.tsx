@@ -1,5 +1,6 @@
 import { Box, Button, Checkbox, Chip, Dialog, FormControlLabel, Grid2, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
+import axios from "axios";
 import DeleteIcon from '@mui/icons-material/Delete';
 
 function TagModal(){
@@ -9,6 +10,19 @@ function TagModal(){
     const [chosenTags, setChosenTags] = useState<String[]>([]);
     const [tags, setTags] = useState<String[]>([]);
     const [customTags, setCustomTags] = useState<String[]>([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+          try {
+            const response = await axios.get('http://localhost:5000/get_tags');
+            const res: Tag[] = response.data;
+            console.log(res);
+          } catch (error) {
+            console.error('Error fetching data:', error);
+          }
+        };
+        fetchData();
+    }, []);
 
     useEffect(() => {
         getTags().then(setTags);
@@ -141,5 +155,10 @@ async function getTags() : Promise<String[]> {
         "Book"
     ];
 }
+
+type Tag = {
+    id: number;
+    name: String;
+};
 
 export default TagModal
