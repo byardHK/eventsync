@@ -184,6 +184,30 @@ def delete_mult_event(eventInfoId):
         print(f"Error: {err}")
     return {}
 
+
+@app.route('/addOneView/<int:eventId>/', methods=['POST'])
+def addOneView(eventId):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("""
+            UPDATE Event
+            SET views = views + 1
+            WHERE id = %s
+        """, (eventId,))
+        conn.commit()
+        if mycursor.rowcount == 0:
+            return jsonify({"message": "Event not found or no changes made"}), 404
+        return jsonify({"message": "View count updated successfully"}), 200
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": "Database error"}), 500
+    finally:
+        if 'mycursor' in locals() and mycursor:
+            mycursor.close()
+        if 'conn' in locals() and conn:
+            conn.close()
+
 # Returns the response of a SQL query as a list
 def sqlResponseToList(response, headers):
     fields = [x[0] for x in headers]
