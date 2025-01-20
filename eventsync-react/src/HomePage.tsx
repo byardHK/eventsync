@@ -110,6 +110,12 @@ function EventList() {
 
     async function viewEvent (event: EventSyncEvent) {
         console.log(event);
+        try {
+            const response = await axios.post(`http://localhost:5000/addOneView/${event.id}/`);
+            console.log(response);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
         navigate(`/viewEvent/${event.id}`);
     }
 
