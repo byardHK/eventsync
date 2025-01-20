@@ -4,29 +4,87 @@ import axios from "axios";
 import DeleteIcon from '@mui/icons-material/Delete';
 
 function TagModal(){
+    const userId = 1;
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
     const [chosenTags, setChosenTags] = useState<Tag[]>([]);
     const [tags, setTags] = useState<Tag[]>([]);
     const [customTags, setCustomTags] = useState<Tag[]>([]);
+    const [userTags, setUserTags] = useState<Tag[]>([]);
     const [customTagText, setCustomTagText] = useState<String>("");
     const [getTagsTrigger, setGetTagsTrigger] = useState<number>(0);
+    const [deselectedTags, setDeselectedTags] = useState<Tag[]>([]);
 
-    const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
-        
+    function handleOpenModal () {
+        setUserTags([]);
+        setChosenTags([...chosenTags].concat(userTags));
+        handleOpen();
+    }
+
+    const handleSave = async (e: React.FormEvent<HTMLButtonElement>) => {
+        deleteDeselectedTag();
+        handleClose();
         e.preventDefault();
         try {
             const data = {
-                "name": customTagText,
+                "chosenTags": chosenTags,
                 "userId": 1
             }
-            const response = await fetch(`http://localhost:5000/add_custom_tag/${customTagText}`, {
+            const response = await fetch(`http://localhost:5000/save_chosen_tags/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(data),
+            });
+            if(response.ok){
+                console.log('Data sent successfully:', response.json());
+                setCustomTagText("");
+                setGetTagsTrigger(getTagsTrigger+1);
+            }
+        } catch (error) {
+          console.error('Error sending data:', error);
+        }
+    };
+
+    const deleteDeselectedTag = async () => {
+        handleClose();
+        try {
+            const data = {
+                "deselectedTags": deselectedTags,
+                "userId": 1
+            }
+            const response = await fetch(`http://localhost:5000/delete_user_deselected_tag/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+            if(response.ok){
+                console.log('Data sent successfully:', response.json());
+                setCustomTagText("");
+                setGetTagsTrigger(getTagsTrigger+1);
+            }
+        } catch (error) {
+          console.error('Error sending data:', error);
+        }
+    };
+
+
+    const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        try {
+            const response = await fetch(`http://localhost:5000/add_custom_tag`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    "name": customTagText,
+                    "userId": 1
+                }),
             });
             if(response.ok){
                 console.log('Data sent successfully:', response.json());
@@ -47,6 +105,19 @@ function TagModal(){
             console.error('Error deleting tag:', error);
         }
     }
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await axios.get(`http://localhost:5000/get_user_tags/${userId}/`);
+                const res: Tag[] = response.data;
+                setUserTags(res);
+            } catch (error) {
+                console.error('Error fetching tags:', error);
+            }
+        };
+        fetchData();
+    }, [deselectedTags]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -73,7 +144,7 @@ function TagModal(){
     }, [getTagsTrigger]);
 
     return <>
-        <Button onClick={handleOpen}>Open modal</Button>
+        <Button onClick={handleOpenModal}>Edit Tags</Button>
         <Dialog onClose={handleClose} open={open}>
             <Box
                 display="flex" 
@@ -113,6 +184,7 @@ function TagModal(){
                                 if(event.target.checked){
                                     setChosenTags([...chosenTags, tag])
                                 }else{
+                                    setDeselectedTags([...deselectedTags, tag])
                                     setChosenTags(chosenTags.filter((_tag) => { return _tag.id !== tag.id; }));
                                 }                    
                             }}/>} label={tag.name} />
@@ -157,6 +229,7 @@ function TagModal(){
                         key={index}    
                     >    
                         <Chip label={tag.name} onDelete={() => {
+                            setDeselectedTags([...deselectedTags, tag]);
                             setChosenTags(chosenTags.filter((_tag) => { return _tag.id !== tag.id; }))
                         }
                         }></Chip>
@@ -172,7 +245,7 @@ function TagModal(){
                 gap={2}
             >
                 <Button variant="outlined" fullWidth onClick={handleClose}>Cancel</Button>
-                <Button variant="outlined" fullWidth onClick={handleClose}>Save</Button>
+                <Button variant="outlined" fullWidth onClick={handleSave}>Save</Button>
             </Box>
         </Dialog>
     </>

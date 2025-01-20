@@ -3,6 +3,7 @@ import CreateEventPage from "./CreateEventPage";
 import FriendsPage from "./FriendsPage"
 import MyEventsPage from "./MyEventsPage"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
+import ProfilePage from "./ProfilePage";
 
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
         <Route path="/createEvent" element={<CreateEventPage/>}/>
         <Route path="/friendsPage" element={<FriendsPage/>}/>
         <Route path="/myEventsPage" element={<MyEventsPage/>}/>
+        <Route path="/profilePage" element={<ProfilePage/>}/>
       </Routes>
     </BrowserRouter>
   );
