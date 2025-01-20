@@ -7,6 +7,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import PersonIcon from '@mui/icons-material/Person';
 import Card from '@mui/material/Card';
 import BottomNavBar from './BottomNavBar';
+import TagModal from './TagModal';
 import ItemModal from './ItemModal';
 
 function HomePage() {
