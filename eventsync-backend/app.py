@@ -64,6 +64,52 @@ def get_users():
         print(f"Error: {err}")
     return {}
 
+@app.post('/add_custom_tag/<string:customTag>')
+def add_custom_tag(customTag):
+    # TODO: userId match user signed in
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        query = f"""
+                INSERT INTO Tag (name, numTimesUsed, userId) VALUES ("{customTag}", 0, 1);
+                """
+        mycursor.execute(query)
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/delete_custom_tag/<int:tagId>/', methods=['DELETE'])
+def delete_custom_tag(tagId):
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("DELETE FROM Tag WHERE id = %s;", (tagId,))
+        conn.commit()
+
+        if mycursor.rowcount == 0:
+            return jsonify({"Message":"Tag not found"}), 404
+        else:
+            return jsonify({"Message":"Tag deleted successfully"}), 200
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_tags/')
+def get_tags():
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("SELECT Tag.id, Tag.name, Tag.userId FROM Tag")
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        res = sqlResponseToJson(response, headers)
+        return res
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
 @app.route('/get_friends/')
 def get_friends():
     try:  
@@ -108,7 +154,6 @@ def add_friend(friendEmail):
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
-
 
 @app.route('/remove_friend/<string:friendEmail>/', methods=['DELETE'])
 def remove_friend(friendEmail):
