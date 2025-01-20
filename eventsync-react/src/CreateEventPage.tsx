@@ -136,7 +136,7 @@ function CreateEventPage() {
                         />
                         <MobileDateTimePicker
                             label="End"
-                            value={endDateTime}
+                            value={startDateTime}
                             onChange={(newValue: SetStateAction<Dayjs | null>) => setEndDateTime(newValue)} 
                         />
                     </Box>
