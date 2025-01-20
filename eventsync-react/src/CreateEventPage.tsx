@@ -1,31 +1,41 @@
 import { Link } from "react-router-dom";
-import Box from '@mui/material/Box';
-import TextField, { FilledTextFieldProps, OutlinedTextFieldProps, StandardTextFieldProps, TextFieldVariants } from '@mui/material/TextField';
-import Button from '@mui/material/Button';
+import { TextField, Box, Button, Typography, FormControlLabel, Checkbox, Switch } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
-import { useState } from 'react';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { JSX } from "react/jsx-runtime";
 import { MobileDateTimePicker } from "@mui/x-date-pickers/MobileDateTimePicker";
-import Checkbox from "@mui/material/Checkbox";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
-import FormControlLabel from '@mui/material/FormControlLabel';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
+import { Dayjs } from "dayjs";
+import { useNavigate } from 'react-router-dom';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import TagModal from './TagModal';
+import ItemModal from './ItemModal';
+import CheckIcon from '@mui/icons-material/Check';
+import rootShouldForwardProp from '@mui/material/styles/rootShouldForwardProp';
+import { SetStateAction, useState } from 'react';
 
+const currentUserId = 2;
 
 function CreateEventPage() {
     const [titleText, setTitleText] = useState<String>("");    
-    const [startDateTime, setStartDateTime] = useState<Date | null>(null); 
-    const [endDateTime, setEndDateTime] = useState<Date | null>(null); 
+    const [startDateTime, setStartDateTime] = useState<Dayjs | null>(null); 
+    const [endDateTime, setEndDateTime] = useState<Dayjs | null>(null); 
     const [locationText, setLocationText] = useState<String>("");      
     const [tags, setTags] = useState<string[]>([]); 
     const [checked, setChecked] = useState<boolean>(false);
     const [recurFrequency, setRecurFrequency] = useState<string>("Weekly"); 
-    const [endRecurDateTime, setEndRecurDateTime] = useState<Date | null>(null); 
+    const [endRecurDateTime, setEndRecurDateTime] = useState<Dayjs | null>(null); 
+    const [venmoText, setVenmoText] = useState<String>("");
+    const [isWeatherSensitive, setIsWeatherSensitive] = useState<boolean>(false);
+    const [isPrivateEvent, setIsPrivateEvent] = useState<boolean>(false);
+    const [rsvpLimit, setRsvpLimit] = useState<number | null>(0);
+    const [descriptionText, setDescriptionText] = useState<String>("");
+
 
     const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
 
@@ -34,12 +44,18 @@ function CreateEventPage() {
             const postPath = checked ? 'http://localhost:5000/post_recurring_event' : 'http://localhost:5000/post_event';
             const data = {
                 "title": titleText,
+                "description": descriptionText,
                 "startDateTime": startDateTime,
                 "endDateTime": endDateTime,
                 "locationName": locationText,
                 "tags": tags,
                 "recurFrequency": recurFrequency,
-                "endRecurDateTime": endRecurDateTime
+                "endRecurDateTime": endRecurDateTime,
+                "venmo": venmoText,
+                "isRecurring": checked,
+                "isWeatherSensitive": isWeatherSensitive,
+                "isPublic": !isPrivateEvent,
+                "rsvpLimit": rsvpLimit
             }
             const response = await fetch(postPath, {
                 method: 'POST',
@@ -51,6 +67,7 @@ function CreateEventPage() {
             if(response.ok){
                 console.log('Data sent successfully:', response.json());
                 setTitleText("");
+                setDescriptionText("");
                 setStartDateTime(null);
                 setEndDateTime(null);
                 setLocationText("");
@@ -58,6 +75,11 @@ function CreateEventPage() {
                 setChecked(false);
                 setRecurFrequency("Weekly");
                 setEndRecurDateTime(null);
+                setVenmoText("");
+                setChecked(false);
+                setIsWeatherSensitive(false);
+                setIsPrivateEvent(false);
+                setRsvpLimit(0);
             }
            
         } catch (error) {
@@ -74,18 +96,26 @@ function CreateEventPage() {
         setRecurFrequency(newFrequency);
     }
 
+    const navigate = useNavigate();
+
+    const handleBackClick = () => {
+        navigate('/myeventspage');
+    };
+
     return <>
-        
-        <Box
-            display="flex"
-            flexDirection="column"
-             alignItems="center" 
-            justifyContent="center"
-        >
-            <h1>Create Event Page</h1>
+        <Box>
+            <Box display="flex" alignItems="center" justifyContent="center">
+                <Button onClick={handleBackClick}>
+                    <ArrowBackIcon />
+                </Button>
+                <Typography variant="body1" sx={{ flexGrow: 1, textAlign: 'center' }}>
+                    {`Created By: ${currentUserId}`}
+                </Typography>
+            </Box>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <Box 
                     display="flex" 
+                    flexDirection="column"
                     alignItems="center" 
                     justifyContent="center"
                     component="form"
@@ -110,6 +140,20 @@ function CreateEventPage() {
                         value={startDateTime}
                         onChange={(newValue) => setEndDateTime(newValue)} 
                     />
+                    <Box display="flex" alignItems="center">
+                        <Typography variant="body1">Tags:</Typography>
+                        <TagModal/>
+                        <Typography variant="body1">Items to Bring:</Typography>
+                        <ItemModal/>
+                    </Box>
+                    <TextField 
+                        id="outlined-basic" 
+                        label="Description" 
+                        variant="outlined" 
+                        type="text" 
+                        value={descriptionText} 
+                        onChange={(event) => setDescriptionText(event.target.value)}  
+                    />
                     <TextField 
                         id="outlined-basic" 
                         label="Location" 
@@ -117,28 +161,28 @@ function CreateEventPage() {
                         type="text" 
                         value={locationText} 
                         onChange={(event) => setLocationText(event.target.value)}  
-                    />    
-                </Box>
-            </LocalizationProvider>
-            <Autocomplete
-                multiple
-                id="multiple-limit-tags"
-                options={tagOptions}
-                value={tags}
-                getOptionLabel={(option) => option}
-                renderInput={(params) => (
-                    <TextField {...params} label="Tags" 
-                        type="text" 
                     />
-                )}
-                sx={{ width: '500px' }}
-                onChange={(_event, value) => { setTags(value);}} 
-            />
-            <Box
-                alignItems="center" 
-                justifyContent="center"
-            >
-                <FormControlLabel
+                    <Box display="flex" flexDirection="row" gap={2}>
+                        <MobileDateTimePicker
+                            label="Start"
+                            value={startDateTime}
+                            onChange={(newValue: SetStateAction<Dayjs | null>) => setStartDateTime(newValue)} 
+                        />
+                        <MobileDateTimePicker
+                            label="End"
+                            value={startDateTime}
+                            onChange={(newValue: SetStateAction<Dayjs | null>) => setEndDateTime(newValue)} 
+                        />
+                    </Box>
+                    <TextField 
+                        id="outlined-basic" 
+                        label="Venmo" 
+                        variant="outlined" 
+                        type="text" 
+                        value={venmoText} 
+                        onChange={(event) => setVenmoText(event.target.value)}  
+                    />
+                                    <FormControlLabel
                     label="Recurring Event"
                     control={<Checkbox
                                 checked={checked}
@@ -164,28 +208,89 @@ function CreateEventPage() {
                                 </Select>
                             </FormControl>
                         </Box>
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <Box display="flex" 
-                                alignItems="center" 
-                                justifyContent="center"
-                                component="form"
-                                sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
-                                noValidate
-                                autoComplete="off">
-                            <MobileDateTimePicker
-                                label="End Date"
-                                value={endRecurDateTime}
-                                onChange={(newValue) => setEndRecurDateTime(newValue)} 
-                            />
-                            </Box>
-                        </LocalizationProvider>
+                        <Box display="flex" 
+                            alignItems="center" 
+                            justifyContent="center"
+                            component="form"
+                            sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
+                            noValidate
+                            autoComplete="off">
+                        <MobileDateTimePicker
+                            label="End Date"
+                            value={endRecurDateTime}
+                            onChange={(newValue) => setEndRecurDateTime(newValue)} 
+                        />
+                        </Box>
                     </div>
                 : null}
                 </Box>
-            <Button variant="contained" onClick={(e) => handleSubmit(e)}>Submit</Button>
-            
-
-            <Link to="/">Home Page</Link>
+                <Box 
+                    display="flex" 
+                    flexDirection="column"
+                    alignItems="center" 
+                    justifyContent="center"
+                    component="form"
+                    sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
+                    noValidate
+                    autoComplete="off">
+                    <FormControlLabel
+                        label="Weather Sensitive"
+                        control={
+                            <Switch
+                                checked={isWeatherSensitive}
+                                onChange={(event) => setIsWeatherSensitive(event.target.checked)}
+                                name="isWeatherSensitive"
+                                color="primary"
+                            />
+                        }
+                    />
+                    <FormControlLabel
+                        label="Private Event"
+                        control={
+                            <Switch
+                                checked={isPrivateEvent}
+                                onChange={(event) => setIsPrivateEvent(event.target.checked)}
+                                name="isPrivateEvent"
+                                color="primary"
+                            />
+                        }
+                    />
+                    <TextField 
+                        id="outlined-basic" 
+                        label="RSVP Limit" 
+                        variant="outlined" 
+                        type="number" 
+                        value={rsvpLimit !== null ? rsvpLimit : ''} 
+                        onChange={(event) => {
+                            const value = event.target.value === '' ? null : Number(event.target.value);
+                            if (value === null || value >= 0) {
+                                setRsvpLimit(value);
+                            }
+                        }}  
+                    />
+                </Box>
+            </LocalizationProvider>
+            <Box display="flex" justifyContent="center" mt={2}>
+                <a href="https://www.aaiscloud.com/GroveCityC/default.aspx" target="_blank" rel="noopener">
+                    Astra Reservations
+                </a>
+            </Box>
+            <Box display="flex" justifyContent="space-between" mt={2}>
+                <Button 
+                    variant="outlined" 
+                    sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
+                    onClick={handleBackClick}
+                >
+                    Cancel
+                </Button>
+                <Button 
+                    variant="outlined" 
+                    sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
+                    onClick={handleSubmit}
+                >
+                    <CheckIcon />
+                </Button>
+            </Box>
       </Box>
     </>;
 }

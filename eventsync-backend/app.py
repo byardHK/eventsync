@@ -65,6 +65,52 @@ def get_users():
         print(f"Error: {err}")
     return {}
 
+@app.post('/add_custom_tag/<string:customTag>')
+def add_custom_tag(customTag):
+    # TODO: userId match user signed in
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        query = f"""
+                INSERT INTO Tag (name, numTimesUsed, userId) VALUES ("{customTag}", 0, 1);
+                """
+        mycursor.execute(query)
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/delete_custom_tag/<int:tagId>/', methods=['DELETE'])
+def delete_custom_tag(tagId):
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("DELETE FROM Tag WHERE id = %s;", (tagId,))
+        conn.commit()
+
+        if mycursor.rowcount == 0:
+            return jsonify({"Message":"Tag not found"}), 404
+        else:
+            return jsonify({"Message":"Tag deleted successfully"}), 200
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_tags/')
+def get_tags():
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("SELECT Tag.id, Tag.name, Tag.userId FROM Tag")
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        res = sqlResponseToJson(response, headers)
+        return res
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
 @app.route('/get_friends/')
 def get_friends():
     try:  
@@ -109,7 +155,6 @@ def add_friend(friendEmail):
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
-
 
 @app.route('/remove_friend/<string:friendEmail>/', methods=['DELETE'])
 def remove_friend(friendEmail):
@@ -185,6 +230,30 @@ def delete_mult_event(eventInfoId):
         print(f"Error: {err}")
     return {}
 
+
+@app.route('/addOneView/<int:eventId>/', methods=['POST'])
+def addOneView(eventId):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("""
+            UPDATE Event
+            SET views = views + 1
+            WHERE id = %s
+        """, (eventId,))
+        conn.commit()
+        if mycursor.rowcount == 0:
+            return jsonify({"message": "Event not found or no changes made"}), 404
+        return jsonify({"message": "View count updated successfully"}), 200
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": "Database error"}), 500
+    finally:
+        if 'mycursor' in locals() and mycursor:
+            mycursor.close()
+        if 'conn' in locals() and conn:
+            conn.close()
+
 # Returns the response of a SQL query as a list
 def sqlResponseToList(response, headers):
     fields = [x[0] for x in headers]
@@ -223,7 +292,7 @@ def post_event():
        
         insertEventInfo = f"""
                         INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated)
-                        VALUES (1, 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{currentDateTime}");
+                        VALUES (1, 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}");
                      """
         insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views)
                         VALUES (last_insert_id(), "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", "0");"""
@@ -318,3 +387,57 @@ def post_recurring_event():
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return data, 201
+
+@app.route('/get_event/<int:event_id>')
+def get_event(event_id):
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f"""
+                        SELECT 
+                        Event.id, 
+                        Event.eventInfoId,
+                        EventInfo.creatorId, 
+                        EventInfo.groupId, 
+                        EventInfo.title, 
+                        EventInfo.description, 
+                        EventInfo.locationName, 
+                        EventInfo.locationLink, 
+                        EventInfo.RSVPLimit, 
+                        EventInfo.isPublic, 
+                        EventInfo.isWeatherDependant, 
+                        EventInfo.numTimesReported, 
+                        Event.startTime, 
+                        Event.endTime
+                        FROM Event
+                        JOIN EventInfo ON Event.eventInfoId = EventInfo.id
+                        WHERE Event.id = {event_id}
+                     """)
+        response = mycursor.fetchall()
+        headers = [x[0] for x in mycursor.description]
+        event = dict(zip(headers, response[0]))
+
+        mycursor.execute(f"""
+                        SELECT Tag.name
+                        FROM Tag
+                        JOIN EventInfoToTag ON Tag.id = EventInfoToTag.tagId
+                        WHERE EventInfoToTag.eventInfoId = {event['eventInfoId']}
+                     """)
+        tags_response = mycursor.fetchall()
+        tags = [tag[0] for tag in tags_response]
+        event['tags'] = tags
+
+        mycursor.execute(f"""
+                        SELECT Item.name, EventToItem.amountNeeded, EventToItem.quantitySignedUpFor
+                        FROM Item
+                        JOIN EventToItem ON Item.id = EventToItem.itemId
+                        WHERE EventToItem.eventId = {event_id}
+                     """)
+        items_response = mycursor.fetchall()
+        items = [{'name': item[0], 'amountNeeded': item[1], 'quantitySignedUpFor': item[2]} for item in items_response]
+        event['items'] = items
+
+        return jsonify(event)
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}

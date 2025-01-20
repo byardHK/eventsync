@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import axios from "axios";
 import { Button, Grid2, InputAdornment, TextField } from '@mui/material';
@@ -8,6 +9,7 @@ import Card from '@mui/material/Card';
 import BottomNavBar from './BottomNavBar';
 import DeleteRecurEventModal from './DeleteRecurEventModal';
 import TagModal from './TagModal';
+import ItemModal from './ItemModal';
 
 function HomePage() {
     const [isComingSoon, setIsComingSoon] = useState<Boolean>(true); 
@@ -70,6 +72,7 @@ function HomePage() {
             <TagModal></TagModal>
             <DeleteRecurEventModal >
             </DeleteRecurEventModal>
+            {/* <ItemModal></ItemModal> */}
         </Box>
     </>;
 };
@@ -99,12 +102,25 @@ function EventList() {
             console.error('Error fetching data:', error);
         }
         try {
-            const response = await axios.get('http://localhost:5000/get_events');
+            const response = await axios.get(`http://localhost:5000/get_events`);
             const res: EventSyncEvent[] = response.data;
             setEvents(res);
             } catch (error) {
             console.error('Error fetching data:', error);
             }
+    }
+
+    const navigate = useNavigate();
+
+    async function viewEvent (event: EventSyncEvent) {
+        console.log(event);
+        try {
+            const response = await axios.post(`http://localhost:5000/addOneView/${event.id}/`);
+            console.log(response);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+        navigate(`/viewEvent/${event.id}`);
     }
 
     return <Grid2
@@ -130,6 +146,7 @@ function EventList() {
                     <p>{`Start Date: ${event.startTime}`}</p>
                     <p>{`End Date: ${event.endTime}`}</p>
                     <p>{`${event.views} Views`}</p>
+                    <Button variant="contained" onClick={() => viewEvent(event)}>View Event</Button>
                     <Button variant="contained" onClick={() => deleteEvent(event)}>Delete Event</Button>
                 </Box>
             </Card>
