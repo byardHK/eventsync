@@ -1,6 +1,7 @@
 import { Box, Button, Checkbox, Chip, Dialog, FormControlLabel, Grid2, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 
 function TagModal(){
     const [open, setOpen] = useState(false);
@@ -19,7 +20,13 @@ function TagModal(){
     }, []);
 
     return <>
-        <Button onClick={handleOpen}>Open modal</Button>
+        <Button 
+            variant="outlined" 
+            sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
+            onClick={handleOpen}
+        >
+            <AddIcon />
+        </Button>
         <Dialog onClose={handleClose} open={open}>
             <Box
                 display="flex" 
