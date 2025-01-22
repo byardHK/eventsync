@@ -10,6 +10,7 @@ import BottomNavBar from './BottomNavBar';
 import DeleteRecurEventModal from './DeleteRecurEventModal';
 import TagModal from './TagModal';
 import ItemModal from './ItemModal';
+import { SignalCellularNullOutlined } from '@mui/icons-material';
 
 function HomePage() {
     const [isComingSoon, setIsComingSoon] = useState<Boolean>(true); 
@@ -70,8 +71,6 @@ function HomePage() {
             <EventList/>
             <BottomNavBar></BottomNavBar>
             <TagModal></TagModal>
-            <DeleteRecurEventModal >
-            </DeleteRecurEventModal>
             {/* <ItemModal></ItemModal> */}
         </Box>
     </>;
@@ -79,6 +78,7 @@ function HomePage() {
 
 function EventList() {
     const [events, setEvents] = useState<EventSyncEvent[]>([]);    
+    const [modalOpen, setModalOpen] = useState<Number>(-1);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -108,6 +108,14 @@ function EventList() {
             } catch (error) {
             console.error('Error fetching data:', error);
             }
+    }
+
+    function handleDeleteButton(event: EventSyncEvent){
+        if(!event.recurs){
+            deleteEvent(event)
+        } else {
+
+        }
     }
 
     const navigate = useNavigate();
@@ -146,8 +154,12 @@ function EventList() {
                     <p>{`Start Date: ${event.startTime}`}</p>
                     <p>{`End Date: ${event.endTime}`}</p>
                     <p>{`${event.views} Views`}</p>
-                    <Button variant="contained" onClick={() => viewEvent(event)}>View Event</Button>
+                    <Button variant="contained" onClick={() => { if(!event.recurs) { deleteEvent(event) } else {} }}>
+                    View Event</Button>
                     <Button variant="contained" onClick={() => deleteEvent(event)}>Delete Event</Button>
+                    <Button onClick={() => setModalOpen(event.id)}>Open Delete Recur Event modal</Button>
+                    <DeleteRecurEventModal event={event}>
+                    </DeleteRecurEventModal>
                 </Box>
             </Card>
         )}
@@ -162,6 +174,7 @@ type EventSyncEvent = {
     endTime: String;
     views: number;
     id: number;
+    recurs: Boolean;
 }
 
 export default HomePage;

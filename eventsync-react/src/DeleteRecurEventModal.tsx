@@ -4,25 +4,25 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup'; 
 import FormControl from '@mui/material/FormControl'; 
 
-function DeleteRecurEventModal(){
-    const [open, setOpen] = useState(false);
+function DeleteRecurEventModal(props: { event: EventSyncEvent }){
+    const [isOpen, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
-    const [toDelete, setToDelete] = useState<string | null>(null);
+    const [numToDelete, setNumToDelete] = useState<String>("one");
 
     async function handleDelete(){
-        console.log(toDelete);
-        // const deletePath = toDelete == "one" ? 'http://localhost:5000/delete_one_event/<int:eventId>/' : 'http://localhost:5000/delete_multiple_events/<int:eventId>/';
-        //     const response = await fetch(deletePath, {
-        //         method: 'DELETE',
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //         },
-        //     });
-        //     if(response.ok){
-        //         console.log('Data sent successfully:', response.json());
-        //         setToDelete(null);
-        //     }
+        console.log(`Delete ${props.event.id}, ${numToDelete}`);
+        const deletePath = numToDelete == "one" ? `http://localhost:5000/delete_one_event/${props.event.id}/` : `http://localhost:5000/delete_multiple_events/${props.event.id}/`;
+            const response = await fetch(deletePath, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if(response.ok){
+                console.log('Data sent successfully:', response.json());
+                // setNumToDelete();
+            }
         handleClose();
     }
 
@@ -30,7 +30,7 @@ function DeleteRecurEventModal(){
 
     return <>
         <Button onClick={handleOpen}>Open Delete Recur Event modal</Button>
-        <Dialog onClose={handleClose} open={open}>
+        <Dialog onClose={handleClose} open={isOpen}>
             <Box
                 display="flex" 
                 flexDirection="column"
@@ -45,9 +45,9 @@ function DeleteRecurEventModal(){
                     <FormControl> 
                         <RadioGroup 
                             defaultValue={null}
-                            onChange={(event) => setToDelete(event.target.value)}
+                            onChange={(event) => setNumToDelete(event.target.value)}
                         > 
-                            <FormControlLabel value="this" 
+                            <FormControlLabel value="one" 
                                 control={<Radio />} label="This event" /> 
                             <FormControlLabel value="all" 
                                 control={<Radio />} label="This event and all following events" /> 
@@ -68,6 +68,16 @@ function DeleteRecurEventModal(){
             </Box>
         </Dialog>
     </>
+}
+
+type EventSyncEvent = {
+    eventName : String;
+    // attendees : Number; TODO
+    startTime: String;
+    endTime: String;
+    views: number;
+    id: number;
+    recurs: Boolean;
 }
 
 export default DeleteRecurEventModal
