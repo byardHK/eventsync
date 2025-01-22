@@ -72,7 +72,13 @@ function ItemModal(){
     }
 
     return <>
-        <Button onClick={handleOpen}>Open modal</Button>
+        <Button 
+            variant="outlined" 
+            sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
+            onClick={handleOpen}
+        >
+            <AddIcon />
+        </Button>
         <Dialog 
             onClose={handleClose} 
             open={open}

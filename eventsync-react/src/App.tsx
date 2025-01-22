@@ -1,7 +1,8 @@
 import HomePage from "./HomePage";
 import CreateEventPage from "./CreateEventPage";
-import FriendsPage from "./FriendsPage"
-import MyEventsPage from "./MyEventsPage"
+import FriendsPage from "./FriendsPage";
+import MyEventsPage from "./MyEventsPage";
+import ViewEventPage from "./ViewEventPage";
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import ProfilePage from "./ProfilePage";
 
@@ -15,6 +16,7 @@ function App() {
         <Route path="/friendsPage" element={<FriendsPage/>}/>
         <Route path="/myEventsPage" element={<MyEventsPage/>}/>
         <Route path="/profilePage" element={<ProfilePage/>}/>
+        <Route path="/viewEvent/:eventId" element={<ViewEventPage/>}/>
       </Routes>
     </BrowserRouter>
   );

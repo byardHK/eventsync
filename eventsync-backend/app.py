@@ -306,6 +306,30 @@ def delete_mult_event(eventInfoId):
         print(f"Error: {err}")
     return {}
 
+
+@app.route('/addOneView/<int:eventId>/', methods=['POST'])
+def addOneView(eventId):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("""
+            UPDATE Event
+            SET views = views + 1
+            WHERE id = %s
+        """, (eventId,))
+        conn.commit()
+        if mycursor.rowcount == 0:
+            return jsonify({"message": "Event not found or no changes made"}), 404
+        return jsonify({"message": "View count updated successfully"}), 200
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": "Database error"}), 500
+    finally:
+        if 'mycursor' in locals() and mycursor:
+            mycursor.close()
+        if 'conn' in locals() and conn:
+            conn.close()
+
 # Returns the response of a SQL query as a list
 def sqlResponseToList(response, headers):
     fields = [x[0] for x in headers]
@@ -344,7 +368,7 @@ def post_event():
        
         insertEventInfo = f"""
                         INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated)
-                        VALUES (1, 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{currentDateTime}");
+                        VALUES (1, 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}");
                      """
         insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views)
                         VALUES (last_insert_id(), "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", "0");"""
@@ -390,6 +414,60 @@ def get_my_events(user_id: int):
         headers = mycursor.description
         attending_events = sqlResponseToList(response, headers)
         return jsonify({"hosting": hosting_events, "attending": attending_events})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_event/<int:event_id>')
+def get_event(event_id):
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f"""
+                        SELECT 
+                        Event.id, 
+                        Event.eventInfoId,
+                        EventInfo.creatorId, 
+                        EventInfo.groupId, 
+                        EventInfo.title, 
+                        EventInfo.description, 
+                        EventInfo.locationName, 
+                        EventInfo.locationLink, 
+                        EventInfo.RSVPLimit, 
+                        EventInfo.isPublic, 
+                        EventInfo.isWeatherDependant, 
+                        EventInfo.numTimesReported, 
+                        Event.startTime, 
+                        Event.endTime
+                        FROM Event
+                        JOIN EventInfo ON Event.eventInfoId = EventInfo.id
+                        WHERE Event.id = {event_id}
+                     """)
+        response = mycursor.fetchall()
+        headers = [x[0] for x in mycursor.description]
+        event = dict(zip(headers, response[0]))
+
+        mycursor.execute(f"""
+                        SELECT Tag.name
+                        FROM Tag
+                        JOIN EventInfoToTag ON Tag.id = EventInfoToTag.tagId
+                        WHERE EventInfoToTag.eventInfoId = {event['eventInfoId']}
+                     """)
+        tags_response = mycursor.fetchall()
+        tags = [tag[0] for tag in tags_response]
+        event['tags'] = tags
+
+        mycursor.execute(f"""
+                        SELECT Item.name, EventToItem.amountNeeded, EventToItem.quantitySignedUpFor
+                        FROM Item
+                        JOIN EventToItem ON Item.id = EventToItem.itemId
+                        WHERE EventToItem.eventId = {event_id}
+                     """)
+        items_response = mycursor.fetchall()
+        items = [{'name': item[0], 'amountNeeded': item[1], 'quantitySignedUpFor': item[2]} for item in items_response]
+        event['items'] = items
+
+        return jsonify(event)
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}

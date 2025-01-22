@@ -2,6 +2,7 @@ import { Box, Button, Checkbox, Chip, Dialog, FormControlLabel, Grid2, TextField
 import { useEffect, useState } from 'react';
 import axios from "axios";
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 
 type TagModalProps= {
     userTags: Tag[];
@@ -141,7 +142,13 @@ function TagModal({userTags, reloadUserTags}: TagModalProps){
     }, [getTagsTrigger]);
 
     return <>
-        <Button onClick={handleOpenModal}>Edit Tags</Button>
+        <Button 
+            variant="outlined" 
+            sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
+            onClick={handleOpen}
+        >
+            <AddIcon />
+        </Button>
         <Dialog onClose={handleClose} open={open}>
             <Box
                 display="flex" 
