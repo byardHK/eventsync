@@ -2,6 +2,7 @@ import { Box, Button, Dialog, TextField, Grid2 } from "@mui/material";
 import { useState } from "react";  
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
     const [open, setOpen] = useState(false);
@@ -66,6 +67,17 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
                 <h3>{item.amountNeeded}</h3>
                 <Button variant="contained" onClick={() => changeItemQuantity(1, index)}>
                     <AddIcon></AddIcon>
+                </Button>
+            </Box>
+            <Box
+                display="flex"
+                width="50%" 
+                justifyContent="right"
+                gap={3}
+            >
+                <Button variant="contained" 
+                    onClick={() => setPartialItems(partialItems.splice(partialItems.findIndex((thisItem) => item.id = thisItem.id), 1))}>
+                    <DeleteIcon></DeleteIcon>
                 </Button>
             </Box>
         </Box>
