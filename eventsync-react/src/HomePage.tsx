@@ -78,7 +78,7 @@ function HomePage() {
 
 function EventList() {
     const [events, setEvents] = useState<EventSyncEvent[]>([]);    
-    const [modalOpen, setModalOpen] = useState<Number>(-1);
+    const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -91,7 +91,8 @@ function EventList() {
           }
         };
         fetchData();
-    }, []);
+        setEventsChanged(false);
+    }, [eventsChanged]);
 
     async function deleteEvent (event: EventSyncEvent) {
         console.log(event);
@@ -157,8 +158,7 @@ function EventList() {
                     <Button variant="contained" onClick={() => { if(!event.recurs) { deleteEvent(event) } else {} }}>
                     View Event</Button>
                     <Button variant="contained" onClick={() => deleteEvent(event)}>Delete Event</Button>
-                    <Button onClick={() => setModalOpen(event.id)}>Open Delete Recur Event modal</Button>
-                    <DeleteRecurEventModal event={event}>
+                    <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}>
                     </DeleteRecurEventModal>
                 </Box>
             </Card>

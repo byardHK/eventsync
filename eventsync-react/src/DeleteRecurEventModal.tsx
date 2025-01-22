@@ -1,10 +1,10 @@
-import { Box, Button, Checkbox, Chip, Dialog, FormControlLabel, Grid2, TextField } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { Box, Button, Checkbox, Chip, Dialog, FormControlLabel } from '@mui/material';
+import { useState } from 'react';
 import Radio from '@mui/material/Radio'; 
 import RadioGroup from '@mui/material/RadioGroup'; 
 import FormControl from '@mui/material/FormControl'; 
 
-function DeleteRecurEventModal(props: { event: EventSyncEvent }){
+function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged: React.Dispatch<React.SetStateAction<Boolean>> }){
     const [isOpen, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
@@ -23,6 +23,7 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent }){
                 console.log('Data sent successfully:', response.json());
                 // setNumToDelete();
             }
+        props.setEventsChanged(true);
         handleClose();
     }
 

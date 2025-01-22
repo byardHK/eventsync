@@ -216,17 +216,23 @@ def delete_user(userId):
         print(f"Error: {err}")
     return {}
 
-@app.route('/delete_multiple_events/<int:eventInfoId>/', methods=['DELETE'])
-def delete_mult_event(eventInfoId):
+@app.route('/delete_multiple_events/<int:eventId>/', methods=['DELETE'])
+def delete_mult_event(eventId):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute("""
-                        DELETE FROM Event
-                        WHERE eventInfoId = {eventInfoId};
+        mycursor.execute(f"""
+                        SET @eventInfoId = (SELECT eventInfoId FROM Event WHERE id = {eventId});
+                        
                      """)
-        response = mycursor.fetchall()
+        mycursor.execute("""DELETE FROM Event
+                        WHERE eventInfoId = @eventInfoId;""")
         conn.commit()
+        if mycursor.rowcount == 0:
+            return jsonify({"Message":"Event not found"}), 404
+        else:
+            return jsonify({"Message":"Event deleted successfully"}), 200
+
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
