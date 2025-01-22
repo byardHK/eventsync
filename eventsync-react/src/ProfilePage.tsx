@@ -7,7 +7,11 @@ function ProfilePage(){
 
     const userId = 1;
     const [userTags, setUserTags] = useState<Tag[]>([]);
+    const [userTagsTrigger, setUserTagsTrigger] = useState<number>(0);
 
+    function reloadUserTags() {
+        setUserTagsTrigger(userTagsTrigger+1);
+    }
     
     function ListTags(){
         return <>
@@ -32,7 +36,7 @@ function ProfilePage(){
             }
         };
         fetchData();
-    }, []);
+    }, [userTagsTrigger]);
 
     return <>
         <Box
@@ -40,7 +44,7 @@ function ProfilePage(){
             flexDirection="column"
         >
             <ListTags></ListTags>
-            <TagModal></TagModal>
+            <TagModal userTags={userTags} reloadUserTags={reloadUserTags}></TagModal>
         </Box>
     </>
 }

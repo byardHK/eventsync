@@ -3,35 +3,41 @@ import { useEffect, useState } from 'react';
 import axios from "axios";
 import DeleteIcon from '@mui/icons-material/Delete';
 
-function TagModal(){
-    const userId = 1;
+type TagModalProps= {
+    userTags: Tag[];
+    reloadUserTags: () => void;
+};
+
+function TagModal({userTags, reloadUserTags}: TagModalProps){
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
-    const [chosenTags, setChosenTags] = useState<Tag[]>([]);
+    const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
     const [tags, setTags] = useState<Tag[]>([]);
     const [customTags, setCustomTags] = useState<Tag[]>([]);
-    const [userTags, setUserTags] = useState<Tag[]>([]);
-    const [customTagText, setCustomTagText] = useState<String>("");
+    const [createCustomTagText, setCreateCustomTagText] = useState<String>("");
     const [getTagsTrigger, setGetTagsTrigger] = useState<number>(0);
-    const [deselectedTags, setDeselectedTags] = useState<Tag[]>([]);
 
     function handleOpenModal () {
-        setUserTags([]);
-        setChosenTags([...chosenTags].concat(userTags));
+        setSelectedTags(userTags);
         handleOpen();
     }
 
     const handleSave = async (e: React.FormEvent<HTMLButtonElement>) => {
         deleteDeselectedTag();
-        handleClose();
+        const tagsToSave: Tag[] = [];
+        selectedTags.forEach(tag=> {
+            if(!userTags.includes(tag)){
+                tagsToSave.push(tag);
+            }
+        })
         e.preventDefault();
         try {
             const data = {
-                "chosenTags": chosenTags,
+                "selectedTags": tagsToSave,
                 "userId": 1
             }
-            const response = await fetch(`http://localhost:5000/save_chosen_tags/`, {
+            const response = await fetch(`http://localhost:5000/save_selected_tags/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -40,22 +46,29 @@ function TagModal(){
             });
             if(response.ok){
                 console.log('Data sent successfully:', response.json());
-                setCustomTagText("");
-                setGetTagsTrigger(getTagsTrigger+1);
+                setCreateCustomTagText("");
             }
         } catch (error) {
           console.error('Error sending data:', error);
         }
+
+        reloadUserTags();
+        handleClose();
     };
 
     const deleteDeselectedTag = async () => {
-        handleClose();
+        const tagsToDelete: Tag[] = [];
+        userTags.forEach(tag => {
+            if(!selectedTags.includes(tag)){
+                tagsToDelete.push(tag);
+            }
+        })
         try {
             const data = {
-                "deselectedTags": deselectedTags,
+                "deselectedTags": tagsToDelete,
                 "userId": 1
             }
-            const response = await fetch(`http://localhost:5000/delete_user_deselected_tag/`, {
+            const response = await fetch(`http://localhost:5000/delete_user_deselected_tags/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -64,31 +77,28 @@ function TagModal(){
             });
             if(response.ok){
                 console.log('Data sent successfully:', response.json());
-                setCustomTagText("");
-                setGetTagsTrigger(getTagsTrigger+1);
             }
         } catch (error) {
           console.error('Error sending data:', error);
         }
     };
 
-
-    const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
+    const handleCreateCustomTag = async (e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault();
         try {
-            const response = await fetch(`http://localhost:5000/add_custom_tag`, {
+            const response = await fetch(`http://localhost:5000/create_custom_tag`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    "name": customTagText,
+                    "name": createCustomTagText,
                     "userId": 1
                 }),
             });
             if(response.ok){
                 console.log('Data sent successfully:', response.json());
-                setCustomTagText("");
+                setCreateCustomTagText("");
                 setGetTagsTrigger(getTagsTrigger+1);
             }
         } catch (error) {
@@ -105,19 +115,6 @@ function TagModal(){
             console.error('Error deleting tag:', error);
         }
     }
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await axios.get(`http://localhost:5000/get_user_tags/${userId}/`);
-                const res: Tag[] = response.data;
-                setUserTags(res);
-            } catch (error) {
-                console.error('Error fetching tags:', error);
-            }
-        };
-        fetchData();
-    }, [deselectedTags]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -157,8 +154,8 @@ function TagModal(){
                     display="flex" 
                     flexDirection="row"
                 >
-                    <TextField variant="outlined" onChange={(event) => setCustomTagText(event.target.value)}  ></TextField>
-                    <Button onClick={handleSubmit}>Add Tag</Button>
+                    <TextField variant="outlined" onChange={(event) => setCreateCustomTagText(event.target.value)}  ></TextField>
+                    <Button onClick={handleCreateCustomTag}>Add Tag</Button>
                 </Box>
             </Box>
             <Box sx={{ border: 1 }}>
@@ -180,12 +177,11 @@ function TagModal(){
                             justifyContent="center"
                             sx={{width: "100%"}}
                         >    
-                            <FormControlLabel control={<Checkbox checked={!!chosenTags.find((_tag) => { return _tag.id === tag.id; })} onChange={(event) => {
+                            <FormControlLabel control={<Checkbox checked={!!selectedTags.find((_tag) => { return _tag.id === tag.id; })} onChange={(event) => {
                                 if(event.target.checked){
-                                    setChosenTags([...chosenTags, tag])
+                                    setSelectedTags([...selectedTags, tag])
                                 }else{
-                                    setDeselectedTags([...deselectedTags, tag])
-                                    setChosenTags(chosenTags.filter((_tag) => { return _tag.id !== tag.id; }));
+                                    setSelectedTags(selectedTags.filter((_tag) => { return _tag.id !== tag.id; }));
                                 }                    
                             }}/>} label={tag.name} />
                             <Button onClick={() => {
@@ -205,12 +201,12 @@ function TagModal(){
                             justifyContent="center" 
                             sx={{width: "100%"}}
                         >    
-                            <FormControlLabel control={<Checkbox checked={!!chosenTags.find((_tag) => { return _tag.id === tag.id; })}onChange={(event) => {
+                            <FormControlLabel control={<Checkbox checked={!!selectedTags.find((_tag) => { return _tag.id === tag.id; })}onChange={(event) => {
                                 if(event.target.checked){
-                                    setChosenTags([...chosenTags, tag])
+                                    setSelectedTags([...selectedTags, tag])
                                 }else{
-                                    setChosenTags(chosenTags.filter((_tag) => { return _tag.id !== tag.id; }));
-                                }                    
+                                    setSelectedTags(selectedTags.filter((_tag) => { return _tag.id !== tag.id; }));
+                                }
                             }}/>} label={tag.name} />
                         </Box>
                     )}
@@ -224,13 +220,12 @@ function TagModal(){
                 flexWrap="wrap"
                 padding={3}
             >
-                {chosenTags.map((tag, index) =>
+                {selectedTags.map((tag, index) =>
                     <Box 
                         key={index}    
                     >    
                         <Chip label={tag.name} onDelete={() => {
-                            setDeselectedTags([...deselectedTags, tag]);
-                            setChosenTags(chosenTags.filter((_tag) => { return _tag.id !== tag.id; }))
+                            setSelectedTags(selectedTags.filter((_tag) => { return _tag.id !== tag.id; }))
                         }
                         }></Chip>
                     </Box>

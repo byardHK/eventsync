@@ -63,7 +63,7 @@ def get_users():
         print(f"Error: {err}")
     return {}
 
-@app.post('/add_custom_tag/')
+@app.post('/create_custom_tag/')
 def add_custom_tag():
     body = request.json
     try:  
@@ -78,13 +78,13 @@ def add_custom_tag():
         print(f"Error: {err}")
     return {}
 
-@app.post('/save_chosen_tags/')
-def save_chosen_tags():
+@app.post('/save_selected_tags/')
+def save_selected_tags():
     body = request.json
     userId = body["userId"]
     values: str = ""
 
-    for tag in body["chosenTags"]:
+    for tag in body["selectedTags"]:
         values += f'({userId}, {tag["id"]}), '
 
     #Remove extra comma and space afterwards
@@ -100,17 +100,22 @@ def save_chosen_tags():
         mycursor.execute(query)
         conn.commit()
     except mysql.connector.Error as err:
-        print(f"Error: {err}")
+        print(f"Save Selected Tags Error: {err}")
     return {}
 
-
-# TODO:
-@app.post('/delete_user_deselected_tag/')
-def delete_user_deselected_tag():
+@app.post('/delete_user_deselected_tags/')
+def delete_user_deselected_tags():
+    print("This is getting called")
     body = request.json
     userId = body["userId"]
+    deselectedTags = body["deselectedTags"]
+
+    #If we did not delete anything, there's no need to run the deletion query.
+    if len(deselectedTags) == 0:
+        return {}
+
     values: str = ""
-    for tag in body["deselectedTags"]:
+    for tag in deselectedTags:
         values += f'({userId}, {tag["id"]}), '
     values = values[:-2]
     try:  
@@ -123,18 +128,17 @@ def delete_user_deselected_tag():
         conn.commit()
 
         if mycursor.rowcount == 0:
-            return jsonify({"Message":"Tag not found"}), 404
+            return jsonify({"Message":"Tags not found"})
         else:
-            return jsonify({"Message":"Tag deleted successfully"}), 200
-        
+            return jsonify({"Message":"Tags deleted successfully"})
     except mysql.connector.Error as err:
-        print(f"Error: {err}")
+        print(f"Delete User Deselected Tags Error: {err}")
     return {}
 
 
 @app.route('/delete_custom_tag/<int:tagId>/', methods=['DELETE'])
 def delete_custom_tag(tagId):
-    try:  
+    try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         mycursor.execute("DELETE FROM Tag WHERE id = %s;", (tagId,))
