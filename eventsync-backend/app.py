@@ -305,6 +305,19 @@ def post_event():
             mycursor.execute(updateTag)
         mycursor.execute(insertEventInfo)
         mycursor.execute(insertEvent)
+        mycursor.execute("SET @eventId = last_insert_id();")
+
+        for item in data["items"]:
+            insertItem = f"""
+                            INSERT INTO Item (name, creatorId)
+                            VALUES ("{item["description"]}", 1); 
+                        """ # TODO: change creator
+            insertEventToItem = f"""
+                            INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
+                            VALUES (@eventId, LAST_INSERT_ID(), "{item["amountNeeded"]}", 0);
+                        """
+            mycursor.execute(insertItem)
+            mycursor.execute(insertEventToItem)
         conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")

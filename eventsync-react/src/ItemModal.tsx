@@ -1,9 +1,9 @@
-import { Box, Button, Dialog, TextField } from "@mui/material";
+import { Box, Button, Dialog, TextField, Grid2 } from "@mui/material";
 import { useState } from "react";  
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
 
-function ItemModal(){
+function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
@@ -95,7 +95,7 @@ function ItemModal(){
                     Add New Item
                 </Button>
             </Box>
-            <Button onClick={handleClose}>Done</Button>
+            <Button onClick={() => {prop.itemsToParent(partialItems); handleClose(); }}>Done</Button>
         </Dialog>
     </>
 }

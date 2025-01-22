@@ -26,6 +26,7 @@ function CreateEventPage() {
     const [isWeatherSensitive, setIsWeatherSensitive] = useState<boolean>(false);
     const [isPrivateEvent, setIsPrivateEvent] = useState<boolean>(false);
     const [rsvpLimit, setRsvpLimit] = useState<number | null>(0);
+    const [items, setItems] = useState<Item[]>([])
 
     const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
 
@@ -42,7 +43,8 @@ function CreateEventPage() {
                 "isRecurring": isRecurring,
                 "isWeatherSensitive": isWeatherSensitive,
                 "isPublic": !isPrivateEvent,
-                "rsvpLimit": rsvpLimit
+                "rsvpLimit": rsvpLimit,
+                "items": items
             }
             const response = await fetch('http://localhost:5000/post_event', {
                 method: 'POST',
@@ -64,6 +66,7 @@ function CreateEventPage() {
                 setIsWeatherSensitive(false);
                 setIsPrivateEvent(false);
                 setRsvpLimit(0);
+                setItems([]);
             }
            
         } catch (error) {
@@ -71,6 +74,10 @@ function CreateEventPage() {
         }
           
     };
+
+    function itemsToParent(items: Item[]) {
+        setItems(items);
+    }
 
     const navigate = useNavigate();
 
@@ -110,7 +117,7 @@ function CreateEventPage() {
                         <Typography variant="body1">Tags:</Typography>
                         <TagModal/>
                         <Typography variant="body1">Items to Bring:</Typography>
-                        <ItemModal/>
+                        <ItemModal itemsToParent={itemsToParent} />
                     </Box>
                     <TextField 
                         id="outlined-basic" 
@@ -227,6 +234,13 @@ const tagOptions = [
     "Games"
 ]
 
-
+type Item = {
+    id: number;
+    description: String;
+    amountNeeded: number;
+    quantityAccountedFor: number;
+    isFull: Boolean;
+    event: number;
+};
 
 export default CreateEventPage;
