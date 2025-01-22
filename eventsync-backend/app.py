@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify, Response
-from flask import Flask, request, jsonify
 # INSTALL THESE:
 # pip install mysql-connector-python
 import mysql.connector
@@ -64,14 +63,14 @@ def get_users():
         print(f"Error: {err}")
     return {}
 
-@app.post('/add_custom_tag/<string:customTag>')
-def add_custom_tag(customTag):
-    # TODO: userId match user signed in
+@app.post('/create_custom_tag/')
+def add_custom_tag():
+    body = request.json
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         query = f"""
-                INSERT INTO Tag (name, numTimesUsed, userId) VALUES ("{customTag}", 0, 1);
+                INSERT INTO Tag (name, numTimesUsed, userId) VALUES ("{body["name"]}", 0, {body["userId"]});
                 """
         mycursor.execute(query)
         conn.commit()
@@ -79,9 +78,67 @@ def add_custom_tag(customTag):
         print(f"Error: {err}")
     return {}
 
+@app.post('/save_selected_tags/')
+def save_selected_tags():
+    body = request.json
+    userId = body["userId"]
+    values: str = ""
+
+    for tag in body["selectedTags"]:
+        values += f'({userId}, {tag["id"]}), '
+
+    #Remove extra comma and space afterwards
+    values = values[:-2]
+
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        query = f"""
+            INSERT INTO UserToTag (userId, tagId)
+            VALUES {values};
+        """
+        mycursor.execute(query)
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Save Selected Tags Error: {err}")
+    return {}
+
+@app.post('/delete_user_deselected_tags/')
+def delete_user_deselected_tags():
+    print("This is getting called")
+    body = request.json
+    userId = body["userId"]
+    deselectedTags = body["deselectedTags"]
+
+    #If we did not delete anything, there's no need to run the deletion query.
+    if len(deselectedTags) == 0:
+        return {}
+
+    values: str = ""
+    for tag in deselectedTags:
+        values += f'({userId}, {tag["id"]}), '
+    values = values[:-2]
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        query = f"""
+            DELETE FROM UserToTag WHERE (userId, tagId) IN ({values});
+        """
+        mycursor.execute(query)
+        conn.commit()
+
+        if mycursor.rowcount == 0:
+            return jsonify({"Message":"Tags not found"})
+        else:
+            return jsonify({"Message":"Tags deleted successfully"})
+    except mysql.connector.Error as err:
+        print(f"Delete User Deselected Tags Error: {err}")
+    return {}
+
+
 @app.route('/delete_custom_tag/<int:tagId>/', methods=['DELETE'])
 def delete_custom_tag(tagId):
-    try:  
+    try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         mycursor.execute("DELETE FROM Tag WHERE id = %s;", (tagId,))
@@ -109,6 +166,26 @@ def get_tags():
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
+
+@app.route('/get_user_tags/<int:userId>/')
+def get_user_tags(userId):
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        query = f"""
+            SELECT Tag.id, Tag.name, Tag.userId FROM Tag INNER JOIN (
+                SELECT UserToTag.tagId FROM UserToTag WHERE UserToTag.userId = {userId}
+            ) AS UserToTag ON Tag.id = UserToTag.tagId;
+        """
+        mycursor.execute(query)
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        res = sqlResponseToJson(response, headers)
+        return res
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
 
 @app.route('/get_friends/')
 def get_friends():

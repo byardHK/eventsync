@@ -9,6 +9,7 @@ import Card from '@mui/material/Card';
 import BottomNavBar from './BottomNavBar';
 import TagModal from './TagModal';
 import ItemModal from './ItemModal';
+import { Link } from 'react-router-dom';
 
 function HomePage() {
     const [isComingSoon, setIsComingSoon] = useState<Boolean>(true); 
@@ -19,9 +20,11 @@ function HomePage() {
             justifyContent="right"
             padding={2}
         >
-            <Button variant="contained">
-                <PersonIcon/>
-            </Button>
+            <Link to="/profilePage">
+                <Button variant="contained">
+                    <PersonIcon/>
+                </Button>
+            </Link>
         </Box>
         <Box
             display="flex"
