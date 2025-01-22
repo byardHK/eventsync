@@ -145,7 +145,7 @@ function TagModal({userTags, reloadUserTags}: TagModalProps){
         <Button 
             variant="outlined" 
             sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
-            onClick={handleOpen}
+            onClick={handleOpenModal}
         >
             <AddIcon />
         </Button>
