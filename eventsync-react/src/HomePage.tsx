@@ -10,7 +10,6 @@ import BottomNavBar from './BottomNavBar';
 import DeleteRecurEventModal from './DeleteRecurEventModal';
 import TagModal from './TagModal';
 import ItemModal from './ItemModal';
-import { SignalCellularNullOutlined } from '@mui/icons-material';
 
 function HomePage() {
     const [isComingSoon, setIsComingSoon] = useState<Boolean>(true); 
