@@ -90,8 +90,8 @@ function EventList() {
             console.error('Error fetching data:', error);
           }
         };
-        fetchData();
         setEventsChanged(false);
+        fetchData();
     }, [eventsChanged]);
 
     async function deleteEvent (event: EventSyncEvent) {
@@ -155,8 +155,6 @@ function EventList() {
                     <p>{`Start Date: ${event.startTime}`}</p>
                     <p>{`End Date: ${event.endTime}`}</p>
                     <p>{`${event.views} Views`}</p>
-                    <Button variant="contained" onClick={() => { if(!event.recurs) { deleteEvent(event) } else {} }}>
-                    View Event</Button>
                     <Button variant="contained" onClick={() => deleteEvent(event)}>Delete Event</Button>
                     <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}>
                     </DeleteRecurEventModal>

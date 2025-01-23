@@ -4,7 +4,7 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup'; 
 import FormControl from '@mui/material/FormControl'; 
 
-function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged: React.Dispatch<React.SetStateAction<Boolean>> }){
+function DeleteRecurEventModal(props: { event: EventSyncEvent | EventSyncEventWithDate, setEventsChanged: React.Dispatch<React.SetStateAction<Boolean>> }){
     const [isOpen, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
@@ -12,6 +12,7 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged:
 
     async function handleDelete(){
         console.log(`Delete ${props.event.id}, ${numToDelete}`);
+        props.setEventsChanged(true);
         const deletePath = numToDelete == "one" ? `http://localhost:5000/delete_one_event/${props.event.id}/` : `http://localhost:5000/delete_multiple_events/${props.event.id}/`;
             const response = await fetch(deletePath, {
                 method: 'DELETE',
@@ -23,7 +24,6 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged:
                 console.log('Data sent successfully:', response.json());
                 // setNumToDelete();
             }
-        props.setEventsChanged(true);
         handleClose();
     }
 
@@ -79,6 +79,17 @@ type EventSyncEvent = {
     views: number;
     id: number;
     recurs: Boolean;
+}
+
+type EventSyncEventWithDate = {
+    eventName : String;
+    // attendees : Number; TODO
+    locationName: string;
+    // startTime: string;
+    // endTime: string;
+    id: number;
+    startTime: Date;
+    endTime: Date;
 }
 
 export default DeleteRecurEventModal

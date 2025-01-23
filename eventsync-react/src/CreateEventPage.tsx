@@ -162,18 +162,6 @@ function CreateEventPage() {
                         value={locationText} 
                         onChange={(event) => setLocationText(event.target.value)}  
                     />
-                    <Box display="flex" flexDirection="row" gap={2}>
-                        <MobileDateTimePicker
-                            label="Start"
-                            value={startDateTime}
-                            onChange={(newValue: SetStateAction<Dayjs | null>) => setStartDateTime(newValue)} 
-                        />
-                        <MobileDateTimePicker
-                            label="End"
-                            value={startDateTime}
-                            onChange={(newValue: SetStateAction<Dayjs | null>) => setEndDateTime(newValue)} 
-                        />
-                    </Box>
                     <TextField 
                         id="outlined-basic" 
                         label="Venmo" 
