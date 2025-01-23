@@ -3,7 +3,8 @@ from flask import Flask, request, jsonify, Response
 # pip install mysql-connector-python
 import mysql.connector
 from flask_cors import CORS
-from datetime import datetime
+from datetime import datetime, timedelta
+from dateutil.relativedelta import *
 
 app = Flask(__name__)
 CORS(app)
@@ -22,7 +23,8 @@ def get_events():
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         mycursor.execute("""
-                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName, Event.views, Event.id
+                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName, Event.views, Event.id, (
+                            SELECT COUNT(*) FROM Event WHERE Event.eventInfoId = EventInfo.id ) AS recurs
                         from Event
                         JOIN EventInfo 
                         ON Event.eventInfoId = EventInfo.id
@@ -291,17 +293,23 @@ def delete_user(userId):
         print(f"Error: {err}")
     return {}
 
-@app.route('/delete_multiple_events/<int:eventInfoId>/', methods=['DELETE'])
-def delete_mult_event(eventInfoId):
+@app.route('/delete_multiple_events/<int:eventId>/', methods=['DELETE'])
+def delete_mult_event(eventId):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute("""
-                        DELETE FROM Event
-                        WHERE eventInfoId = {eventInfoId};
+        mycursor.execute(f"""
+                        SET @eventInfoId = (SELECT eventInfoId FROM Event WHERE id = {eventId});
+                        
                      """)
-        response = mycursor.fetchall()
+        mycursor.execute("""DELETE FROM Event
+                        WHERE eventInfoId = @eventInfoId;""")
         conn.commit()
+        if mycursor.rowcount == 0:
+            return jsonify({"Message":"Event not found"}), 404
+        else:
+            return jsonify({"Message":"Event deleted successfully"}), 200
+
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
@@ -394,7 +402,8 @@ def get_my_events(user_id: int):
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         mycursor.execute(f"""
-                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName, Event.id, EventInfo.locationName
+                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName, Event.id, EventInfo.locationName, (
+                            SELECT COUNT(*) FROM Event WHERE Event.eventInfoId = EventInfo.id ) AS recurs
                         FROM Event
                         JOIN EventInfo 
                         ON Event.eventInfoId = EventInfo.id
@@ -417,6 +426,52 @@ def get_my_events(user_id: int):
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
+
+
+@app.post('/post_recurring_event/')
+def post_recurring_event():
+    data = request.json
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        reqStrFormat = '%Y-%m-%dT%H:%M:%S.%fZ'
+        dateCreated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        insertEventInfo = f"""
+                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated)
+                        VALUES (1, 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{dateCreated}");
+                     """
+        mycursor.execute(insertEventInfo)
+        mycursor.execute("SET @eventInfoId = last_insert_id();")
+        # get event dates through start date and end date
+        curStartDate = datetime.strptime(data["startDateTime"], reqStrFormat)
+        curEndDate = datetime.strptime(data["endDateTime"], reqStrFormat)
+        endDate = datetime.strptime(data["endRecurDateTime"], reqStrFormat)
+        delta = data["recurFrequency"]
+        duration = curEndDate - curStartDate
+        if delta == "Monthly":
+            weekdays = [MO, TU, WE, TH, FR, SA, SU]
+            dayOfWeek = weekdays[curStartDate.weekday()] # day of the week of event
+            nthWeekday = (curStartDate.day // 7) + 1 # what number ___day of the month is this event on?
+        
+        # while datetime.strptime(str(curStartDate), "%Y-%m-%d %H:%M:%S") < endDate:
+        while curStartDate < endDate:
+            insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
+                        VALUES (@eventInfoId, "{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}", "{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}", "{dateCreated}");"""
+            mycursor.execute(insertEvent)
+            if delta == "Daily":
+                curStartDate = curStartDate + timedelta(days=1)
+            elif delta == "Weekly":
+                curStartDate = curStartDate + timedelta(weeks=1)
+            elif delta == "Monthly":
+                curStartDate = (curStartDate + relativedelta(months=1)).replace(day=1) # first day of the next month
+                curStartDate = curStartDate + relativedelta(weekday=dayOfWeek(nthWeekday)) # next event date
+            else:
+                return "Invalid recurring frequency", 400
+            curEndDate = curStartDate + duration
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return data, 201
 
 @app.route('/get_event/<int:event_id>')
 def get_event(event_id):

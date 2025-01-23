@@ -4,16 +4,18 @@ import Box from '@mui/material/Box';
 import { Button, Card, Grid2 } from '@mui/material';
 import axios from 'axios';
 import AddIcon from '@mui/icons-material/Add';
+import Link from '@mui/icons-material/Link';
 import { useNavigate } from 'react-router-dom';
 import { format } from "date-fns";
+import DeleteRecurEventModal from './DeleteRecurEventModal';
 
-const currentUserId = 2; // Placeholder for the current user that is logged in. TODO: get the actual current user
+const currentUserId = 1; // Placeholder for the current user that is logged in. TODO: get the actual current user
 
 
 function MyEventsPage() {
 
     const [isListView, setIsListView] = useState<Boolean>(true); 
-    
+
     const navigate = useNavigate()
 
     const handleCreatEventClick = () => {
@@ -64,18 +66,14 @@ function MyEventsPage() {
             </Button>
            
         </Box>
-        <Box 
-            display="flex"
-            alignItems="center" 
-        >
-            <BottomNavBar></BottomNavBar>
-        </Box>
+        <BottomNavBar></BottomNavBar>
     </>;
 };
 
 function EventLists() {
-    const [attendingEvents, setAttendingEvents] = useState<EventSyncEvent[]>([]);  
-    const [hostingEvents, setHostingEvents] = useState<EventSyncEvent[]>([]);    
+    const [attendingEvents, setAttendingEvents] = useState<EventSyncEventWithDate[]>([]);  
+    const [hostingEvents, setHostingEvents] = useState<EventSyncEventWithDate[]>([]);    
+    const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -90,17 +88,35 @@ function EventLists() {
           }
         };
         fetchData();
-    }, []);
+    }, [eventsChanged]);
 
     return <div>
             <h3>Attending</h3>
-            <EventList events={attendingEvents}></EventList>
+            <EventList events={attendingEvents} canDeleteEvents={false} setEventsChanged={setEventsChanged}></EventList>
             <h3>Hosting</h3>
-            <EventList events={hostingEvents}></EventList>
+            <EventList events={hostingEvents} canDeleteEvents={true} setEventsChanged={setEventsChanged}></EventList>
         </div>;
 };
 
-function EventList({ events }: { events: EventSyncEvent[] }) {
+function EventList({ events, canDeleteEvents, setEventsChanged }: { events: EventSyncEventWithDate[], canDeleteEvents: Boolean, setEventsChanged: React.Dispatch<React.SetStateAction<Boolean>> }) {
+
+    async function deleteEvent (event: EventSyncEventWithDate) {
+        console.log(event);
+        try {
+            const response = await axios.delete(`http://localhost:5000/delete_one_event/${event.id}/`);
+            console.log(response);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+        // try {
+        //     const response = await axios.get(`http://localhost:5000/get_events`);
+        //     const res: EventSyncEventWithDate[] = response.data;
+        //     setEvents(res);
+        //     } catch (error) {
+        //     console.error('Error fetching data:', error);
+        //     }
+        setEventsChanged(true);
+    }
 
     return <Grid2
         container spacing={3}
@@ -124,7 +140,7 @@ function EventList({ events }: { events: EventSyncEvent[] }) {
                     <p>{event.locationName}</p>
                     {(event.startTime.getDay == event.endTime.getDay) ?
                         <>
-                            <p>{format(event.startTime, "EEEE, LLL. Mo")}</p>
+                            <p>{format(event.startTime, "EEEE, LLL. do")}</p>
                             <p>{format(event.startTime, "p")} - {format(event.endTime, "p")}</p>
                         </> 
                     : <>
@@ -132,14 +148,19 @@ function EventList({ events }: { events: EventSyncEvent[] }) {
                         <p>{event.endTime.toDateString()}</p>
                     </>
                     }
+                    {canDeleteEvents && (event.recurs > 1 ?
+                    <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}>
+                    </DeleteRecurEventModal>
+                    : <Button variant="contained" onClick={() => deleteEvent(event)}>Delete Event</Button>
+                    )}
                 </Box>
             </Card>
         )}
     </Grid2>;
 };
 
-type EventSyncEvent = {
-    eventName : string;
+type EventSyncEventWithDate = {
+    eventName : String;
     // attendees : Number; TODO
     locationName: string;
     // startTime: string;
@@ -147,11 +168,12 @@ type EventSyncEvent = {
     id: number;
     startTime: Date;
     endTime: Date;
+    recurs: number
 }
 
 type EventSyncMyEvents = {
-    hosting: EventSyncEvent[];
-    attending: EventSyncEvent[];
+    hosting: EventSyncEventWithDate[];
+    attending: EventSyncEventWithDate[];
 }
 
 export default MyEventsPage;
