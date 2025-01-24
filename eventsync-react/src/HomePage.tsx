@@ -157,6 +157,7 @@ function EventList() {
                     <p>{`Start Date: ${event.startTime}`}</p>
                     <p>{`End Date: ${event.endTime}`}</p>
                     <p>{`${event.views} Views`}</p>
+                    <Button variant="contained" onClick={() => viewEvent(event)}>View Event</Button>
                     <Button variant="contained" onClick={() => deleteEvent(event)}>Delete Event</Button>
                     <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}>
                     </DeleteRecurEventModal>
