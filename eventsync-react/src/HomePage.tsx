@@ -11,6 +11,7 @@ import DeleteRecurEventModal from './DeleteRecurEventModal';
 import TagModal from './TagModal';
 import ItemModal from './ItemModal';
 import { Link } from 'react-router-dom';
+import { SignOutButton } from "./components/SignOutButton";
 
 function HomePage() {
     const [isComingSoon, setIsComingSoon] = useState<Boolean>(true); 
@@ -21,6 +22,8 @@ function HomePage() {
             justifyContent="right"
             padding={2}
         >
+            <SignOutButton />
+            
             <Link to="/profilePage">
                 <Button variant="contained">
                     <PersonIcon/>

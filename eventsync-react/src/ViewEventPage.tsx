@@ -7,7 +7,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PersonIcon from '@mui/icons-material/Person';
 import axios from 'axios';
 
-const currentUserId = 2;
+const currentUserId = 'minnichjs21@gcc.edu';
 
 function ViewEventPage() {
     const { eventId } = useParams<{ eventId: string }>();
