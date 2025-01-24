@@ -1,9 +1,15 @@
+import { Link } from "react-router-dom";
 import { TextField, Box, Button, Typography, FormControlLabel, Checkbox, Switch } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
-import { SetStateAction, useState } from 'react';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { JSX } from "react/jsx-runtime";
 import { MobileDateTimePicker } from "@mui/x-date-pickers/MobileDateTimePicker";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
 import { Dayjs } from "dayjs";
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -11,27 +17,31 @@ import TagModal from './TagModal';
 import ItemModal from './ItemModal';
 import CheckIcon from '@mui/icons-material/Check';
 import rootShouldForwardProp from '@mui/material/styles/rootShouldForwardProp';
+import { SetStateAction, useState } from 'react';
 
 const currentUserId = 2;
 
 function CreateEventPage() {
     const [titleText, setTitleText] = useState<String>("");    
-    const [descriptionText, setDescriptionText] = useState<String>("");
     const [startDateTime, setStartDateTime] = useState<Dayjs | null>(null); 
     const [endDateTime, setEndDateTime] = useState<Dayjs | null>(null); 
     const [locationText, setLocationText] = useState<String>("");      
     const [tags, setTags] = useState<string[]>([]); 
+    const [checked, setChecked] = useState<boolean>(false);
+    const [recurFrequency, setRecurFrequency] = useState<string>("Weekly"); 
+    const [endRecurDateTime, setEndRecurDateTime] = useState<Dayjs | null>(null); 
     const [venmoText, setVenmoText] = useState<String>("");
-    const [isRecurring, setIsRecurring] = useState<boolean>(false);
     const [isWeatherSensitive, setIsWeatherSensitive] = useState<boolean>(false);
     const [isPrivateEvent, setIsPrivateEvent] = useState<boolean>(false);
     const [rsvpLimit, setRsvpLimit] = useState<number | null>(0);
     const [items, setItems] = useState<Item[]>([])
+    const [descriptionText, setDescriptionText] = useState<String>("");
 
     const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
 
         e.preventDefault();
         try {
+            const postPath = checked ? 'http://localhost:5000/post_recurring_event' : 'http://localhost:5000/post_event';
             const data = {
                 "title": titleText,
                 "description": descriptionText,
@@ -39,14 +49,16 @@ function CreateEventPage() {
                 "endDateTime": endDateTime,
                 "locationName": locationText,
                 "tags": tags,
+                "recurFrequency": recurFrequency,
+                "endRecurDateTime": endRecurDateTime,
                 "venmo": venmoText,
-                "isRecurring": isRecurring,
+                "isRecurring": checked,
                 "isWeatherSensitive": isWeatherSensitive,
                 "isPublic": !isPrivateEvent,
                 "rsvpLimit": rsvpLimit,
                 "items": items
             }
-            const response = await fetch('http://localhost:5000/post_event', {
+            const response = await fetch(postPath, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -61,8 +73,11 @@ function CreateEventPage() {
                 setEndDateTime(null);
                 setLocationText("");
                 setTags([]);
+                setChecked(false);
+                setRecurFrequency("Weekly");
+                setEndRecurDateTime(null);
                 setVenmoText("");
-                setIsRecurring(false);
+                setChecked(false);
                 setIsWeatherSensitive(false);
                 setIsPrivateEvent(false);
                 setRsvpLimit(0);
@@ -77,6 +92,14 @@ function CreateEventPage() {
 
     function itemsToParent(items: Item[]) {
         setItems(items);
+    }
+    
+    function onCheckBoxChange() {
+        setChecked(!checked);
+    }
+
+    function handleRecurFrequencyChange(newFrequency: string) {
+        setRecurFrequency(newFrequency);
     }
 
     const navigate = useNavigate();
@@ -113,9 +136,19 @@ function CreateEventPage() {
                         value={titleText} 
                         onChange={(event) => setTitleText(event.target.value)}  
                     />
+                    <MobileDateTimePicker
+                        label="Start"
+                        value={startDateTime}
+                        onChange={(newValue) => setStartDateTime(newValue)} 
+                    />
+                    <MobileDateTimePicker
+                        label="End"
+                        value={startDateTime}
+                        onChange={(newValue) => setEndDateTime(newValue)} 
+                    />
                     <Box display="flex" alignItems="center">
                         <Typography variant="body1">Tags:</Typography>
-                        <TagModal/>
+                        {/* <TagModal/> */}
                         <Typography variant="body1">Items to Bring:</Typography>
                         <ItemModal itemsToParent={itemsToParent} />
                     </Box>
@@ -135,18 +168,6 @@ function CreateEventPage() {
                         value={locationText} 
                         onChange={(event) => setLocationText(event.target.value)}  
                     />
-                    <Box display="flex" flexDirection="row" gap={2}>
-                        <MobileDateTimePicker
-                            label="Start"
-                            value={startDateTime}
-                            onChange={(newValue: SetStateAction<Dayjs | null>) => setStartDateTime(newValue)} 
-                        />
-                        <MobileDateTimePicker
-                            label="End"
-                            value={startDateTime}
-                            onChange={(newValue: SetStateAction<Dayjs | null>) => setEndDateTime(newValue)} 
-                        />
-                    </Box>
                     <TextField 
                         id="outlined-basic" 
                         label="Venmo" 
@@ -155,17 +176,57 @@ function CreateEventPage() {
                         value={venmoText} 
                         onChange={(event) => setVenmoText(event.target.value)}  
                     />
-                    <FormControlLabel
-                        label="Recurring Event"
-                        control={
-                            <Checkbox
-                                checked={isRecurring}
-                                onChange={(event) => setIsRecurring(event.target.checked)}
-                                name="isRecurring"
-                                color="primary"
-                            />
-                        }
-                    />
+                                    <FormControlLabel
+                    label="Recurring Event"
+                    control={<Checkbox
+                                checked={checked}
+                                onChange={(event) => setChecked(event.target.checked)} 
+                            />}
+                />
+                {checked ? 
+                    <div>
+                        <Box alignItems="center" 
+                            justifyContent="center"
+                        >
+                            <FormControl>
+                                <InputLabel id="select-frequency">Frequency</InputLabel>
+                                <Select
+                                    value={recurFrequency}
+                                    label="Frequency"
+                                    labelId="select-frequency"
+                                    onChange={(event) => setRecurFrequency(event.target.value)}
+                                >
+                                    <MenuItem value={"Daily"}>Daily</MenuItem>
+                                    <MenuItem value={"Weekly"}>Weekly</MenuItem>
+                                    <MenuItem value={"Monthly"}>Monthly</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Box>
+                        <Box display="flex" 
+                            alignItems="center" 
+                            justifyContent="center"
+                            component="form"
+                            sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
+                            noValidate
+                            autoComplete="off">
+                        <MobileDateTimePicker
+                            label="End Date"
+                            value={endRecurDateTime}
+                            onChange={(newValue) => setEndRecurDateTime(newValue)} 
+                        />
+                        </Box>
+                    </div>
+                : null}
+                </Box>
+                <Box 
+                    display="flex" 
+                    flexDirection="column"
+                    alignItems="center" 
+                    justifyContent="center"
+                    component="form"
+                    sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
+                    noValidate
+                    autoComplete="off">
                     <FormControlLabel
                         label="Weather Sensitive"
                         control={
@@ -226,6 +287,7 @@ function CreateEventPage() {
             </Box>
       </Box>
     </>;
+
 }
 
 const tagOptions = [

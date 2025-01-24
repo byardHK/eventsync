@@ -7,8 +7,10 @@ import SearchIcon from '@mui/icons-material/Search';
 import PersonIcon from '@mui/icons-material/Person';
 import Card from '@mui/material/Card';
 import BottomNavBar from './BottomNavBar';
+import DeleteRecurEventModal from './DeleteRecurEventModal';
 import TagModal from './TagModal';
 import ItemModal from './ItemModal';
+import { Link } from 'react-router-dom';
 
 function HomePage() {
     const [isComingSoon, setIsComingSoon] = useState<Boolean>(true); 
@@ -19,9 +21,11 @@ function HomePage() {
             justifyContent="right"
             padding={2}
         >
-            <Button variant="contained">
-                <PersonIcon/>
-            </Button>
+            <Link to="/profilePage">
+                <Button variant="contained">
+                    <PersonIcon/>
+                </Button>
+            </Link>
         </Box>
         <Box
             display="flex"
@@ -76,6 +80,7 @@ function HomePage() {
 
 function EventList() {
     const [events, setEvents] = useState<EventSyncEvent[]>([]);    
+    const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -87,8 +92,9 @@ function EventList() {
             console.error('Error fetching data:', error);
           }
         };
+        setEventsChanged(false);
         fetchData();
-    }, []);
+    }, [eventsChanged]);
 
     async function deleteEvent (event: EventSyncEvent) {
         console.log(event);
@@ -105,6 +111,14 @@ function EventList() {
             } catch (error) {
             console.error('Error fetching data:', error);
             }
+    }
+
+    function handleDeleteButton(event: EventSyncEvent){
+        if(!event.recurs){
+            deleteEvent(event)
+        } else {
+
+        }
     }
 
     const navigate = useNavigate();
@@ -143,8 +157,9 @@ function EventList() {
                     <p>{`Start Date: ${event.startTime}`}</p>
                     <p>{`End Date: ${event.endTime}`}</p>
                     <p>{`${event.views} Views`}</p>
-                    <Button variant="contained" onClick={() => viewEvent(event)}>View Event</Button>
                     <Button variant="contained" onClick={() => deleteEvent(event)}>Delete Event</Button>
+                    <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}>
+                    </DeleteRecurEventModal>
                 </Box>
             </Card>
         )}
@@ -159,6 +174,7 @@ type EventSyncEvent = {
     endTime: String;
     views: number;
     id: number;
+    recurs: Boolean;
 }
 
 export default HomePage;
