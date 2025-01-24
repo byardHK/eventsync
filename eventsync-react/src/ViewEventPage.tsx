@@ -6,6 +6,8 @@ import { Button, Card, Accordion, AccordionSummary, AccordionDetails, Typography
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PersonIcon from '@mui/icons-material/Person';
 import axios from 'axios';
+import RemoveIcon from '@mui/icons-material/Remove';
+import AddIcon from '@mui/icons-material/Add';
 
 const currentUserId = 2;
 
@@ -87,7 +89,27 @@ function GetEvent({ event, expanded, handleChange }: { event: Event, expanded: s
                 </AccordionSummary>
                 <AccordionDetails>
                     {event.items.map((item, index) => (
-                        <Typography key={index}>{`${item.name}: ${item.amountNeeded} needed, ${item.quantitySignedUpFor} signed up`}</Typography>
+                        <div>
+                            <Typography key={index}>{`${item.name}: ${item.quantitySignedUpFor}/${item.amountNeeded}`}</Typography>
+                            <Box
+                                display="flex"
+                                width="50%" 
+                                justifyContent="right"
+                                gap={3}
+                            >
+                                <Button variant="contained" 
+                                // onClick={() => changeItemQuantity(-1, index)}
+                                >
+                                    <RemoveIcon></RemoveIcon>
+                                </Button>
+                                <h3>{item.amountNeeded}</h3>
+                                <Button variant="contained" 
+                                // onClick={() => changeItemQuantity(1, index)}
+                                >
+                                    <AddIcon></AddIcon>
+                                </Button>
+                            </Box>
+                        </div>
                     ))}
                 </AccordionDetails>
             </Accordion>

@@ -72,7 +72,7 @@ function HomePage() {
             />
             <EventList/>
             <BottomNavBar></BottomNavBar>
-            <TagModal></TagModal>
+            {/* <TagModal></TagModal> */}
             {/* <ItemModal></ItemModal> */}
         </Box>
     </>;
