@@ -12,8 +12,14 @@ import TagModal from './TagModal';
 import ItemModal from './ItemModal';
 import { Link } from 'react-router-dom';
 import { SignOutButton } from "./components/SignOutButton";
+import { useUser } from './UserContext';
 
 function HomePage() {
+    const { userDetails } = useUser();
+    const currentUserId = userDetails.email;
+    console.log("home page: ")
+    console.log(currentUserId);
+    
     const [isComingSoon, setIsComingSoon] = useState<Boolean>(true); 
     return <>
         <Box
@@ -22,6 +28,8 @@ function HomePage() {
             justifyContent="right"
             padding={2}
         >
+            <h5 className="card-title">Welcome {userDetails.firstName}</h5>
+
             <SignOutButton />
             
             <Link to="/profilePage">

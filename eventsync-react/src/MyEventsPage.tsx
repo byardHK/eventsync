@@ -8,11 +8,16 @@ import Link from '@mui/icons-material/Link';
 import { useNavigate } from 'react-router-dom';
 import { format } from "date-fns";
 import DeleteRecurEventModal from './DeleteRecurEventModal';
+import { useUser } from './UserContext';
 
 const currentUserId = 1; // Placeholder for the current user that is logged in. TODO: get the actual current user
 
 
 function MyEventsPage() {
+    const { userDetails } = useUser();
+    const currentUserId = userDetails.email;
+    console.log("friends page: ")
+    console.log(currentUserId);
 
     const [isListView, setIsListView] = useState<Boolean>(true); 
 
