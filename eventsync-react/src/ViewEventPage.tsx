@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import BottomNavBar from './BottomNavBar';
 import Box from '@mui/material/Box';
-import { Button, Card, Accordion, AccordionSummary, AccordionDetails, Typography, Chip } from '@mui/material';
+import { Button, Card, Accordion, AccordionSummary, AccordionDetails, Typography, Chip, Dialog } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PersonIcon from '@mui/icons-material/Person';
 import axios from 'axios';
@@ -14,6 +14,42 @@ function ViewEventPage() {
     const [event, setEvent] = useState<Event | null>(null);
     const [expanded, setExpanded] = useState<string | false>(false);
     const intEventId = parseInt(eventId || '-1');
+    const [open, setOpen] = useState(false);
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
+
+    function RsvpModal(){
+        return <>
+            <Button variant="outlined" onClick={handleOpen}>RSVP</Button>
+            <Dialog 
+                onClose={handleClose} 
+                open={open}
+            >
+                <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                    justifyContent="center" 
+                    sx={{width: "100%"}}
+                    minWidth={300}
+                >
+                    <h2>You have RSVP'd to </h2>
+                    <h2>{event?.title}!</h2>
+                    <h3>Add to calendar?</h3>
+                    <Box
+                        display="flex"
+                        flexDirection="row"
+                        padding={2}
+                        gap={2}
+                    >
+                        <Button variant="outlined" fullWidth onClick={handleClose}>No</Button>
+                        <Button variant="outlined" fullWidth onClick={handleClose}>Yes</Button>
+                    </Box>
+                </Box>
+            </Dialog>
+        </>
+    }
+    
 
     useEffect(() => {
         const fetchEvent = async () => {
@@ -53,6 +89,7 @@ function ViewEventPage() {
             ) : (
                 <p>Loading Event {eventId}</p>
             )}
+            <RsvpModal></RsvpModal>
             <BottomNavBar/>
         </Box>
     </>;
@@ -110,6 +147,7 @@ function GetEvent({ event, expanded, handleChange }: { event: Event, expanded: s
         </Card>
     );
 }
+
 
 type Event = {
     eventName: string;
