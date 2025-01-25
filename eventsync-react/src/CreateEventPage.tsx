@@ -22,8 +22,6 @@ import axios from 'axios';
 
 const currentUserId = 'minnichjs21@gcc.edu';
 
-// TODO: Create save function that saves and deletes and pass it in as a parameter to tag modal
-
 function CreateEventPage() {
     const [titleText, setTitleText] = useState<String>("");    
     const [startDateTime, setStartDateTime] = useState<Dayjs | null>(null); 
@@ -39,13 +37,11 @@ function CreateEventPage() {
     const [rsvpLimit, setRsvpLimit] = useState<number | null>(0);
     const [descriptionText, setDescriptionText] = useState<String>("");
 
-    //TODO: make dynamic
-    const eventInfoId = 1;
-    const [eventTagsTrigger, setEventTagsTrigger] = useState<number>(0);
+    // const [eventTagsTrigger, setEventTagsTrigger] = useState<number>(0);
 
-    function reloadEventTags() {
-        setEventTagsTrigger(eventTagsTrigger+1);
-    }
+    // function reloadEventTags() {
+    //     setEventTagsTrigger(eventTagsTrigger+1);
+    // }
     
     function ListTags(){
         return <>
@@ -67,51 +63,64 @@ function CreateEventPage() {
         </>
     }
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await axios.get(`http://localhost:5000/get_event_tags/${eventInfoId}/`);
-                const res: Tag[] = response.data;
-                setTags(res);
-            } catch (error) {
-                console.error('Error fetching tags:', error);
-            }
-        };
-        fetchData();
-    }, [eventTagsTrigger]);
+    // useEffect(() => {
+    //     const fetchData = async () => {
+    //         try {
+    //             const response = await axios.get(`http://localhost:5000/get_event_tags/${eventInfoId}/`);
+    //             const res: Tag[] = response.data;
+    //             setTags(res);
+    //         } catch (error) {
+    //             console.error('Error fetching tags:', error);
+    //         }
+    //     };
+    //     fetchData();
+    // }, [eventTagsTrigger]);
 
     const handleSave = async (tagsToAdd: Tag[], tagsToDelete: Tag[]) => {
-        try {
-            const deselectedData = {
-                "deselectedTags": tagsToDelete,
-                "eventInfoId": 1
-            }
-            const deleteResponse = await fetch(`http://localhost:5000/delete_event_deselected_tags/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(deselectedData),
-            });
-            const selectedData = {
-                "selectedTags": tagsToAdd,
-                "eventInfoId": 1
-            }
-            const saveResponse = await fetch(`http://localhost:5000/save_event_selected_tags/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(selectedData),
-            });
-            if(deleteResponse.ok && saveResponse.ok){
-                console.log('Data sent successfully:', deleteResponse.json());
-            }
-        } catch (error) {
-            console.error('Error sending data:', error);
-        }
+        const newTags: Tag[] = [...tags];
 
-        reloadEventTags();
+        tagsToAdd.forEach(tag=> {
+            newTags.push(tag);
+        });
+        
+        const filteredTags = newTags.filter((tag) => {
+            return !tagsToDelete.includes(tag);
+        });
+
+        setTags(filteredTags);
+
+
+    //     try {
+    //         const deselectedData = {
+    //             "deselectedTags": tagsToDelete,
+    //             "eventInfoId": 1
+    //         }
+    //         const deleteResponse = await fetch(`http://localhost:5000/delete_event_deselected_tags/`, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify(deselectedData),
+    //         });
+    //         const selectedData = {
+    //             "selectedTags": tagsToAdd,
+    //             "eventInfoId": 1
+    //         }
+    //         const saveResponse = await fetch(`http://localhost:5000/save_event_selected_tags/`, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify(selectedData),
+    //         });
+    //         if(deleteResponse.ok && saveResponse.ok){
+    //             console.log('Data sent successfully:', deleteResponse.json());
+    //         }
+    //     } catch (error) {
+    //         console.error('Error sending data:', error);
+    //     }
+
+        // reloadEventTags();
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {

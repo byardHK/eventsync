@@ -3,9 +3,6 @@ import TagModal, { Tag } from "./TagModal";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-// TODO: Create save function that saves and deletes and pass it in as a parameter to tag modal
-
-
 function ProfilePage(){
     const userId = 1;
     const [userTagsTrigger, setUserTagsTrigger] = useState<number>(0);

@@ -453,7 +453,7 @@ def post_event():
        
         insertEventInfo = f"""
                         INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated)
-                        VALUES ({data["creator"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}");
+                        VALUES ("{data["creator"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}");
                      """
         insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views)
                         VALUES (last_insert_id(), "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", "0");"""
@@ -462,11 +462,20 @@ def post_event():
             updateTag = f"""
                             UPDATE Tag
                             SET numTimesUsed = numTimesUsed + 1
-                            WHERE name="{tag}"
+                            WHERE name="{tag["name"]}"
                         """
             mycursor.execute(updateTag)
         mycursor.execute(insertEventInfo)
+        eventInfoId = mycursor.lastrowid
         mycursor.execute(insertEvent)
+
+        for tag in tags:
+            updateTag = f"""
+                            INSERT INTO EventInfoToTag(eventInfoId, tagId)
+                            VALUES ({eventInfoId} , {tag["id"]});
+                        """
+            print(updateTag)
+            mycursor.execute(updateTag)
         conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -581,13 +590,17 @@ def get_event(event_id):
         event = dict(zip(headers, response[0]))
 
         mycursor.execute(f"""
-                        SELECT Tag.name
+                        SELECT Tag.id, Tag.name, Tag.userId
                         FROM Tag
                         JOIN EventInfoToTag ON Tag.id = EventInfoToTag.tagId
                         WHERE EventInfoToTag.eventInfoId = {event['eventInfoId']}
                      """)
         tags_response = mycursor.fetchall()
-        tags = [tag[0] for tag in tags_response]
+        tags = [{
+            "id": tag[0],
+            "name": tag[1],
+            "userId": tag[2]
+        } for tag in tags_response]
         event['tags'] = tags
 
         mycursor.execute(f"""

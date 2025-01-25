@@ -16,9 +16,6 @@ function ViewEventPage() {
     const [expanded, setExpanded] = useState<string | false>(false);
     const intEventId = parseInt(eventId || '-1');
 
-    //TODO: hold tags in state until event is created, and then use new eventId to make database call
-
-
     useEffect(() => {
         const fetchEvent = async () => {
             try {
