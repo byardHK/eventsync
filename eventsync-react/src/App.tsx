@@ -13,6 +13,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage/>}/>
         <Route path="/createEvent" element={<CreateEventPage/>}/>
+        <Route path="/createEvent/:eventId" element={<CreateEventPage/>}/>
         <Route path="/friendsPage" element={<FriendsPage/>}/>
         <Route path="/myEventsPage" element={<MyEventsPage/>}/>
         <Route path="/profilePage" element={<ProfilePage/>}/>

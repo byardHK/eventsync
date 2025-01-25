@@ -370,13 +370,12 @@ def post_event():
         startDateTime = data["startDateTime"]
         endDateTime = data["endDateTime"]
 
-
         db_startDateTime = datetime.strptime(startDateTime, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
         db_endDateTime = datetime.strptime(endDateTime, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
        
         insertEventInfo = f"""
-                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated)
-                        VALUES (1, 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}");
+                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo)
+                        VALUES ({data["creatorId"]}, 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}", "{data["venmo"]}");
                      """
         insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views)
                         VALUES (last_insert_id(), "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", "0");"""
@@ -396,8 +395,8 @@ def post_event():
     return data, 201
 
 # for each event return: name, location, date/time, (views/rsvps), viewing link
-@app.route('/get_my_events/<int:user_id>')
-def get_my_events(user_id: int):
+@app.route('/get_my_events/<string:user_id>')
+def get_my_events(user_id: str):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -407,7 +406,7 @@ def get_my_events(user_id: int):
                         FROM Event
                         JOIN EventInfo 
                         ON Event.eventInfoId = EventInfo.id
-                        WHERE EventInfo.creatorId = {user_id}
+                        WHERE EventInfo.creatorId = '{user_id}'
                      """)
         response = mycursor.fetchall()
         headers = mycursor.description
@@ -417,7 +416,7 @@ def get_my_events(user_id: int):
                         FROM Event
                         JOIN EventInfo
                         ON Event.eventInfoId = EventInfo.id
-                        WHERE Event.id IN (SELECT EventToUser.eventId FROM EventToUser WHERE EventToUser.userId = {user_id})
+                        WHERE Event.id IN (SELECT EventToUser.eventId FROM EventToUser WHERE EventToUser.userId = '{user_id}')
                      """)
         response = mycursor.fetchall()
         headers = mycursor.description
@@ -438,7 +437,7 @@ def post_recurring_event():
         dateCreated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         insertEventInfo = f"""
                         INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated)
-                        VALUES (1, 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{dateCreated}");
+                        VALUES ({data["creatorId"]}, 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{dateCreated}");
                      """
         mycursor.execute(insertEventInfo)
         mycursor.execute("SET @eventInfoId = last_insert_id();")
@@ -473,7 +472,7 @@ def post_recurring_event():
         print(f"Error: {err}")
     return data, 201
 
-@app.route('/get_event/<int:event_id>')
+@app.route('/get_event/<int:event_id>', methods=['GET'])
 def get_event(event_id):
     try:  
         conn = mysql.connector.connect(**db_config)
@@ -487,7 +486,8 @@ def get_event(event_id):
                         EventInfo.title, 
                         EventInfo.description, 
                         EventInfo.locationName, 
-                        EventInfo.locationLink, 
+                        EventInfo.locationLink,
+                        EventInfo.venmo, 
                         EventInfo.RSVPLimit, 
                         EventInfo.isPublic, 
                         EventInfo.isWeatherDependant, 
@@ -523,6 +523,63 @@ def get_event(event_id):
         event['items'] = items
 
         return jsonify(event)
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/editEvent/<int:eventId>', methods=['PUT'])
+def edit_event(eventId):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f"""
+            SELECT Event.eventInfoId
+            FROM Event
+            JOIN EventInfo ON Event.eventInfoId = EventInfo.id
+            WHERE Event.id = {eventId}
+        """)
+        response = mycursor.fetchall()
+        headers = [x[0] for x in mycursor.description]
+        event = dict(zip(headers, response[0]))
+        if not event:
+            return jsonify({"error": "Event not found"}), 404
+
+        data = request.json
+
+        startDateTime = data["startDateTime"]
+        endDateTime = data["endDateTime"]
+
+        db_startDateTime = datetime.strptime(startDateTime, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
+        db_endDateTime = datetime.strptime(endDateTime, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
+        if data.get("editAllEvents"):
+            eventInfoUpdate = f"""
+                UPDATE EventInfo
+                SET title = '{data["title"]}',
+                    description = '{data["description"]}',
+                    locationName = '{data["locationName"]}',
+                    RSVPLimit = {data["rsvpLimit"]},
+                    isPublic = {int(data["isPublic"])},
+                    isWeatherDependant = {int(data["isWeatherSensitive"])},
+                    venmo = '{data["venmo"]}'
+                WHERE id = {event["eventInfoId"]}
+            """
+            mycursor.execute(eventInfoUpdate)
+        else:
+            currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            eventInfoInsert = f"""
+                INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo)
+                VALUES ('{data["creatorId"]}', 0, '{data["title"]}', '{data["description"]}', '{data["locationName"]}', '', {data["rsvpLimit"]}, {int(data["isPublic"])}, {int(data["isWeatherSensitive"])}, 0, '{currentDateTime}', '{data["venmo"]}');
+            """
+            mycursor.execute(eventInfoInsert)
+            eventInfoId = mycursor.lastrowid
+            eventUpdate = f"""
+                UPDATE Event
+                SET eventInfoId = {eventInfoId}, startTime = '{db_startDateTime}', endTime = '{db_endDateTime}'
+                WHERE id = {eventId}
+            """
+            mycursor.execute(eventUpdate)
+        conn.commit()
+        return jsonify({"message": "Event updated successfully"})
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
