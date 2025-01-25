@@ -19,9 +19,9 @@ import CheckIcon from '@mui/icons-material/Check';
 import rootShouldForwardProp from '@mui/material/styles/rootShouldForwardProp';
 import { SetStateAction, useState } from 'react';
 
-const currentUserId = 2;
+const currentUserId = 'minnichjs21@gcc.edu';
 
-function CreateEventPage() {
+function CreateEventPage() {  
     const [titleText, setTitleText] = useState<String>("");    
     const [startDateTime, setStartDateTime] = useState<Dayjs | null>(null); 
     const [endDateTime, setEndDateTime] = useState<Dayjs | null>(null); 
@@ -43,6 +43,7 @@ function CreateEventPage() {
         try {
             const postPath = checked ? 'http://localhost:5000/post_recurring_event' : 'http://localhost:5000/post_event';
             const data = {
+                "creator": currentUserId,
                 "title": titleText,
                 "description": descriptionText,
                 "startDateTime": startDateTime,
