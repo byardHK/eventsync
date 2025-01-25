@@ -362,6 +362,7 @@ def basic_authentication():
 @app.post('/post_event/')
 def post_event():
     data = request.json
+    print(data)
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -376,7 +377,7 @@ def post_event():
        
         insertEventInfo = f"""
                         INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated)
-                        VALUES (1, 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}");
+                        VALUES ({data["creator"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}");
                      """
         insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views)
                         VALUES (last_insert_id(), "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", "0");"""
@@ -431,6 +432,7 @@ def get_my_events(user_id: int):
 @app.post('/post_recurring_event/')
 def post_recurring_event():
     data = request.json
+    print(data)
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -438,7 +440,7 @@ def post_recurring_event():
         dateCreated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         insertEventInfo = f"""
                         INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated)
-                        VALUES (1, 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{dateCreated}");
+                        VALUES ("{data["creator"]}", 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{dateCreated}");
                      """
         mycursor.execute(insertEventInfo)
         mycursor.execute("SET @eventInfoId = last_insert_id();")
