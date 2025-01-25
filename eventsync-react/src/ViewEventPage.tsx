@@ -6,6 +6,7 @@ import { Button, Card, Accordion, AccordionSummary, AccordionDetails, Typography
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PersonIcon from '@mui/icons-material/Person';
 import axios from 'axios';
+import { Tag } from './TagModal';
 
 const currentUserId = 2;
 
@@ -14,6 +15,9 @@ function ViewEventPage() {
     const [event, setEvent] = useState<Event | null>(null);
     const [expanded, setExpanded] = useState<string | false>(false);
     const intEventId = parseInt(eventId || '-1');
+
+    //TODO: hold tags in state until event is created, and then use new eventId to make database call
+
 
     useEffect(() => {
         const fetchEvent = async () => {
@@ -59,6 +63,27 @@ function ViewEventPage() {
 };
 
 function GetEvent({ event, expanded, handleChange }: { event: Event, expanded: string | false, handleChange: (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void }) {
+
+    
+    function ListTags(){
+        return <>
+            <Box
+                display="flex"
+                flexDirection="row"
+                alignItems="center"
+                justifyContent="center"
+                flexWrap="wrap"
+            >
+                {event.tags.map((tag, index) =>
+                <Box 
+                    key={index}
+                >    
+                    <Chip label={tag.name}></Chip>
+                </Box>
+            )}
+            </Box>
+        </>
+    }
     return (
         <Card variant="outlined">
             <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight={250} minWidth={250} gap={1}>
@@ -67,11 +92,7 @@ function GetEvent({ event, expanded, handleChange }: { event: Event, expanded: s
                 <p>{`End Time: ${event.endTime}`}</p>
                 <p>{`Where?: ${event.locationName}`}</p>
                 <p>{`Created By: ${event.creatorId}`}</p>
-                <Box display="flex" flexDirection="row" flexWrap="wrap" gap={1}>
-                    {event.tags.map((tag, index) => (
-                        <Chip key={index} label={tag} />
-                    ))}
-                </Box>
+                <ListTags></ListTags>
             </Box>
             <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -127,7 +148,7 @@ type Event = {
     isWeatherDependant: boolean;
     numTimesReported: number;
     eventInfoCreated: string;
-    tags: string[];
+    tags: Tag[];
     items: { 
         name: string;
         amountNeeded: number;
