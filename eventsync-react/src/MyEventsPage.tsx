@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import DeleteRecurEventModal from './DeleteRecurEventModal';
 import { useUser } from './UserContext';
 
-const currentUserId = "minnichjs21@gcc.edu"; // Placeholder for the current user that is logged in. TODO: get the actual current user
+const currentUserId = "segulinWH20@gcc.edu"; // Placeholder for the current user that is logged in. TODO: get the actual current user
 
 
 function MyEventsPage() {

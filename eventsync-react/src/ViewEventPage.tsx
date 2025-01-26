@@ -8,7 +8,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import axios from 'axios';
 import { Tag } from './TagModal';
 
-const currentUserId = 'minnichjs21@gcc.edu';
+const currentUserId = 'segulinWH20@gcc.edu';
 
 function ViewEventPage() {
     const { eventId } = useParams<{ eventId: string }>();
@@ -190,6 +190,7 @@ type Event = {
     numTimesReported: number;
     eventInfoCreated: string;
     tags: Tag[];
+    files: String[];
     items: { 
         name: string;
         amountNeeded: number;
