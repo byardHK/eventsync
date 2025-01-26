@@ -5,11 +5,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 
 type TagModalProps= {
-    userTags: Tag[];
-    reloadUserTags: () => void;
+    savedTags: Tag[];
+    handleSave: (tagsToAdd: Tag[], tagsToDelete: Tag[]) => Promise<void>;
 };
 
-function TagModal({userTags, reloadUserTags}: TagModalProps){
+function TagModal({savedTags, handleSave}: TagModalProps){
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
@@ -20,69 +20,28 @@ function TagModal({userTags, reloadUserTags}: TagModalProps){
     const [getTagsTrigger, setGetTagsTrigger] = useState<number>(0);
 
     function handleOpenModal () {
-        setSelectedTags(userTags);
+        setSelectedTags(savedTags);
         handleOpen();
     }
 
-    const handleSave = async (e: React.FormEvent<HTMLButtonElement>) => {
-        deleteDeselectedTag();
-        const tagsToSave: Tag[] = [];
-        selectedTags.forEach(tag=> {
-            if(!userTags.includes(tag)){
-                tagsToSave.push(tag);
-            }
-        })
-        e.preventDefault();
-        try {
-            const data = {
-                "selectedTags": tagsToSave,
-                "userId": 1
-            }
-            const response = await fetch(`http://localhost:5000/save_selected_tags/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
-            if(response.ok){
-                console.log('Data sent successfully:', response.json());
-                setCreateCustomTagText("");
-            }
-        } catch (error) {
-          console.error('Error sending data:', error);
-        }
-
-        reloadUserTags();
-        handleClose();
-    };
-
-    const deleteDeselectedTag = async () => {
+    function onSave() {
         const tagsToDelete: Tag[] = [];
-        userTags.forEach(tag => {
+        savedTags.forEach(tag => {
             if(!selectedTags.includes(tag)){
                 tagsToDelete.push(tag);
             }
-        })
-        try {
-            const data = {
-                "deselectedTags": tagsToDelete,
-                "userId": 1
+        });
+        
+        const tagsToAdd: Tag[] = [];
+        selectedTags.forEach(tag=> {
+            if(!savedTags.includes(tag)){
+                tagsToAdd.push(tag);
             }
-            const response = await fetch(`http://localhost:5000/delete_user_deselected_tags/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
-            if(response.ok){
-                console.log('Data sent successfully:', response.json());
-            }
-        } catch (error) {
-          console.error('Error sending data:', error);
-        }
-    };
+        });
+
+        handleSave(tagsToAdd, tagsToDelete);
+        handleClose();
+    }
 
     const handleCreateCustomTag = async (e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -161,7 +120,7 @@ function TagModal({userTags, reloadUserTags}: TagModalProps){
                     display="flex" 
                     flexDirection="row"
                 >
-                    <TextField variant="outlined" onChange={(event) => setCreateCustomTagText(event.target.value)}  ></TextField>
+                    <TextField variant="outlined" value={createCustomTagText} onChange={(event) => setCreateCustomTagText(event.target.value)}  ></TextField>
                     <Button onClick={handleCreateCustomTag}>Add Tag</Button>
                 </Box>
             </Box>
@@ -247,13 +206,13 @@ function TagModal({userTags, reloadUserTags}: TagModalProps){
                 gap={2}
             >
                 <Button variant="outlined" fullWidth onClick={handleClose}>Cancel</Button>
-                <Button variant="outlined" fullWidth onClick={handleSave}>Save</Button>
+                <Button variant="outlined" fullWidth onClick={onSave}>Save</Button>
             </Box>
         </Dialog>
     </>
 }
 
-type Tag = {
+export type Tag = {
     id: number;
     name: String;
     userId: number;
