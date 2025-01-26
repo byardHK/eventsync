@@ -18,7 +18,6 @@ import TagModal, { Tag } from './TagModal';
 import ItemModal from './ItemModal';
 import CheckIcon from '@mui/icons-material/Check';
 import rootShouldForwardProp from '@mui/material/styles/rootShouldForwardProp';
-import { SetStateAction, useState, useEffect } from 'react';
 import axios from "axios";
 
 const currentUserId = "minnichjs21@gcc.edu";

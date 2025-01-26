@@ -452,7 +452,7 @@ def post_event():
        
         insertEventInfo = f"""
                         INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo)
-                        VALUES ({data["creatorId"]}, 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}", "{data["venmo"]}");
+                        VALUES ("{data["creatorId"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}", "{data["venmo"]}");
                      """
         insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views)
                         VALUES (last_insert_id(), "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", "0");"""
