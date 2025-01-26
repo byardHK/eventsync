@@ -2,8 +2,14 @@ import Box from '@mui/material/Box';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useUser } from './UserContext';
 
 function FriendsPage() {
+    const { userDetails } = useUser();
+    const currentUserId = userDetails.email;
+    console.log("friends page: ")
+    console.log(currentUserId);
+
     const [users, setUsers] = useState<EventSyncUser[]>([]);
     const [friends, setFriends] = useState<EventSyncUser[]>([]);
 

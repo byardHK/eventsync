@@ -8,7 +8,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import axios from 'axios';
 import { Tag } from './TagModal';
 
-const currentUserId = 2;
+const currentUserId = 'minnichjs21@gcc.edu';
 
 function ViewEventPage() {
     const { eventId } = useParams<{ eventId: string }>();

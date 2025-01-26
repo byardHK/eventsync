@@ -2,11 +2,16 @@ import { Box, Chip } from "@mui/material";
 import TagModal, { Tag } from "./TagModal";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useUser } from "./UserContext";
 
 function ProfilePage(){
-    const userId = 1;
-    const [userTagsTrigger, setUserTagsTrigger] = useState<number>(0);
+
+    const { userDetails } = useUser();
+    const userId = userDetails.email;
+    console.log("profile page: ")
+    console.log(userId);
     const [userTags, setUserTags] = useState<Tag[]>([]);
+    const [userTagsTrigger, setUserTagsTrigger] = useState<number>(0);
 
     const handleSave = async (tagsToAdd: Tag[], tagsToDelete: Tag[]) => {
         try {
