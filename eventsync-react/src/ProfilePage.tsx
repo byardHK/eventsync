@@ -5,11 +5,8 @@ import axios from "axios";
 import { useUser } from "./UserContext";
 
 function ProfilePage(){
-
     const { userDetails } = useUser();
     const userId = userDetails.email;
-    console.log("profile page: ")
-    console.log(userId);
     const [userTags, setUserTags] = useState<Tag[]>([]);
     const [userTagsTrigger, setUserTagsTrigger] = useState<number>(0);
 
@@ -17,7 +14,7 @@ function ProfilePage(){
         try {
             const deselectedData = {
                 "deselectedTags": tagsToDelete,
-                "userId": 1
+                "userId": userId
             }
             const deleteResponse = await fetch(`http://localhost:5000/delete_user_deselected_tags/`, {
                 method: 'POST',
@@ -28,7 +25,7 @@ function ProfilePage(){
             });
             const selectedData = {
                 "selectedTags": tagsToAdd,
-                "userId": 1
+                "userId": userId
             }
             const saveResponse = await fetch(`http://localhost:5000/save_user_selected_tags/`, {
                 method: 'POST',

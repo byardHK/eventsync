@@ -72,7 +72,7 @@ def add_custom_tag():
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         query = f"""
-                INSERT INTO Tag (name, numTimesUsed, userId) VALUES ("{body["name"]}", 0, {body["userId"]});
+                INSERT INTO Tag (name, numTimesUsed, userId) VALUES ("{body["name"]}", 0, "{body["userId"]}");
                 """
         mycursor.execute(query)
         conn.commit()
@@ -103,8 +103,12 @@ def save_user_selected_tags():
     userId = body["userId"]
     values: str = ""
 
-    for tag in body["selectedTags"]:
-        values += f'({userId}, {tag["id"]}), '
+    selectedTags = body["selectedTags"];
+    if len(selectedTags) == 0:
+        return {}
+
+    for tag in selectedTags:
+        values += f'("{userId}", {tag["id"]}), '
 
     #Remove extra comma and space afterwards
     values = values[:-2]
@@ -124,7 +128,6 @@ def save_user_selected_tags():
 
 @app.post('/delete_user_deselected_tags/')
 def delete_user_deselected_tags():
-    print("This is getting called")
     body = request.json
     userId = body["userId"]
     deselectedTags = body["deselectedTags"]
@@ -135,7 +138,7 @@ def delete_user_deselected_tags():
 
     values: str = ""
     for tag in deselectedTags:
-        values += f'({userId}, {tag["id"]}), '
+        values += f'("{userId}", {tag["id"]}), '
     values = values[:-2]
     try:  
         conn = mysql.connector.connect(**db_config)
@@ -226,14 +229,14 @@ def get_tags():
         print(f"Error: {err}")
     return {}
 
-@app.route('/get_user_tags/<int:userId>/')
+@app.route('/get_user_tags/<string:userId>/')
 def get_user_tags(userId):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         query = f"""
             SELECT Tag.id, Tag.name, Tag.userId FROM Tag INNER JOIN (
-                SELECT UserToTag.tagId FROM UserToTag WHERE UserToTag.userId = {userId}
+                SELECT UserToTag.tagId FROM UserToTag WHERE UserToTag.userId = "{userId}"
             ) AS UserToTag ON Tag.id = UserToTag.tagId;
         """
         mycursor.execute(query)
