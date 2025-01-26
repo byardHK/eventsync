@@ -527,7 +527,16 @@ def post_recurring_event():
                         VALUES ("{data["creatorId"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", 10, True, False, 0, "{dateCreated}", "{data["venmo"]}");
                      """
         mycursor.execute(insertEventInfo)
+        eventInfoId = mycursor.lastrowid
         mycursor.execute("SET @eventInfoId = last_insert_id();")
+        tags = data["tags"]
+        for tag in tags:
+                updateTag = f"""
+                                INSERT INTO EventInfoToTag(eventInfoId, tagId)
+                                VALUES ({eventInfoId} , {tag["id"]});
+                            """
+                print(updateTag)
+                mycursor.execute(updateTag)
         # get event dates through start date and end date
         curStartDate = datetime.strptime(data["startDateTime"], reqStrFormat)
         curEndDate = datetime.strptime(data["endDateTime"], reqStrFormat)
@@ -554,6 +563,15 @@ def post_recurring_event():
             else:
                 return "Invalid recurring frequency", 400
             curEndDate = curStartDate + duration
+            for tag in tags:
+                updateTag = f"""
+                                UPDATE Tag
+                                SET numTimesUsed = numTimesUsed + 1
+                                WHERE name="{tag["name"]}"
+                            """
+                mycursor.execute(updateTag)
+            mycursor.execute(insertEventInfo)
+            mycursor.execute(insertEvent)
         conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
