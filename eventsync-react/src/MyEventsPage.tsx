@@ -4,13 +4,12 @@ import Box from '@mui/material/Box';
 import { Button, Card, Grid2 } from '@mui/material';
 import axios from 'axios';
 import AddIcon from '@mui/icons-material/Add';
-import Link from '@mui/icons-material/Link';
 import { useNavigate } from 'react-router-dom';
 import { format } from "date-fns";
 import DeleteRecurEventModal from './DeleteRecurEventModal';
 import { useUser } from './UserContext';
 
-const currentUserId = 1; // Placeholder for the current user that is logged in. TODO: get the actual current user
+const currentUserId = "minnichjs21@gcc.edu"; // Placeholder for the current user that is logged in. TODO: get the actual current user
 
 
 function MyEventsPage() {
@@ -104,6 +103,22 @@ function EventLists() {
 };
 
 function EventList({ events, canDeleteEvents, setEventsChanged }: { events: EventSyncEventWithDate[], canDeleteEvents: Boolean, setEventsChanged: React.Dispatch<React.SetStateAction<Boolean>> }) {
+    const navigate = useNavigate();
+    async function viewEvent (event: EventSyncEventWithDate) {
+        console.log(event);
+        try {
+            const response = await axios.post(`http://localhost:5000/addOneView/${event.id}/`);
+            console.log(response);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+        navigate(`/viewEvent/${event.id}`);
+    }
+
+    async function editEvent (event: EventSyncEventWithDate) {
+        console.log(event);
+        navigate(`/createEvent/${event.id}`);
+    }
 
     async function deleteEvent (event: EventSyncEventWithDate) {
         console.log(event);
@@ -153,6 +168,8 @@ function EventList({ events, canDeleteEvents, setEventsChanged }: { events: Even
                         <p>{event.endTime.toDateString()}</p>
                     </>
                     }
+                    <Button variant="contained" onClick={() => viewEvent(event)}>View Event</Button>
+                    <Button variant="contained" onClick={() => editEvent(event)}>Edit Event</Button>
                     {canDeleteEvents && (event.recurs > 1 ?
                     <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}>
                     </DeleteRecurEventModal>
