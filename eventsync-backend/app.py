@@ -362,6 +362,7 @@ def basic_authentication():
 @app.post('/post_event/')
 def post_event():
     data = request.json
+    print(data)
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -430,6 +431,7 @@ def get_my_events(user_id: str):
 @app.post('/post_recurring_event/')
 def post_recurring_event():
     data = request.json
+    print(data)
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
