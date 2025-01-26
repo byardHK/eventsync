@@ -99,32 +99,38 @@ function GetEvent({ event, expanded, handleChange }: { event: Event, expanded: s
                     <Typography>{event.description}</Typography>
                 </AccordionDetails>
             </Accordion>
-            <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography>Items to Bring</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                    {event.items.map((item, index) => (
-                        <Typography key={index}>{`${item.name}: ${item.amountNeeded} needed, ${item.quantitySignedUpFor} signed up`}</Typography>
-                    ))}
-                </AccordionDetails>
-            </Accordion>
-            <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography>Files</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                    <Typography>Files placeholder</Typography>
-                </AccordionDetails>
-            </Accordion>
-            <Accordion expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography>Payments</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                    <Typography>Payments placeholder</Typography>
-                </AccordionDetails>
-            </Accordion>
+            {event.items && event.items.length > 0 && (
+                <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography>Items to Bring</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        {event.items.map((item, index) => (
+                            <Typography key={index}>{`${item.name}: ${item.amountNeeded} needed, ${item.quantitySignedUpFor} signed up`}</Typography>
+                        ))}
+                    </AccordionDetails>
+                </Accordion>
+            )}
+            {event.files && event.files.length > 0 && (
+                <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography>Files</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <Typography>Files placeholder</Typography>
+                    </AccordionDetails>
+                </Accordion>
+            )}
+            {event.venmo && (
+                <Accordion expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography>Payments</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <Typography>{event.venmo}</Typography>
+                    </AccordionDetails>
+                </Accordion>
+            )}
         </Card>
     );
 }
@@ -151,6 +157,7 @@ type Event = {
         amountNeeded: number;
         quantitySignedUpFor: number 
     }[];
+    venmo: string;
 };
 
 export default ViewEventPage;

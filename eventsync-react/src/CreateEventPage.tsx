@@ -11,18 +11,20 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
-import { Dayjs } from "dayjs";
-import { useNavigate } from 'react-router-dom';
+import dayjs, { Dayjs } from "dayjs";
+import { useNavigate, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import TagModal, { Tag } from './TagModal';
 import ItemModal from './ItemModal';
 import CheckIcon from '@mui/icons-material/Check';
 import rootShouldForwardProp from '@mui/material/styles/rootShouldForwardProp';
-import axios from 'axios';
+import { SetStateAction, useState, useEffect } from 'react';
+import axios from "axios";
 
-const currentUserId = 'minnichjs21@gcc.edu';
+const currentUserId = "minnichjs21@gcc.edu";
 
 function CreateEventPage() {
+    const { eventId } = useParams<{ eventId: string }>();
     const [titleText, setTitleText] = useState<String>("");    
     const [startDateTime, setStartDateTime] = useState<Dayjs | null>(null); 
     const [endDateTime, setEndDateTime] = useState<Dayjs | null>(null); 
@@ -36,6 +38,7 @@ function CreateEventPage() {
     const [isPrivateEvent, setIsPrivateEvent] = useState<boolean>(false);
     const [rsvpLimit, setRsvpLimit] = useState<number | null>(0);
     const [descriptionText, setDescriptionText] = useState<String>("");
+    const [editAllEvents, setEditAllEvents] = useState<boolean>(true);
 
     // const [eventTagsTrigger, setEventTagsTrigger] = useState<number>(0);
 
@@ -122,18 +125,44 @@ function CreateEventPage() {
 
         // reloadEventTags();
     };
+    useEffect(() => {
+        if (eventId) {
+            const fetchEvent = async () => {
+                try {
+                    const response = await axios.get(`http://localhost:5000/get_event/${eventId}`);
+                    const event = response.data;
+                    console.log("Fetched event data:", event);
+                    setTitleText(event.title);
+                    setDescriptionText(event.description);
+                    setStartDateTime(dayjs(event.startTime));
+                    setEndDateTime(dayjs(event.endTime));
+                    setLocationText(event.locationName);
+                    setTags(event.tags || []);
+                    setChecked(event.isRecurring || false);
+                    setRecurFrequency(event.recurFrequency || "Weekly");
+                    setEndRecurDateTime(event.endRecurDateTime ? dayjs(event.endRecurDateTime) : null);
+                    setVenmoText(event.venmo || "");
+                    setIsWeatherSensitive(event.isWeatherSensitive || false);
+                    setIsPrivateEvent(event.isPublic !== undefined ? !event.isPublic : false);
+                    setRsvpLimit(event.rsvpLimit !== undefined ? event.rsvpLimit : 0);
+                } catch (error) {
+                    console.error('Error fetching event:', error);
+                }
+            };
+            fetchEvent();
+        }
+    }, [eventId]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
-
         e.preventDefault();
         try {
-            const postPath = checked ? 'http://localhost:5000/post_recurring_event' : 'http://localhost:5000/post_event';
+            const postPath = eventId ? `http://localhost:5000/editEvent/${eventId}` : (checked ? 'http://localhost:5000/post_recurring_event' : 'http://localhost:5000/post_event');
             const data = {
-                "creator": currentUserId,
+                "creatorId": currentUserId,
                 "title": titleText,
                 "description": descriptionText,
                 "startDateTime": startDateTime,
-                "endDateTime": endDateTime,
+                "endDateTime": endDateTime || startDateTime,
                 "locationName": locationText,
                 "tags": tags,
                 "recurFrequency": recurFrequency,
@@ -142,10 +171,11 @@ function CreateEventPage() {
                 "isRecurring": checked,
                 "isWeatherSensitive": isWeatherSensitive,
                 "isPublic": !isPrivateEvent,
-                "rsvpLimit": rsvpLimit
+                "rsvpLimit": rsvpLimit,
+                "editAllEvents": editAllEvents
             }
             const response = await fetch(postPath, {
-                method: 'POST',
+                method: eventId ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -167,6 +197,8 @@ function CreateEventPage() {
                 setIsWeatherSensitive(false);
                 setIsPrivateEvent(false);
                 setRsvpLimit(0);
+                setEditAllEvents(true);
+                navigate('/myeventspage');
             }
            
         } catch (error) {
@@ -195,9 +227,22 @@ function CreateEventPage() {
                 <Button onClick={handleBackClick}>
                     <ArrowBackIcon />
                 </Button>
-                <Typography variant="body1" sx={{ flexGrow: 1, textAlign: 'center' }}>
-                    {`Created By: ${currentUserId}`}
-                </Typography>
+                <Box display="flex" flexDirection="column">
+                    <Typography variant="body1">
+                        {eventId ? "Edit Event" : "Create Event"}
+                    </Typography>
+                    {eventId && (
+                        <FormControlLabel
+                            label={<Typography variant="body1">Edit all events in this group</Typography>}
+                            control={
+                                <Checkbox
+                                    checked={editAllEvents}
+                                    onChange={(e) => setEditAllEvents(e.target.checked)}
+                                />
+                            }
+                        />
+                    )}
+                </Box>
             </Box>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <Box 
@@ -258,13 +303,14 @@ function CreateEventPage() {
                         value={venmoText} 
                         onChange={(event) => setVenmoText(event.target.value)}  
                     />
-                                    <FormControlLabel
-                    label="Recurring Event"
-                    control={<Checkbox
-                                checked={checked}
-                                onChange={(event) => setChecked(event.target.checked)} 
-                            />}
-                />
+                    <FormControlLabel
+                        label="Recurring Event"
+                        control={<Checkbox
+                            checked={checked}
+                            onChange={(event) => setChecked(event.target.checked)} 
+                            />
+                        }
+                    />
                 {checked ? 
                     <div>
                         <Box alignItems="center" 
