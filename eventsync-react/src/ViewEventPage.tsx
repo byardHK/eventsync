@@ -51,6 +51,43 @@ function ViewEventPage() {
         </>
     }
     
+    function RsvpListModal() {
+        const [openRsvpList, setOpenRsvpList] = useState(false);
+        const [rsvpList] = useState<Rsvp[]>(event?.rsvps || []);
+    
+        const handleOpenRsvpList = () => {
+            setOpenRsvpList(true);
+        };
+    
+        const handleCloseRsvpList = () => setOpenRsvpList(false);
+    
+        return (
+            <>
+                <Button variant="outlined" onClick={handleOpenRsvpList}>View RSVP List</Button>
+                <Dialog 
+                    onClose={handleCloseRsvpList} 
+                    open={openRsvpList}
+                >
+                    <Box
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="center"
+                        justifyContent="center" 
+                        sx={{width: "100%"}}
+                        minWidth={300}
+                    >
+                        <h2>RSVP List</h2>
+                        <ul>
+                            {rsvpList.map(rsvp => (
+                                <li key={rsvp.userId}>{rsvp.firstName} {rsvp.lastName}</li>
+                            ))}
+                        </ul>
+                        <Button variant="outlined" onClick={handleCloseRsvpList}>Close</Button>
+                    </Box>
+                </Dialog>
+            </>
+        );
+    }
 
     useEffect(() => {
         const fetchEvent = async () => {
@@ -90,7 +127,15 @@ function ViewEventPage() {
             ) : (
                 <p>Loading Event {eventId}</p>
             )}
-            <RsvpModal></RsvpModal>
+            <Box
+            display="flex"
+            flexDirection="row"
+            alignItems="center" 
+            justifyContent="center"
+            >
+                <RsvpModal/>     
+                <RsvpListModal/>       
+            </Box>
             <BottomNavBar/>
         </Box>
     </>;
@@ -197,6 +242,13 @@ type Event = {
         quantitySignedUpFor: number 
     }[];
     venmo: string;
+    rsvps: Rsvp[];
+};
+
+type Rsvp = {
+    userId: string;
+    firstName: string;
+    lastName: string;
 };
 
 export default ViewEventPage;
