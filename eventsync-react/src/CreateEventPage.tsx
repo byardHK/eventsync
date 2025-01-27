@@ -20,7 +20,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import rootShouldForwardProp from '@mui/material/styles/rootShouldForwardProp';
 import axios from "axios";
 
-const currentUserId = "minnichjs21@gcc.edu";
+const currentUserId = "segulinWH20@gcc.edu";
 
 function CreateEventPage() {
     const { eventId } = useParams<{ eventId: string }>();
