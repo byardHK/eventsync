@@ -631,6 +631,16 @@ def get_event(event_id):
         items = [{'name': item[0], 'amountNeeded': item[1], 'quantitySignedUpFor': item[2]} for item in items_response]
         event['items'] = items
 
+        mycursor.execute(f"""
+                        SELECT User.id, User.fname, User.lname
+                        FROM User
+                        JOIN EventToUser ON User.id = EventToUser.userId
+                        WHERE EventToUser.eventId = {event_id}
+                    """)
+        users_response = mycursor.fetchall()
+        users = [{'id': user[0], 'fname': user[1], 'lname': user[2]} for user in users_response]
+        event['users'] = users
+
         return jsonify(event)
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -673,6 +683,32 @@ def edit_event(eventId):
                 WHERE id = {event["eventInfoId"]}
             """
             mycursor.execute(eventInfoUpdate)
+            eventInfoId = mycursor.lastrowid
+
+            eventUpdate = f"""
+                UPDATE Event
+                SET startTime = '{db_startDateTime}', endTime = '{db_endDateTime}'
+                WHERE id = {eventId}
+            """
+            mycursor.execute(eventUpdate)
+
+            tags = data["tags"]
+            if tags:
+                for tag in tags:
+                    updateTag = f"""
+                                    UPDATE Tag
+                                    SET numTimesUsed = numTimesUsed + 1
+                                    WHERE name="{tag["name"]}"
+                                """
+                mycursor.execute(updateTag)
+
+                for tag in tags:
+                    updateTag = f"""
+                                    INSERT INTO EventInfoToTag(eventInfoId, tagId)
+                                    VALUES ({eventInfoId} , {tag["id"]});
+                                """
+                    print(updateTag)
+                    mycursor.execute(updateTag)
         else:
             currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             eventInfoInsert = f"""
@@ -687,6 +723,25 @@ def edit_event(eventId):
                 WHERE id = {eventId}
             """
             mycursor.execute(eventUpdate)
+
+            tags = data["tags"]
+            if tags:
+                for tag in tags:
+                    updateTag = f"""
+                                    UPDATE Tag
+                                    SET numTimesUsed = numTimesUsed + 1
+                                    WHERE name="{tag["name"]}"
+                                """
+                mycursor.execute(updateTag)
+
+                for tag in tags:
+                    updateTag = f"""
+                                    INSERT INTO EventInfoToTag(eventInfoId, tagId)
+                                    VALUES ({eventInfoId} , {tag["id"]});
+                                """
+                    print(updateTag)
+                    mycursor.execute(updateTag)
+
         conn.commit()
         return jsonify({"message": "Event updated successfully"})
     except mysql.connector.Error as err:

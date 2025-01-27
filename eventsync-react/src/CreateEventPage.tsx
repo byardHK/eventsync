@@ -24,6 +24,7 @@ const currentUserId = "segulinWH20@gcc.edu";
 
 function CreateEventPage() {
     const { eventId } = useParams<{ eventId: string }>();
+    const [eventInfoId, setEventInfoId] = useState<number | null>(null);
     const [titleText, setTitleText] = useState<String>("");    
     const [startDateTime, setStartDateTime] = useState<Dayjs | null>(null); 
     const [endDateTime, setEndDateTime] = useState<Dayjs | null>(null); 
@@ -39,11 +40,11 @@ function CreateEventPage() {
     const [descriptionText, setDescriptionText] = useState<String>("");
     const [editAllEvents, setEditAllEvents] = useState<boolean>(true);
 
-    // const [eventTagsTrigger, setEventTagsTrigger] = useState<number>(0);
+    const [eventTagsTrigger, setEventTagsTrigger] = useState<number>(0);
 
-    // function reloadEventTags() {
-    //     setEventTagsTrigger(eventTagsTrigger+1);
-    // }
+    function reloadEventTags() {
+        setEventTagsTrigger(eventTagsTrigger+1);
+    }
     
     function ListTags(){
         return <>
@@ -92,37 +93,37 @@ function CreateEventPage() {
         setTags(filteredTags);
 
 
-    //     try {
-    //         const deselectedData = {
-    //             "deselectedTags": tagsToDelete,
-    //             "eventInfoId": 1
-    //         }
-    //         const deleteResponse = await fetch(`http://localhost:5000/delete_event_deselected_tags/`, {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             },
-    //             body: JSON.stringify(deselectedData),
-    //         });
-    //         const selectedData = {
-    //             "selectedTags": tagsToAdd,
-    //             "eventInfoId": 1
-    //         }
-    //         const saveResponse = await fetch(`http://localhost:5000/save_event_selected_tags/`, {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             },
-    //             body: JSON.stringify(selectedData),
-    //         });
-    //         if(deleteResponse.ok && saveResponse.ok){
-    //             console.log('Data sent successfully:', deleteResponse.json());
-    //         }
-    //     } catch (error) {
-    //         console.error('Error sending data:', error);
-    //     }
+        try {
+            const deselectedData = {
+                "deselectedTags": tagsToDelete,
+                "eventInfoId": eventInfoId
+            }
+            const deleteResponse = await fetch(`http://localhost:5000/delete_event_deselected_tags/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(deselectedData),
+            });
+            const selectedData = {
+                "selectedTags": tagsToAdd,
+                "eventInfoId": eventInfoId
+            }
+            const saveResponse = await fetch(`http://localhost:5000/save_event_selected_tags/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(selectedData),
+            });
+            if(deleteResponse.ok && saveResponse.ok){
+                console.log('Data sent successfully:', deleteResponse.json());
+            }
+        } catch (error) {
+            console.error('Error sending data:', error);
+        }
 
-        // reloadEventTags();
+        reloadEventTags();
     };
     useEffect(() => {
         if (eventId) {
@@ -131,6 +132,7 @@ function CreateEventPage() {
                     const response = await axios.get(`http://localhost:5000/get_event/${eventId}`);
                     const event = response.data;
                     console.log("Fetched event data:", event);
+                    setEventInfoId(event.eventInfoId);
                     setTitleText(event.title);
                     setDescriptionText(event.description);
                     setStartDateTime(dayjs(event.startTime));
