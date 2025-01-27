@@ -212,14 +212,6 @@ function CreateEventPage() {
     function itemsToParent(items: Item[]) {
         setItems(items);
     }
-    
-    function onCheckBoxChange() {
-        setChecked(!checked);
-    }
-
-    function handleRecurFrequencyChange(newFrequency: string) {
-        setRecurFrequency(newFrequency);
-    }
 
     const navigate = useNavigate();
 
@@ -423,12 +415,6 @@ function CreateEventPage() {
     </>;
 
 }
-
-const tagOptions = [
-    "Movies",
-    "Bible Study",
-    "Games"
-]
 
 type Item = {
     id: number;

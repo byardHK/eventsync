@@ -564,7 +564,6 @@ def post_recurring_event():
             dayOfWeek = weekdays[curStartDate.weekday()] # day of the week of event
             nthWeekday = (curStartDate.day // 7) + 1 # what number ___day of the month is this event on?
         
-        # while datetime.strptime(str(curStartDate), "%Y-%m-%d %H:%M:%S") < endDate:
         itemIds = []
 
         for item in data["items"]:
@@ -612,7 +611,7 @@ def post_recurring_event():
         conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
-    return itemIds, 201
+    return data, 201
 
 @app.route('/get_event/<int:event_id>', methods=['GET'])
 def get_event(event_id):

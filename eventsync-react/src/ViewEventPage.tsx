@@ -145,27 +145,7 @@ function GetEvent({ event, expanded, handleChange }: { event: Event, expanded: s
                     </AccordionSummary>
                     <AccordionDetails>
                         {event.items.map((item, index) => (
-                        <div>
-                                <Typography key={index}>{`${item.name}: ${item.quantitySignedUpFor}/${item.amountNeeded}`}</Typography>
-                            <Box
-                                display="flex"
-                                width="50%" 
-                                justifyContent="right"
-                                gap={3}
-                            >
-                                <Button variant="contained" 
-                                // onClick={() => changeItemQuantity(-1, index)}
-                                >
-                                    <RemoveIcon></RemoveIcon>
-                                </Button>
-                                <h3>{item.amountNeeded}</h3>
-                                <Button variant="contained" 
-                                // onClick={() => changeItemQuantity(1, index)}
-                                >
-                                    <AddIcon></AddIcon>
-                                </Button>
-                            </Box>
-                        </div>
+                            <Typography key={index}>{`${item.name}: ${item.quantitySignedUpFor}/${item.amountNeeded}`}</Typography>
                         ))}
                     </AccordionDetails>
                 </Accordion>
