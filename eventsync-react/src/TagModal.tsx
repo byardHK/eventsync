@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import axios from "axios";
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import { useUser } from './UserContext';
 
 type TagModalProps= {
     savedTags: Tag[];
@@ -10,6 +11,9 @@ type TagModalProps= {
 };
 
 function TagModal({savedTags, handleSave}: TagModalProps){
+    const { userDetails } = useUser();
+    const userId = userDetails.email;
+
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
@@ -53,7 +57,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                 },
                 body: JSON.stringify({
                     "name": createCustomTagText,
-                    "userId": 1
+                    "userId": userId
                 }),
             });
             if(response.ok){
