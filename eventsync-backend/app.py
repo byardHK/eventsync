@@ -441,7 +441,6 @@ def basic_authentication():
 @app.post('/post_event/')
 def post_event():
     data = request.json
-    print(data)
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -475,7 +474,7 @@ def post_event():
         for item in data["items"]:
             insertItem = f"""
                             INSERT INTO Item (name, creatorId)
-                            VALUES ("{item["description"]}", 1); 
+                            VALUES ("{item["description"]}", "minnichjs21@gcc.edu"); 
                         """ # TODO: change creator
             insertEventToItem = f"""
                             INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
@@ -532,7 +531,6 @@ def get_my_events(user_id: str):
 @app.post('/post_recurring_event/')
 def post_recurring_event():
     data = request.json
-    print(data)
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -569,7 +567,7 @@ def post_recurring_event():
         for item in data["items"]:
             insertItem = f"""
                             INSERT INTO Item (name, creatorId)
-                            VALUES ("{item["description"]}", 1); 
+                            VALUES ("{item["description"]}", "minnichjs21@gcc.edu"); 
                         """ # TODO: change creator
             getItemId = "SELECT LAST_INSERT_ID();"
             mycursor.execute(insertItem)
