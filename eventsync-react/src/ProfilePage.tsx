@@ -1,13 +1,48 @@
 import { Box, Chip } from "@mui/material";
-import TagModal from "./TagModal";
+import TagModal, { Tag } from "./TagModal";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useUser } from "./UserContext";
 
 function ProfilePage(){
-
-    const userId = 1;
+    const { userDetails } = useUser();
+    const userId = userDetails.email;
     const [userTags, setUserTags] = useState<Tag[]>([]);
     const [userTagsTrigger, setUserTagsTrigger] = useState<number>(0);
+
+    const handleSave = async (tagsToAdd: Tag[], tagsToDelete: Tag[]) => {
+        try {
+            const deselectedData = {
+                "deselectedTags": tagsToDelete,
+                "userId": userId
+            }
+            const deleteResponse = await fetch(`http://localhost:5000/delete_user_deselected_tags/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(deselectedData),
+            });
+            const selectedData = {
+                "selectedTags": tagsToAdd,
+                "userId": userId
+            }
+            const saveResponse = await fetch(`http://localhost:5000/save_user_selected_tags/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(selectedData),
+            });
+            if(deleteResponse.ok && saveResponse.ok){
+                console.log('Data sent successfully:', deleteResponse.json());
+            }
+        } catch (error) {
+            console.error('Error sending data:', error);
+        }
+
+    reloadUserTags();
+};
 
     function reloadUserTags() {
         setUserTagsTrigger(userTagsTrigger+1);
@@ -44,16 +79,9 @@ function ProfilePage(){
             flexDirection="column"
         >
             <ListTags></ListTags>
-            <TagModal userTags={userTags} reloadUserTags={reloadUserTags}></TagModal>
+            <TagModal savedTags={userTags} handleSave={handleSave}></TagModal>
         </Box>
     </>
 }
-
-
-type Tag = {
-    id: number;
-    name: String;
-    userId: number;
-};
 
 export default ProfilePage

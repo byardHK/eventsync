@@ -2,20 +2,57 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import BottomNavBar from './BottomNavBar';
 import Box from '@mui/material/Box';
-import { Button, Card, Accordion, AccordionSummary, AccordionDetails, Typography, Chip } from '@mui/material';
+import { Button, Card, Accordion, AccordionSummary, AccordionDetails, Typography, Chip, Dialog } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PersonIcon from '@mui/icons-material/Person';
 import axios from 'axios';
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
+import { Tag } from './TagModal';
 
-const currentUserId = 2;
+const currentUserId = 'segulinWH20@gcc.edu';
 
 function ViewEventPage() {
     const { eventId } = useParams<{ eventId: string }>();
     const [event, setEvent] = useState<Event | null>(null);
     const [expanded, setExpanded] = useState<string | false>(false);
     const intEventId = parseInt(eventId || '-1');
+    const [open, setOpen] = useState(false);
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
+
+    function RsvpModal(){
+        return <>
+            <Button variant="outlined" onClick={handleOpen}>RSVP</Button>
+            <Dialog 
+                onClose={handleClose} 
+                open={open}
+            >
+                <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                    justifyContent="center" 
+                    sx={{width: "100%"}}
+                    minWidth={300}
+                >
+                    <h2>You have RSVP'd to </h2>
+                    <h2>{event?.title}!</h2>
+                    <h3>Add to calendar?</h3>
+                    <Box
+                        display="flex"
+                        flexDirection="row"
+                        padding={2}
+                        gap={2}
+                    >
+                        <Button variant="outlined" fullWidth onClick={handleClose}>No</Button>
+                        <Button variant="outlined" fullWidth onClick={handleClose}>Yes</Button>
+                    </Box>
+                </Box>
+            </Dialog>
+        </>
+    }
+    
 
     useEffect(() => {
         const fetchEvent = async () => {
@@ -55,12 +92,34 @@ function ViewEventPage() {
             ) : (
                 <p>Loading Event {eventId}</p>
             )}
+            <RsvpModal></RsvpModal>
             <BottomNavBar/>
         </Box>
     </>;
 };
 
 function GetEvent({ event, expanded, handleChange }: { event: Event, expanded: string | false, handleChange: (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void }) {
+
+    
+    function ListTags(){
+        return <>
+            <Box
+                display="flex"
+                flexDirection="row"
+                alignItems="center"
+                justifyContent="center"
+                flexWrap="wrap"
+            >
+                {event.tags.map((tag, index) =>
+                <Box 
+                    key={index}
+                >    
+                    <Chip label={tag.name}></Chip>
+                </Box>
+            )}
+            </Box>
+        </>
+    }
     return (
         <Card variant="outlined">
             <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight={250} minWidth={250} gap={1}>
@@ -69,11 +128,7 @@ function GetEvent({ event, expanded, handleChange }: { event: Event, expanded: s
                 <p>{`End Time: ${event.endTime}`}</p>
                 <p>{`Where?: ${event.locationName}`}</p>
                 <p>{`Created By: ${event.creatorId}`}</p>
-                <Box display="flex" flexDirection="row" flexWrap="wrap" gap={1}>
-                    {event.tags.map((tag, index) => (
-                        <Chip key={index} label={tag} />
-                    ))}
-                </Box>
+                <ListTags></ListTags>
             </Box>
             <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -83,14 +138,15 @@ function GetEvent({ event, expanded, handleChange }: { event: Event, expanded: s
                     <Typography>{event.description}</Typography>
                 </AccordionDetails>
             </Accordion>
-            <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography>Items to Bring</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                    {event.items.map((item, index) => (
+            {event.items && event.items.length > 0 && (
+                <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography>Items to Bring</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        {event.items.map((item, index) => (
                         <div>
-                            <Typography key={index}>{`${item.name}: ${item.quantitySignedUpFor}/${item.amountNeeded}`}</Typography>
+                                <Typography key={index}>{`${item.name}: ${item.quantitySignedUpFor}/${item.amountNeeded}`}</Typography>
                             <Box
                                 display="flex"
                                 width="50%" 
@@ -110,28 +166,34 @@ function GetEvent({ event, expanded, handleChange }: { event: Event, expanded: s
                                 </Button>
                             </Box>
                         </div>
-                    ))}
-                </AccordionDetails>
-            </Accordion>
-            <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography>Files</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                    <Typography>Files placeholder</Typography>
-                </AccordionDetails>
-            </Accordion>
-            <Accordion expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography>Payments</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                    <Typography>Payments placeholder</Typography>
-                </AccordionDetails>
-            </Accordion>
+                        ))}
+                    </AccordionDetails>
+                </Accordion>
+            )}
+            {event.files && event.files.length > 0 && (
+                <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography>Files</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <Typography>Files placeholder</Typography>
+                    </AccordionDetails>
+                </Accordion>
+            )}
+            {event.venmo && (
+                <Accordion expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography>Payments</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <Typography>{event.venmo}</Typography>
+                    </AccordionDetails>
+                </Accordion>
+            )}
         </Card>
     );
 }
+
 
 type Event = {
     eventName: string;
@@ -149,12 +211,14 @@ type Event = {
     isWeatherDependant: boolean;
     numTimesReported: number;
     eventInfoCreated: string;
-    tags: string[];
+    tags: Tag[];
+    files: String[];
     items: { 
         name: string;
         amountNeeded: number;
         quantitySignedUpFor: number 
     }[];
+    venmo: string;
 };
 
 export default ViewEventPage;

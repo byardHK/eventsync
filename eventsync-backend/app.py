@@ -72,7 +72,7 @@ def add_custom_tag():
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         query = f"""
-                INSERT INTO Tag (name, numTimesUsed, userId) VALUES ("{body["name"]}", 0, {body["userId"]});
+                INSERT INTO Tag (name, numTimesUsed, userId) VALUES ("{body["name"]}", 0, "{body["userId"]}");
                 """
         mycursor.execute(query)
         conn.commit()
@@ -80,14 +80,35 @@ def add_custom_tag():
         print(f"Error: {err}")
     return {}
 
-@app.post('/save_selected_tags/')
-def save_selected_tags():
+@app.route('/delete_custom_tag/<int:tagId>/', methods=['DELETE'])
+def delete_custom_tag(tagId):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("DELETE FROM Tag WHERE id = %s;", (tagId,))
+        conn.commit()
+
+        if mycursor.rowcount == 0:
+            return jsonify({"Message":"Tag not found"}), 404
+        else:
+            return jsonify({"Message":"Tag deleted successfully"}), 200
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.post('/save_user_selected_tags/')
+def save_user_selected_tags():
     body = request.json
     userId = body["userId"]
     values: str = ""
 
-    for tag in body["selectedTags"]:
-        values += f'({userId}, {tag["id"]}), '
+    selectedTags = body["selectedTags"];
+    if len(selectedTags) == 0:
+        return {}
+
+    for tag in selectedTags:
+        values += f'("{userId}", {tag["id"]}), '
 
     #Remove extra comma and space afterwards
     values = values[:-2]
@@ -107,7 +128,6 @@ def save_selected_tags():
 
 @app.post('/delete_user_deselected_tags/')
 def delete_user_deselected_tags():
-    print("This is getting called")
     body = request.json
     userId = body["userId"]
     deselectedTags = body["deselectedTags"]
@@ -118,7 +138,7 @@ def delete_user_deselected_tags():
 
     values: str = ""
     for tag in deselectedTags:
-        values += f'({userId}, {tag["id"]}), '
+        values += f'("{userId}", {tag["id"]}), '
     values = values[:-2]
     try:  
         conn = mysql.connector.connect(**db_config)
@@ -137,23 +157,63 @@ def delete_user_deselected_tags():
         print(f"Delete User Deselected Tags Error: {err}")
     return {}
 
+# Here
+@app.post('/save_event_selected_tags/')
+def save_event_selected_tags():
+    body = request.json
+    eventInfoId = body["eventInfoId"]
+    values: str = ""
 
-@app.route('/delete_custom_tag/<int:tagId>/', methods=['DELETE'])
-def delete_custom_tag(tagId):
-    try:
+    for tag in body["selectedTags"]:
+        values += f'({eventInfoId}, {tag["id"]}), '
+
+    #Remove extra comma and space afterwards
+    values = values[:-2]
+
+    try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute("DELETE FROM Tag WHERE id = %s;", (tagId,))
+        query = f"""
+            INSERT INTO EventInfoToTag (eventInfoId, tagId)
+            VALUES {values};
+        """
+        mycursor.execute(query)
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Save Selected Tags Error: {err}")
+    return {}
+
+@app.post('/delete_event_deselected_tags/')
+def delete_event_deselected_tags():
+    body = request.json
+    eventInfoId = body["eventInfoId"]
+    deselectedTags = body["deselectedTags"]
+
+    #If we did not delete anything, there's no need to run the deletion query.
+    if len(deselectedTags) == 0:
+        return {}
+
+    values: str = ""
+    for tag in deselectedTags:
+        values += f'({eventInfoId}, {tag["id"]}), '
+    values = values[:-2]
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        query = f"""
+            DELETE FROM EventInfoToTag WHERE (eventInfoId, tagId) IN ({values});
+        """
+        mycursor.execute(query)
         conn.commit()
 
         if mycursor.rowcount == 0:
-            return jsonify({"Message":"Tag not found"}), 404
+            return jsonify({"Message":"Tags not found"})
         else:
-            return jsonify({"Message":"Tag deleted successfully"}), 200
-        
+            return jsonify({"Message":"Tags deleted successfully"})
     except mysql.connector.Error as err:
-        print(f"Error: {err}")
+        print(f"Delete User Deselected Tags Error: {err}")
     return {}
+
 
 @app.route('/get_tags/')
 def get_tags():
@@ -169,15 +229,34 @@ def get_tags():
         print(f"Error: {err}")
     return {}
 
-@app.route('/get_user_tags/<int:userId>/')
+@app.route('/get_user_tags/<string:userId>/')
 def get_user_tags(userId):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         query = f"""
             SELECT Tag.id, Tag.name, Tag.userId FROM Tag INNER JOIN (
-                SELECT UserToTag.tagId FROM UserToTag WHERE UserToTag.userId = {userId}
+                SELECT UserToTag.tagId FROM UserToTag WHERE UserToTag.userId = "{userId}"
             ) AS UserToTag ON Tag.id = UserToTag.tagId;
+        """
+        mycursor.execute(query)
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        res = sqlResponseToJson(response, headers)
+        return res
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_event_tags/<int:eventInfoId>/')
+def get_event_tags(eventInfoId):
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        query = f"""
+            SELECT Tag.id, Tag.name, Tag.userId FROM Tag INNER JOIN (
+                SELECT EventInfoToTag.tagId FROM EventInfoToTag WHERE EventInfoToTag.eventInfoId = {eventInfoId}
+            ) AS EventInfoToTag ON Tag.id = EventInfoToTag.tagId;
         """
         mycursor.execute(query)
         response = mycursor.fetchall()
@@ -362,6 +441,7 @@ def basic_authentication():
 @app.post('/post_event/')
 def post_event():
     data = request.json
+    print(data)
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -370,13 +450,12 @@ def post_event():
         startDateTime = data["startDateTime"]
         endDateTime = data["endDateTime"]
 
-
         db_startDateTime = datetime.strptime(startDateTime, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
         db_endDateTime = datetime.strptime(endDateTime, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
        
         insertEventInfo = f"""
-                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated)
-                        VALUES (1, 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}");
+                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo)
+                        VALUES ("{data["creatorId"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}", "{data["venmo"]}");
                      """
         insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views)
                         VALUES (last_insert_id(), "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", "0");"""
@@ -385,10 +464,11 @@ def post_event():
             updateTag = f"""
                             UPDATE Tag
                             SET numTimesUsed = numTimesUsed + 1
-                            WHERE name="{tag}"
+                            WHERE name="{tag["name"]}"
                         """
             mycursor.execute(updateTag)
         mycursor.execute(insertEventInfo)
+        eventInfoId = mycursor.lastrowid
         mycursor.execute(insertEvent)
         mycursor.execute("SET @eventId = last_insert_id();")
 
@@ -403,14 +483,22 @@ def post_event():
                         """
             mycursor.execute(insertItem)
             mycursor.execute(insertEventToItem)
+
+        for tag in tags:
+            updateTag = f"""
+                            INSERT INTO EventInfoToTag(eventInfoId, tagId)
+                            VALUES ({eventInfoId} , {tag["id"]});
+                        """
+            print(updateTag)
+            mycursor.execute(updateTag)
         conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return data, 201
 
 # for each event return: name, location, date/time, (views/rsvps), viewing link
-@app.route('/get_my_events/<int:user_id>')
-def get_my_events(user_id: int):
+@app.route('/get_my_events/<string:user_id>')
+def get_my_events(user_id: str):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -420,7 +508,7 @@ def get_my_events(user_id: int):
                         FROM Event
                         JOIN EventInfo 
                         ON Event.eventInfoId = EventInfo.id
-                        WHERE EventInfo.creatorId = {user_id}
+                        WHERE EventInfo.creatorId = '{user_id}'
                      """)
         response = mycursor.fetchall()
         headers = mycursor.description
@@ -430,7 +518,7 @@ def get_my_events(user_id: int):
                         FROM Event
                         JOIN EventInfo
                         ON Event.eventInfoId = EventInfo.id
-                        WHERE Event.id IN (SELECT EventToUser.eventId FROM EventToUser WHERE EventToUser.userId = {user_id})
+                        WHERE Event.id IN (SELECT EventToUser.eventId FROM EventToUser WHERE EventToUser.userId = '{user_id}')
                      """)
         response = mycursor.fetchall()
         headers = mycursor.description
@@ -444,17 +532,27 @@ def get_my_events(user_id: int):
 @app.post('/post_recurring_event/')
 def post_recurring_event():
     data = request.json
+    print(data)
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         reqStrFormat = '%Y-%m-%dT%H:%M:%S.%fZ'
         dateCreated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         insertEventInfo = f"""
-                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated)
-                        VALUES (1, 0, "{data["title"]}", "", "{data["locationName"]}", "", 10, True, False, 0, "{dateCreated}");
+                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo)
+                        VALUES ("{data["creatorId"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", 10, True, False, 0, "{dateCreated}", "{data["venmo"]}");
                      """
         mycursor.execute(insertEventInfo)
+        eventInfoId = mycursor.lastrowid
         mycursor.execute("SET @eventInfoId = last_insert_id();")
+        tags = data["tags"]
+        for tag in tags:
+                updateTag = f"""
+                                INSERT INTO EventInfoToTag(eventInfoId, tagId)
+                                VALUES ({eventInfoId} , {tag["id"]});
+                            """
+                print(updateTag)
+                mycursor.execute(updateTag)
         # get event dates through start date and end date
         curStartDate = datetime.strptime(data["startDateTime"], reqStrFormat)
         curEndDate = datetime.strptime(data["endDateTime"], reqStrFormat)
@@ -502,12 +600,21 @@ def post_recurring_event():
             else:
                 return "Invalid recurring frequency", 400
             curEndDate = curStartDate + duration
+            for tag in tags:
+                updateTag = f"""
+                                UPDATE Tag
+                                SET numTimesUsed = numTimesUsed + 1
+                                WHERE name="{tag["name"]}"
+                            """
+                mycursor.execute(updateTag)
+            mycursor.execute(insertEventInfo)
+            mycursor.execute(insertEvent)
         conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return itemIds, 201
 
-@app.route('/get_event/<int:event_id>')
+@app.route('/get_event/<int:event_id>', methods=['GET'])
 def get_event(event_id):
     try:  
         conn = mysql.connector.connect(**db_config)
@@ -521,7 +628,8 @@ def get_event(event_id):
                         EventInfo.title, 
                         EventInfo.description, 
                         EventInfo.locationName, 
-                        EventInfo.locationLink, 
+                        EventInfo.locationLink,
+                        EventInfo.venmo, 
                         EventInfo.RSVPLimit, 
                         EventInfo.isPublic, 
                         EventInfo.isWeatherDependant, 
@@ -537,13 +645,17 @@ def get_event(event_id):
         event = dict(zip(headers, response[0]))
 
         mycursor.execute(f"""
-                        SELECT Tag.name
+                        SELECT Tag.id, Tag.name, Tag.userId
                         FROM Tag
                         JOIN EventInfoToTag ON Tag.id = EventInfoToTag.tagId
                         WHERE EventInfoToTag.eventInfoId = {event['eventInfoId']}
                      """)
         tags_response = mycursor.fetchall()
-        tags = [tag[0] for tag in tags_response]
+        tags = [{
+            "id": tag[0],
+            "name": tag[1],
+            "userId": tag[2]
+        } for tag in tags_response]
         event['tags'] = tags
 
         mycursor.execute(f"""
@@ -557,6 +669,63 @@ def get_event(event_id):
         event['items'] = items
 
         return jsonify(event)
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/editEvent/<int:eventId>', methods=['PUT'])
+def edit_event(eventId):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f"""
+            SELECT Event.eventInfoId
+            FROM Event
+            JOIN EventInfo ON Event.eventInfoId = EventInfo.id
+            WHERE Event.id = {eventId}
+        """)
+        response = mycursor.fetchall()
+        headers = [x[0] for x in mycursor.description]
+        event = dict(zip(headers, response[0]))
+        if not event:
+            return jsonify({"error": "Event not found"}), 404
+
+        data = request.json
+
+        startDateTime = data["startDateTime"]
+        endDateTime = data["endDateTime"]
+
+        db_startDateTime = datetime.strptime(startDateTime, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
+        db_endDateTime = datetime.strptime(endDateTime, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
+        if data.get("editAllEvents"):
+            eventInfoUpdate = f"""
+                UPDATE EventInfo
+                SET title = '{data["title"]}',
+                    description = '{data["description"]}',
+                    locationName = '{data["locationName"]}',
+                    RSVPLimit = {data["rsvpLimit"]},
+                    isPublic = {int(data["isPublic"])},
+                    isWeatherDependant = {int(data["isWeatherSensitive"])},
+                    venmo = '{data["venmo"]}'
+                WHERE id = {event["eventInfoId"]}
+            """
+            mycursor.execute(eventInfoUpdate)
+        else:
+            currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            eventInfoInsert = f"""
+                INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo)
+                VALUES ('{data["creatorId"]}', 0, '{data["title"]}', '{data["description"]}', '{data["locationName"]}', '', {data["rsvpLimit"]}, {int(data["isPublic"])}, {int(data["isWeatherSensitive"])}, 0, '{currentDateTime}', '{data["venmo"]}');
+            """
+            mycursor.execute(eventInfoInsert)
+            eventInfoId = mycursor.lastrowid
+            eventUpdate = f"""
+                UPDATE Event
+                SET eventInfoId = {eventInfoId}, startTime = '{db_startDateTime}', endTime = '{db_endDateTime}'
+                WHERE id = {eventId}
+            """
+            mycursor.execute(eventUpdate)
+        conn.commit()
+        return jsonify({"message": "Event updated successfully"})
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
