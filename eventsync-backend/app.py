@@ -516,7 +516,7 @@ def get_my_events(user_id: str):
     return {}
 
 
-@app.post('/post_recurring_event/')
+@app.post('/post_recurring_event')
 def post_recurring_event():
     data = request.json
     print(data)
@@ -552,10 +552,9 @@ def post_recurring_event():
             nthWeekday = (curStartDate.day // 7) + 1 # what number ___day of the month is this event on?
         
         # while datetime.strptime(str(curStartDate), "%Y-%m-%d %H:%M:%S") < endDate:
-        while curStartDate < endDate:
+        while curStartDate <= endDate:
             insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
                         VALUES (@eventInfoId, "{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}", "{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}", "{dateCreated}");"""
-            mycursor.execute(insertEvent)
             if delta == "Daily":
                 curStartDate = curStartDate + timedelta(days=1)
             elif delta == "Weekly":
@@ -573,7 +572,6 @@ def post_recurring_event():
                                 WHERE name="{tag["name"]}"
                             """
                 mycursor.execute(updateTag)
-            mycursor.execute(insertEventInfo)
             mycursor.execute(insertEvent)
         conn.commit()
     except mysql.connector.Error as err:
