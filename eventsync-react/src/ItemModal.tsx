@@ -2,8 +2,9 @@ import { Box, Button, Dialog, TextField } from "@mui/material";
 import { useState } from "react";  
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-function ItemModal(){
+function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
@@ -68,6 +69,17 @@ function ItemModal(){
                     <AddIcon></AddIcon>
                 </Button>
             </Box>
+            <Box
+                display="flex"
+                width="50%" 
+                justifyContent="right"
+                gap={3}
+            >
+                <Button variant="contained" 
+                    onClick={() => setPartialItems(partialItems.splice(partialItems.findIndex((thisItem) => item.id = thisItem.id), 1))}>
+                    <DeleteIcon></DeleteIcon>
+                </Button>
+            </Box>
         </Box>
     }
 
@@ -95,7 +107,7 @@ function ItemModal(){
                     Add New Item
                 </Button>
             </Box>
-            <Button onClick={handleClose}>Done</Button>
+            <Button onClick={() => {prop.itemsToParent(partialItems); handleClose(); }}>Done</Button>
         </Dialog>
     </>
 }

@@ -6,6 +6,8 @@ import { Button, Card, Accordion, AccordionSummary, AccordionDetails, Typography
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PersonIcon from '@mui/icons-material/Person';
 import axios from 'axios';
+import RemoveIcon from '@mui/icons-material/Remove';
+import AddIcon from '@mui/icons-material/Add';
 import { Tag } from './TagModal';
 
 const currentUserId = 'segulinWH20@gcc.edu';
@@ -188,7 +190,7 @@ function GetEvent({ event, expanded, handleChange }: { event: Event, expanded: s
                     </AccordionSummary>
                     <AccordionDetails>
                         {event.items.map((item, index) => (
-                            <Typography key={index}>{`${item.name}: ${item.amountNeeded} needed, ${item.quantitySignedUpFor} signed up`}</Typography>
+                            <Typography key={index}>{`${item.name}: ${item.quantitySignedUpFor}/${item.amountNeeded}`}</Typography>
                         ))}
                     </AccordionDetails>
                 </Accordion>
