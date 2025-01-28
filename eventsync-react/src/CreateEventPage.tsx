@@ -274,7 +274,7 @@ function CreateEventPage() {
                     />
                     <Box display="flex" alignItems="center">
                         <Typography variant="body1">Tags:</Typography>
-                        {/* <TagModal savedTags={tags} handleSave={handleSave}></TagModal> */}
+                        <TagModal savedTags={tags} handleSave={handleSave}></TagModal>
                         <Typography variant="body1">Items to Bring:</Typography>
                         <ItemModal itemsToParent={itemsToParent} />
                     </Box>
