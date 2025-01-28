@@ -37,6 +37,7 @@ function CreateEventPage() {
     const [isWeatherSensitive, setIsWeatherSensitive] = useState<boolean>(false);
     const [isPrivateEvent, setIsPrivateEvent] = useState<boolean>(false);
     const [rsvpLimit, setRsvpLimit] = useState<number | null>(0);
+    const [items, setItems] = useState<Item[]>([])
     const [descriptionText, setDescriptionText] = useState<String>("");
     const [editAllEvents, setEditAllEvents] = useState<boolean>(true);
 
@@ -173,6 +174,7 @@ function CreateEventPage() {
                 "isWeatherSensitive": isWeatherSensitive,
                 "isPublic": !isPrivateEvent,
                 "rsvpLimit": rsvpLimit,
+                "items": items,
                 "editAllEvents": editAllEvents
             }
             const response = await fetch(postPath, {
@@ -198,6 +200,7 @@ function CreateEventPage() {
                 setIsWeatherSensitive(false);
                 setIsPrivateEvent(false);
                 setRsvpLimit(0);
+                setItems([]);
                 setEditAllEvents(true);
                 navigate('/myeventspage');
             }
@@ -208,12 +211,8 @@ function CreateEventPage() {
           
     };
 
-    function onCheckBoxChange() {
-        setChecked(!checked);
-    }
-
-    function handleRecurFrequencyChange(newFrequency: string) {
-        setRecurFrequency(newFrequency);
+    function itemsToParent(items: Item[]) {
+        setItems(items);
     }
 
     const navigate = useNavigate();
@@ -277,7 +276,7 @@ function CreateEventPage() {
                         <Typography variant="body1">Tags:</Typography>
                         <TagModal savedTags={tags} handleSave={handleSave}></TagModal>
                         <Typography variant="body1">Items to Bring:</Typography>
-                        <ItemModal/>
+                        <ItemModal itemsToParent={itemsToParent} />
                     </Box>
                     <ListTags></ListTags>
                     <TextField 
@@ -416,6 +415,16 @@ function CreateEventPage() {
             </Box>
       </Box>
     </>;
+
 }
+
+type Item = {
+    id: number;
+    description: String;
+    amountNeeded: number;
+    quantityAccountedFor: number;
+    isFull: Boolean;
+    event: number;
+};
 
 export default CreateEventPage;

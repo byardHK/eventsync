@@ -441,7 +441,6 @@ def basic_authentication():
 @app.post('/post_event/')
 def post_event():
     data = request.json
-    print(data)
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -470,6 +469,19 @@ def post_event():
         mycursor.execute(insertEventInfo)
         eventInfoId = mycursor.lastrowid
         mycursor.execute(insertEvent)
+        mycursor.execute("SET @eventId = last_insert_id();")
+
+        for item in data["items"]:
+            insertItem = f"""
+                            INSERT INTO Item (name, creatorId)
+                            VALUES ("{item["description"]}", "minnichjs21@gcc.edu"); 
+                        """ # TODO: change creator
+            insertEventToItem = f"""
+                            INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
+                            VALUES (@eventId, LAST_INSERT_ID(), "{item["amountNeeded"]}", 0);
+                        """
+            mycursor.execute(insertItem)
+            mycursor.execute(insertEventToItem)
 
         for tag in tags:
             updateTag = f"""
@@ -519,7 +531,6 @@ def get_my_events(user_id: str):
 @app.post('/post_recurring_event')
 def post_recurring_event():
     data = request.json
-    print(data)
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -551,10 +562,31 @@ def post_recurring_event():
             dayOfWeek = weekdays[curStartDate.weekday()] # day of the week of event
             nthWeekday = (curStartDate.day // 7) + 1 # what number ___day of the month is this event on?
         
-        # while datetime.strptime(str(curStartDate), "%Y-%m-%d %H:%M:%S") < endDate:
+        itemIds = []
+
+        for item in data["items"]:
+            insertItem = f"""
+                            INSERT INTO Item (name, creatorId)
+                            VALUES ("{item["description"]}", "minnichjs21@gcc.edu"); 
+                        """ # TODO: change creator
+            getItemId = "SELECT LAST_INSERT_ID();"
+            mycursor.execute(insertItem)
+            mycursor.execute(getItemId)
+            itemIds.append((mycursor.fetchone()[0], item))
+
+
         while curStartDate <= endDate:
             insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
                         VALUES (@eventInfoId, "{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}", "{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}", "{dateCreated}");"""
+            mycursor.execute(insertEvent)
+            mycursor.execute("SET @eventId = last_insert_id();")
+            for el in itemIds:
+                insertItem = f"""
+                                INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
+                                VALUES (@eventId, {el[0]}, {el[1]["amountNeeded"]}, 0);
+                            """
+                mycursor.execute(insertItem)
+                
             if delta == "Daily":
                 curStartDate = curStartDate + timedelta(days=1)
             elif delta == "Weekly":
@@ -572,7 +604,6 @@ def post_recurring_event():
                                 WHERE name="{tag["name"]}"
                             """
                 mycursor.execute(updateTag)
-            mycursor.execute(insertEvent)
         conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
