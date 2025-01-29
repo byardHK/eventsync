@@ -1,5 +1,5 @@
-import { loginRequest } from './authConfig';
-import { callMsGraph } from './graph';
+import { loginRequest } from '../authConfig';
+import { callMsGraph } from '../graph';
 import React, { useState, useEffect} from 'react';
 import { useMsal } from '@azure/msal-react';
 import {useUser} from './UserContext'
