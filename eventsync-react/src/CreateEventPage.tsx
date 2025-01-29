@@ -29,7 +29,7 @@ function CreateEventPage() {
     const [startDateTime, setStartDateTime] = useState<Dayjs | null>(null); 
     const [endDateTime, setEndDateTime] = useState<Dayjs | null>(null); 
     const [checked, setChecked] = useState<boolean>(false);
-    const [recurFrequency, setRecurFrequency] = useState<string>("Weekly"); 
+    const [recurFrequency, setRecurFrequency] = useState<string>(""); 
     const [endRecurDateTime, setEndRecurDateTime] = useState<Dayjs | null>(null); 
     const [locationText, setLocationText] = useState<String>("");
     const [tags, setTags] = useState<Tag[]>([]); 
@@ -141,7 +141,7 @@ function CreateEventPage() {
                     setLocationText(event.locationName);
                     setTags(event.tags || []);
                     setChecked(event.isRecurring || false);
-                    setRecurFrequency(event.recurFrequency || "Weekly");
+                    setRecurFrequency(event.recurFrequency || "");
                     setEndRecurDateTime(event.endRecurDateTime ? dayjs(event.endRecurDateTime) : null);
                     setVenmoText(event.venmo || "");
                     setIsWeatherSensitive(event.isWeatherSensitive || false);
@@ -193,7 +193,7 @@ function CreateEventPage() {
                 setLocationText("");
                 setTags([]);
                 setChecked(false);
-                setRecurFrequency("Weekly");
+                setRecurFrequency("");
                 setEndRecurDateTime(null);
                 setVenmoText("");
                 setChecked(false);
@@ -323,6 +323,7 @@ function CreateEventPage() {
                                     label="Frequency"
                                     labelId="select-frequency"
                                     onChange={(event) => setRecurFrequency(event.target.value)}
+                                    sx={{ minWidth: '15ch' }}
                                 >
                                     <MenuItem value={"Daily"}>Daily</MenuItem>
                                     <MenuItem value={"Weekly"}>Weekly</MenuItem>
