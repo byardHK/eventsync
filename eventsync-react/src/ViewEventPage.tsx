@@ -9,6 +9,7 @@ import axios from 'axios';
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
 import { Tag } from './TagModal';
+import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 
 const currentUserId = 'segulinWH20@gcc.edu';
 
@@ -20,6 +21,7 @@ function ViewEventPage() {
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
+    const [items, setItems] = useState<Item[]>([]);
 
     function RsvpModal(){
         return <>
@@ -59,6 +61,7 @@ function ViewEventPage() {
             try {
                 const response = await axios.get(`http://localhost:5000/get_event/${intEventId}`);
                 setEvent(response.data);
+                console.log(event);
             } catch (error) {
                 console.error('Error fetching event:', error);
             }
@@ -69,6 +72,14 @@ function ViewEventPage() {
     const handleChange = (panel: string) => (SyntheticEvent: React.SyntheticEvent, isExpanded: boolean) => {
         setExpanded(isExpanded ? panel : false);
     };
+
+    const changeItemsSignedUpFor = (items: Item[]) => {
+        if (event){
+            var updatedEvent = event;
+            updatedEvent.items = items
+            setEvent(updatedEvent);
+        }
+    }
 
     return <>
         <Box
@@ -88,7 +99,7 @@ function ViewEventPage() {
             justifyContent="center"
         >
             {event ? (
-                <GetEvent event={event} expanded={expanded} handleChange={handleChange} />
+                <GetEvent event={event} savedItems={event.items} expanded={expanded} handleChange={handleChange} changeItemsSignedUpFor={changeItemsSignedUpFor}/>
             ) : (
                 <p>Loading Event {eventId}</p>
             )}
@@ -98,8 +109,9 @@ function ViewEventPage() {
     </>;
 };
 
-function GetEvent({ event, expanded, handleChange }: { event: Event, expanded: string | false, handleChange: (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void }) {
-
+function GetEvent({ event, savedItems, expanded, handleChange, changeItemsSignedUpFor }: { event: Event, savedItems: Item[], expanded: string | false, handleChange: (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void , changeItemsSignedUpFor: (items: Item[]) => void}) {
+    const [items, setItems] = useState<Item[]>(savedItems);
+    const [itemSignUpChanged, setItemSignUpChanged] = useState<Boolean>(false);
     
     function ListTags(){
         return <>
@@ -120,6 +132,41 @@ function GetEvent({ event, expanded, handleChange }: { event: Event, expanded: s
             </Box>
         </>
     }
+
+    function changeItemQuantity(amount: number, index: number){
+        setItemSignUpChanged(true);
+        const newItems = [...items];
+        newItems[index].quantitySignedUpFor += amount;
+        if(newItems[index].quantitySignedUpFor < 0){
+            newItems[index].quantitySignedUpFor = 0;
+        } else if (newItems[index].quantitySignedUpFor > items[index].amountNeeded){
+            newItems[index].quantitySignedUpFor = items[index].amountNeeded;
+        }
+        setItems(newItems);
+    }
+
+    async function updateItemsSignedUpFor(item: Item){
+        try {
+            const postPath = `http://localhost:5000/edit_user_to_item/`;
+            const data = {
+                'userId': currentUserId,
+                'eventId': event.id,
+                'itemId': item.id,
+                'quantity': item.quantitySignedUpFor
+            }
+            const response = await fetch(postPath, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+            console.log('Data sent successfully:', response.json());
+        } catch (error) {
+            console.error('Error fetching event:', error);
+        }
+    }
+
     return (
         <Card variant="outlined">
             <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight={250} minWidth={250} gap={1}>
@@ -138,15 +185,27 @@ function GetEvent({ event, expanded, handleChange }: { event: Event, expanded: s
                     <Typography>{event.description}</Typography>
                 </AccordionDetails>
             </Accordion>
-            {event.items && event.items.length > 0 && (
+            {items && items.length > 0 && (
                 <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                         <Typography>Items to Bring</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
-                        {event.items.map((item, index) => (
-                            <Typography key={index}>{`${item.name}: ${item.quantitySignedUpFor}/${item.amountNeeded}`}</Typography>
-                        ))}
+                        {items.map((item, index) => (
+                            <Typography key={index}>{`${item.name}: ${item.quantitySignedUpFor}/${item.amountNeeded}`}
+                                <Button variant="contained" onClick={() => changeItemQuantity(-1, index)}>
+                                    <RemoveIcon></RemoveIcon>
+                                </Button>
+                                <h3>{item.quantitySignedUpFor}</h3>
+                                <Button variant="contained" onClick={() => changeItemQuantity(1, index)}>
+                                    <AddIcon></AddIcon> 
+                                </Button>
+                                <Button variant="text" style={itemSignUpChanged ? { color: "black" } : { color: "gray" }}
+                                    onClick={() => updateItemsSignedUpFor(item)}>
+                                    <CheckCircleOutlineRoundedIcon></CheckCircleOutlineRoundedIcon>
+                                </Button>
+                            </Typography>))}
+                        
                     </AccordionDetails>
                 </Accordion>
             )}
@@ -193,12 +252,15 @@ type Event = {
     eventInfoCreated: string;
     tags: Tag[];
     files: String[];
-    items: { 
-        name: string;
-        amountNeeded: number;
-        quantitySignedUpFor: number 
-    }[];
+    items: Item[];
     venmo: string;
 };
+
+type Item = {
+    name: string;
+    amountNeeded: number;
+    quantitySignedUpFor: number;
+    id: number; //TODO: fetch this from database
+}
 
 export default ViewEventPage;

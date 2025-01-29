@@ -656,13 +656,13 @@ def get_event(event_id):
         event['tags'] = tags
 
         mycursor.execute(f"""
-                        SELECT Item.name, EventToItem.amountNeeded, EventToItem.quantitySignedUpFor
+                        SELECT Item.name, EventToItem.amountNeeded, EventToItem.quantitySignedUpFor, Item.id
                         FROM Item
                         JOIN EventToItem ON Item.id = EventToItem.itemId
                         WHERE EventToItem.eventId = {event_id}
                      """)
         items_response = mycursor.fetchall()
-        items = [{'name': item[0], 'amountNeeded': item[1], 'quantitySignedUpFor': item[2]} for item in items_response]
+        items = [{'name': item[0], 'amountNeeded': item[1], 'quantitySignedUpFor': item[2], 'id': item[3]} for item in items_response]
         event['items'] = items
 
         return jsonify(event)
@@ -723,6 +723,30 @@ def edit_event(eventId):
             mycursor.execute(eventUpdate)
         conn.commit()
         return jsonify({"message": "Event updated successfully"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/edit_user_to_item/', methods=['PUT'])
+def edit_user_to_item():
+    try:
+        data = request.json
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        if data['quantity'] == 0:
+            deleteUserToitem = f"""
+                    DELETE FROM UserToItem 
+                    WHERE (userId, eventId, itemId) = ('{data['userId']}', {data['eventId']}, {data['itemId']})
+                """
+            mycursor.execute(deleteUserToitem)
+        else:
+            updateUserToitem = f"""
+                    INSERT INTO UserToItem (userId, eventId, itemId, quantity) VALUES ('{data['userId']}', {data['eventId']}, {data['itemId']}, {data['quantity']})
+                    ON DUPLICATE KEY UPDATE quantity = {data['quantity']};
+                """
+            mycursor.execute(updateUserToitem)
+        conn.commit()
+        return jsonify({"message": "Quantity signed up for was updated successfully"})
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
