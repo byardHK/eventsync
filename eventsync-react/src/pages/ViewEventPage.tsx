@@ -200,7 +200,7 @@ function GetEvent({ event, savedItems, expanded, handleChange, changeItemsSigned
         try {
             const postPath = `http://localhost:5000/edit_user_to_item/`;
             const data = {
-                'userId': currentUserId,
+                'userId': useUser,
                 'eventId': event.id,
                 'itemId': item.id,
                 'quantity': item.myQuantitySignedUpFor
