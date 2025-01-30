@@ -14,7 +14,7 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
         const item: Item = {
             id: 1,
             description: "New Item", 
-            amountNeeded: 0,
+            amountNeeded: 1,
             quantityAccountedFor: 0,
             isFull: false,
             event: 1
@@ -25,8 +25,8 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
     function changeItemQuantity(amount: number, index: number){
         const newPartialItems = [...partialItems];
         newPartialItems[index].amountNeeded += amount;
-        if(newPartialItems[index].amountNeeded < 0){
-            newPartialItems[index].amountNeeded = 0;
+        if(newPartialItems[index].amountNeeded < 1){
+            newPartialItems[index].amountNeeded = 1;
         }
         setPartialItems(newPartialItems);
     }
@@ -76,7 +76,9 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
                 gap={3}
             >
                 <Button variant="contained" 
-                    onClick={() => setPartialItems(partialItems.splice(partialItems.findIndex((thisItem) => item.id = thisItem.id), 1))}>
+                    onClick={() => {
+                        partialItems.length == 1 ? setPartialItems([]) : 
+                        partialItems.splice(partialItems.findIndex((thisItem) => item.id = thisItem.id), 1)}}>
                     <DeleteIcon></DeleteIcon>
                 </Button>
             </Box>
