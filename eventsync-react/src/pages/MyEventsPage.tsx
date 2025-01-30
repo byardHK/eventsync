@@ -20,12 +20,6 @@ function MyEventsPage() {
 
     const [isListView, setIsListView] = useState<Boolean>(true); 
 
-    const navigate = useNavigate()
-
-    const handleCreatEventClick = () => {
-        navigate("/createEvent")
-    }
-
     return <>
         <Box
             display="flex"
@@ -60,18 +54,6 @@ function MyEventsPage() {
             }
             <EventLists></EventLists>
         </Box>
-        <Box
-            display="flex"
-            alignItems="right" 
-            justifyContent="right"
-            paddingRight={4}
-        >
-        
-            <Button variant="contained" onClick={handleCreatEventClick}>
-                <AddIcon/>
-            </Button>
-           
-        </Box>
         <BottomNavBar></BottomNavBar>
     </>;
 };
@@ -82,6 +64,13 @@ function EventLists() {
     const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
+
+    const navigate = useNavigate()
+
+    const handleCreatEventClick = () => {
+        navigate("/createEvent")
+    }
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -101,7 +90,17 @@ function EventLists() {
     return <div>
             <h3>Attending</h3>
             <EventList events={attendingEvents} canDeleteEvents={false} setEventsChanged={setEventsChanged}></EventList>
-            <h3>Hosting</h3>
+            <Box
+                display="flex"
+                flexDirection="row"
+                gap={2}
+                style={{ position: 'absolute', top: "50%" }}
+            >
+                <h3>Hosting</h3>
+                <Button variant="contained" onClick={handleCreatEventClick}>
+                    <AddIcon/>
+                </Button>
+            </Box>
             <EventList events={hostingEvents} canDeleteEvents={true} setEventsChanged={setEventsChanged}></EventList>
         </div>;
 };
@@ -147,7 +146,7 @@ function EventList({ events, canDeleteEvents, setEventsChanged }: { events: Even
         display="flex"
         alignItems="center" 
         justifyContent="center"
-        style={{maxHeight: '19vh', overflow: 'auto'}}
+        style={{maxHeight: '50vh', overflow: 'auto'}}
         padding={2}
     >
         {events.map(event =>

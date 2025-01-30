@@ -3,6 +3,7 @@ import TagModal, { Tag } from "../components/TagModal";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useUser } from "../sso/UserContext";
+import StyledCard from "./StyledCard";
 
 function ProfilePage(){
     const { userDetails } = useUser();
@@ -81,6 +82,7 @@ function ProfilePage(){
             <ListTags></ListTags>
             <TagModal savedTags={userTags} handleSave={handleSave}></TagModal>
         </Box>
+        <StyledCard></StyledCard>
     </>
 }
 

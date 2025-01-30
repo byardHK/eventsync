@@ -26,21 +26,24 @@ function HomePage() {
             alignItems="right" 
             justifyContent="right"
             padding={2}
+            gap={2}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-    <h5 className="card-title">Hey {userDetails.firstName}! 👋</h5>
-    <div style={{ display: "flex", gap: "10px" }}>
-        <SignOutButton />
-        <Link to="/profilePage">
-            <Button variant="contained" size="small">
-                <PersonIcon />
-            </Button>
-        </Link>
-    </div>
-</div>
-
+            <SignOutButton />
+            
+            <Link to="/profilePage">
+                <Button variant="contained">
+                    <PersonIcon/>
+                </Button>
+            </Link>
         </Box>
         {/* <Box
+            display="flex"
+            alignItems="center" 
+            justifyContent="center"
+        >
+            <h5 className="card-title">Welcome {userDetails.firstName}!</h5>
+        </Box>
+        <Box
             display="flex"
             flexDirection="row"
             alignItems="center" 
@@ -156,6 +159,7 @@ function EventList() {
         padding={2}
     >
         {events.map(event =>
+        //TODO: Replace
             <Card variant ="outlined" key={event.id}>
                 <Box 
                     display="flex"
