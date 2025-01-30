@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import BottomNavBar from './BottomNavBar';
+import BottomNavBar from '../components/BottomNavBar';
 import Box from '@mui/material/Box';
 import { Button, Card, Accordion, AccordionSummary, AccordionDetails, Typography, Chip, Dialog } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -8,12 +8,18 @@ import PersonIcon from '@mui/icons-material/Person';
 import axios from 'axios';
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
-import { Tag } from './TagModal';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
+import { Tag } from '../components/TagModal';
+import { useUser } from '../sso/UserContext';
 
-const currentUserId = 'harnlyam20@gcc.edu';
 
 function ViewEventPage() {
+    const { userDetails } = useUser();
+    const currentUserId = userDetails.email;
+    // console.log("view events page: ")
+    // console.log(currentUserId);
+    
+
     const { eventId } = useParams<{ eventId: string }>();
     const [event, setEvent] = useState<Event | null>(null);
     const [expanded, setExpanded] = useState<string | false>(false);

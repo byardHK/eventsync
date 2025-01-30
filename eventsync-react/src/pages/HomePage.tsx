@@ -6,19 +6,18 @@ import { Button, Grid2, InputAdornment, TextField } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PersonIcon from '@mui/icons-material/Person';
 import Card from '@mui/material/Card';
-import BottomNavBar from './BottomNavBar';
-import DeleteRecurEventModal from './DeleteRecurEventModal';
-import TagModal from './TagModal';
-import ItemModal from './ItemModal';
+import BottomNavBar from '../components/BottomNavBar';
+import DeleteRecurEventModal from '../components/DeleteRecurEventModal';
+import TagModal from '../components/TagModal';
 import { Link } from 'react-router-dom';
-import { SignOutButton } from "./components/SignOutButton";
-import { useUser } from './UserContext';
+import { SignOutButton } from '../components/SignOutButton';
+import { useUser } from '../sso/UserContext';
 
 function HomePage() {
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
-    console.log("home page: ")
-    console.log(currentUserId);
+    // console.log("home page: ")
+    // console.log(currentUserId);
     
     const [isComingSoon, setIsComingSoon] = useState<Boolean>(true); 
     return <>

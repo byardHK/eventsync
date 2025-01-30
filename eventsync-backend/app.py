@@ -32,10 +32,13 @@ def get_events():
         response = mycursor.fetchall()
         headers = mycursor.description
         res = sqlResponseToJson(response, headers)
+        mycursor.close()
+        conn.close()
         return res
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
+
 
 @app.route('/get_users/')
 def get_users():
@@ -60,6 +63,8 @@ def get_users():
         response = mycursor.fetchall()
         headers = mycursor.description
         res = sqlResponseToJson(response, headers)
+        mycursor.close()
+        conn.close()
         return res
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -76,6 +81,8 @@ def add_custom_tag():
                 """
         mycursor.execute(query)
         conn.commit()
+        mycursor.close()
+        conn.close()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
@@ -87,8 +94,11 @@ def delete_custom_tag(tagId):
         mycursor = conn.cursor()
         mycursor.execute("DELETE FROM Tag WHERE id = %s;", (tagId,))
         conn.commit()
+        rowCount: int = mycursor.rowcount
+        mycursor.close()
+        conn.close()
 
-        if mycursor.rowcount == 0:
+        if rowCount == 0:
             return jsonify({"Message":"Tag not found"}), 404
         else:
             return jsonify({"Message":"Tag deleted successfully"}), 200
@@ -122,6 +132,8 @@ def save_user_selected_tags():
         """
         mycursor.execute(query)
         conn.commit()
+        mycursor.close()
+        conn.close()
     except mysql.connector.Error as err:
         print(f"Save Selected Tags Error: {err}")
     return {}
@@ -148,8 +160,11 @@ def delete_user_deselected_tags():
         """
         mycursor.execute(query)
         conn.commit()
+        rowcount: int = mycursor.rowcount
+        mycursor.close()
+        conn.close()
 
-        if mycursor.rowcount == 0:
+        if rowcount == 0:
             return jsonify({"Message":"Tags not found"})
         else:
             return jsonify({"Message":"Tags deleted successfully"})
@@ -179,6 +194,8 @@ def save_event_selected_tags():
         """
         mycursor.execute(query)
         conn.commit()
+        mycursor.close()
+        conn.close()
     except mysql.connector.Error as err:
         print(f"Save Selected Tags Error: {err}")
     return {}
@@ -206,7 +223,11 @@ def delete_event_deselected_tags():
         mycursor.execute(query)
         conn.commit()
 
-        if mycursor.rowcount == 0:
+        rowcount: int = mycursor.rowcount
+        mycursor.close()
+        conn.close()
+
+        if rowcount == 0:
             return jsonify({"Message":"Tags not found"})
         else:
             return jsonify({"Message":"Tags deleted successfully"})
@@ -224,6 +245,8 @@ def get_tags():
         response = mycursor.fetchall()
         headers = mycursor.description
         res = sqlResponseToJson(response, headers)
+        mycursor.close()
+        conn.close()
         return res
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -243,6 +266,8 @@ def get_user_tags(userId):
         response = mycursor.fetchall()
         headers = mycursor.description
         res = sqlResponseToJson(response, headers)
+        mycursor.close()
+        conn.close()
         return res
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -262,6 +287,8 @@ def get_event_tags(eventInfoId):
         response = mycursor.fetchall()
         headers = mycursor.description
         res = sqlResponseToJson(response, headers)
+        mycursor.close()
+        conn.close()
         return res
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -291,6 +318,8 @@ def get_friends():
         response = mycursor.fetchall()
         headers = mycursor.description
         res = sqlResponseToJson(response, headers)
+        mycursor.close()
+        conn.close()
         return res
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -309,6 +338,8 @@ def add_friend(friendEmail):
                 """
         mycursor.execute(query)
         conn.commit()
+        mycursor.close()
+        conn.close()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
@@ -325,6 +356,8 @@ def remove_friend(friendEmail):
                 """
         mycursor.execute(query)
         conn.commit()
+        mycursor.close()
+        conn.close()
         if mycursor.rowcount == 0:
             return jsonify({"Message":"Friend not found"}), 404
         else:
@@ -344,8 +377,11 @@ def delete_one_event(eventId):
         mycursor.execute("DELETE FROM Event WHERE id = %s", (eventId,))
         mycursor.execute
         conn.commit()
+        rowCount: int = mycursor.rowcount
+        mycursor.close()
+        conn.close()
 
-        if mycursor.rowcount == 0:
+        if rowCount == 0:
             return jsonify({"Message":"Event not found"}), 404
         else:
             return jsonify({"Message":"Event deleted successfully"}), 200
@@ -362,8 +398,11 @@ def delete_user(userId):
         mycursor = conn.cursor()
         mycursor.execute("DELETE FROM User WHERE id = %s", (userId,))
         conn.commit()
+        rowCount: int = mycursor.rowcount
+        mycursor.close()
+        conn.close()
 
-        if mycursor.rowcount == 0:
+        if rowCount == 0:
             return jsonify({"Message":"User not found"}), 404
         else:
             return jsonify({"Message":"User deleted successfully"}), 200
@@ -384,7 +423,12 @@ def delete_mult_event(eventId):
         mycursor.execute("""DELETE FROM Event
                         WHERE eventInfoId = @eventInfoId;""")
         conn.commit()
-        if mycursor.rowcount == 0:
+
+        success: int = mycursor.rowcount
+        mycursor.close()
+        conn.close()
+
+        if success == 0:
             return jsonify({"Message":"Event not found"}), 404
         else:
             return jsonify({"Message":"Event deleted successfully"}), 200
@@ -405,7 +449,10 @@ def addOneView(eventId):
             WHERE id = %s
         """, (eventId,))
         conn.commit()
-        if mycursor.rowcount == 0:
+        success: int = mycursor.rowcount
+        mycursor.close()
+        conn.close()
+        if success == 0:
             return jsonify({"message": "Event not found or no changes made"}), 404
         return jsonify({"message": "View count updated successfully"}), 200
     except mysql.connector.Error as err:
@@ -491,6 +538,8 @@ def post_event():
             print(updateTag)
             mycursor.execute(updateTag)
         conn.commit()
+        mycursor.close()
+        conn.close()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return data, 201
@@ -522,13 +571,15 @@ def get_my_events(user_id: str):
         response = mycursor.fetchall()
         headers = mycursor.description
         attending_events = sqlResponseToList(response, headers)
+        mycursor.close()
+        conn.close()
         return jsonify({"hosting": hosting_events, "attending": attending_events})
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
 
 
-@app.post('/post_recurring_event/')
+@app.post('/post_recurring_event')
 def post_recurring_event():
     data = request.json
     try:  
@@ -575,7 +626,7 @@ def post_recurring_event():
             itemIds.append((mycursor.fetchone()[0], item))
 
 
-        while curStartDate < endDate:
+        while curStartDate <= endDate:
             insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
                         VALUES (@eventInfoId, "{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}", "{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}", "{dateCreated}");"""
             mycursor.execute(insertEvent)
@@ -604,9 +655,9 @@ def post_recurring_event():
                                 WHERE name="{tag["name"]}"
                             """
                 mycursor.execute(updateTag)
-            mycursor.execute(insertEventInfo)
-            mycursor.execute(insertEvent)
         conn.commit()
+        mycursor.close()
+        conn.close()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return data, 201
@@ -677,7 +728,8 @@ def get_event(event_id: int, user_id: int):
         users_response = mycursor.fetchall()
         users = [{'id': user[0], 'fname': user[1], 'lname': user[2]} for user in users_response]
         event['users'] = users
-
+        mycursor.close()
+        conn.close()
         return jsonify(event)
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -780,6 +832,8 @@ def edit_event(eventId):
                     mycursor.execute(updateTag)
 
         conn.commit()
+        mycursor.close()
+        conn.close()
         return jsonify({"message": "Event updated successfully"})
     except mysql.connector.Error as err:
         print(f"Error: {err}")
