@@ -163,6 +163,8 @@ function ViewEventPage() {
 function GetEvent({ event, savedItems, expanded, handleChange, changeItemsSignedUpFor }: { event: Event, savedItems: Item[], expanded: string | false, handleChange: (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void , changeItemsSignedUpFor: (items: Item[]) => void}) {
     const [items, setItems] = useState<Item[]>(savedItems);
     const [itemSignUpChanged, setItemSignUpChanged] = useState<Boolean>(false);
+    const { userDetails } = useUser();
+    const currentUserId = userDetails.email
     
     function ListTags(){
         return <>
@@ -200,7 +202,7 @@ function GetEvent({ event, savedItems, expanded, handleChange, changeItemsSigned
         try {
             const postPath = `http://localhost:5000/edit_user_to_item/`;
             const data = {
-                'userId': useUser,
+                'userId': currentUserId,
                 'eventId': event.id,
                 'itemId': item.id,
                 'quantity': item.myQuantitySignedUpFor

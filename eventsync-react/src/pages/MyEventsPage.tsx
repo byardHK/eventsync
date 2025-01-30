@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import DeleteRecurEventModal from '../components/DeleteRecurEventModal';
 import { useUser } from '../sso/UserContext';
 
-const currentUserId = "segulinWH20@gcc.edu"; // Placeholder for the current user that is logged in. TODO: get the actual current user
+// const currentUserId = "segulinWH20@gcc.edu"; // Placeholder for the current user that is logged in. TODO: get the actual current user
 
 
 function MyEventsPage() {
@@ -78,6 +78,8 @@ function EventLists() {
     const [attendingEvents, setAttendingEvents] = useState<EventSyncEventWithDate[]>([]);  
     const [hostingEvents, setHostingEvents] = useState<EventSyncEventWithDate[]>([]);    
     const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
+    const { userDetails } = useUser();
+    const currentUserId = userDetails.email;
 
     useEffect(() => {
         const fetchData = async () => {
