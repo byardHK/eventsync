@@ -6,32 +6,38 @@
 import React from "react";
 import Navbar from "react-bootstrap/Navbar";
 
+
 import { useIsAuthenticated } from "@azure/msal-react";
-import { SignInButton } from "./SignInButton";
-import { SignOutButton } from "./SignOutButton";
+import { SignInButton } from "../components/SignInButton";
+import { SignOutButton } from "../components/SignOutButton";
+
+import "../styles/style.css"
 
 /**
  * Renders the navbar component with a sign in or sign out button depending on whether or not a user is authenticated
  * @param props
  */
-export const WelcomeScreen = (props) => {
+export const LoginPage = (props) => {
   const isAuthenticated = useIsAuthenticated();
   
   return (
     <>
       <Navbar bg="primary" variant="dark" className="navbarStyle">
         <div className="collapse navbar-collapse justify-content-end">
-            {isAuthenticated ? <SignOutButton /> : <SignInButton />}
+           
         </div>
       </Navbar>
       <br />
       <br />
-      <div>
-        <img src="/src/images/logo.png" alt="Logo" />
+      <div class="login-logo">
+        <img src="/src/images/logo.png" alt="" class="login-logo"/>
       </div>
 
       <br> 
       </br>
+      <br> 
+      </br>
+      
 
       <h5>
         <center>
@@ -40,10 +46,10 @@ export const WelcomeScreen = (props) => {
       </h5>
       <br />
       <br />
-
+      <br> 
+      </br>
+      <center><SignInButton /></center>
       
-
-      {/* {props.children} */}
     </>
   );
 };
