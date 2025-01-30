@@ -11,7 +11,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { Tag } from './TagModal';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 
-const currentUserId = 'segulinWH20@gcc.edu';
+const currentUserId = 'harnlyam20@gcc.edu';
 
 function ViewEventPage() {
     const { eventId } = useParams<{ eventId: string }>();
@@ -59,7 +59,7 @@ function ViewEventPage() {
     useEffect(() => {
         const fetchEvent = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/get_event/${intEventId}`);
+                const response = await axios.get(`http://localhost:5000/get_event/${intEventId}/${currentUserId}`);
                 setEvent(response.data);
                 console.log(event);
             } catch (error) {
@@ -136,11 +136,11 @@ function GetEvent({ event, savedItems, expanded, handleChange, changeItemsSigned
     function changeItemQuantity(amount: number, index: number){
         setItemSignUpChanged(true);
         const newItems = [...items];
-        newItems[index].quantitySignedUpFor += amount;
-        if(newItems[index].quantitySignedUpFor < 0){
-            newItems[index].quantitySignedUpFor = 0;
-        } else if (newItems[index].quantitySignedUpFor > items[index].amountNeeded){
-            newItems[index].quantitySignedUpFor = items[index].amountNeeded;
+        newItems[index].myQuantitySignedUpFor += amount;
+        if(newItems[index].myQuantitySignedUpFor < 0){
+            newItems[index].myQuantitySignedUpFor = 0;
+        } else if (newItems[index].myQuantitySignedUpFor + newItems[index].othersQuantitySignedUpFor > items[index].amountNeeded){ // TODO: stuff
+            newItems[index].myQuantitySignedUpFor = items[index].amountNeeded - newItems[index].othersQuantitySignedUpFor;
         }
         setItems(newItems);
     }
@@ -152,7 +152,7 @@ function GetEvent({ event, savedItems, expanded, handleChange, changeItemsSigned
                 'userId': currentUserId,
                 'eventId': event.id,
                 'itemId': item.id,
-                'quantity': item.quantitySignedUpFor
+                'quantity': item.myQuantitySignedUpFor
             }
             const response = await fetch(postPath, {
                 method: 'PUT',
@@ -192,11 +192,11 @@ function GetEvent({ event, savedItems, expanded, handleChange, changeItemsSigned
                     </AccordionSummary>
                     <AccordionDetails>
                         {items.map((item, index) => (
-                            <Typography key={index}>{`${item.name}: ${item.quantitySignedUpFor}/${item.amountNeeded}`}
+                            <Typography key={index}>{`${item.name}: ${item.othersQuantitySignedUpFor + item.myQuantitySignedUpFor}/${item.amountNeeded}`}
                                 <Button variant="contained" onClick={() => changeItemQuantity(-1, index)}>
                                     <RemoveIcon></RemoveIcon>
                                 </Button>
-                                <h3>{item.quantitySignedUpFor}</h3>
+                                <h3>{item.myQuantitySignedUpFor}</h3>
                                 <Button variant="contained" onClick={() => changeItemQuantity(1, index)}>
                                     <AddIcon></AddIcon> 
                                 </Button>
@@ -259,8 +259,9 @@ type Event = {
 type Item = {
     name: string;
     amountNeeded: number;
-    quantitySignedUpFor: number;
-    id: number; //TODO: fetch this from database
+    othersQuantitySignedUpFor: number;
+    myQuantitySignedUpFor: number;
+    id: number;
 }
 
 export default ViewEventPage;

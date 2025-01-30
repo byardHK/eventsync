@@ -611,8 +611,8 @@ def post_recurring_event():
         print(f"Error: {err}")
     return data, 201
 
-@app.route('/get_event/<int:event_id>', methods=['GET'])
-def get_event(event_id):
+@app.route('/get_event/<int:event_id>/<string:user_id>', methods=['GET'])
+def get_event(event_id: int, user_id: int):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -656,13 +656,16 @@ def get_event(event_id):
         event['tags'] = tags
 
         mycursor.execute(f"""
-                        SELECT Item.name, EventToItem.amountNeeded, EventToItem.quantitySignedUpFor, Item.id
+                        SELECT Item.name, EventToItem.amountNeeded, EventToItem.quantitySignedUpFor, COALESCE(UserToItem.quantity, 0), Item.id 
                         FROM Item
                         JOIN EventToItem ON Item.id = EventToItem.itemId
+                        LEFT OUTER JOIN (SELECT * FROM UserToItem 
+                                        WHERE (userId, eventId) = ('{user_id}', {event_id})) 
+                            AS UserToItem ON Item.id = UserToItem.itemId
                         WHERE EventToItem.eventId = {event_id}
                      """)
         items_response = mycursor.fetchall()
-        items = [{'name': item[0], 'amountNeeded': item[1], 'quantitySignedUpFor': item[2], 'id': item[3]} for item in items_response]
+        items = [{'name': item[0], 'amountNeeded': item[1], 'othersQuantitySignedUpFor': item[2] - item[3], 'myQuantitySignedUpFor': item[3], 'id': item[4]} for item in items_response]
         event['items'] = items
 
         return jsonify(event)
