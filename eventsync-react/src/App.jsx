@@ -1,14 +1,13 @@
-import HomePage from "./HomePage";
-import CreateEventPage from "./CreateEventPage";
-import FriendsPage from "./FriendsPage";
-import MyEventsPage from "./MyEventsPage";
-import ViewEventPage from "./ViewEventPage";
+import HomePage from "./pages/HomePage";
+import CreateEventPage from "./pages/CreateEventPage";
+import FriendsPage from "./pages/FriendsPage";
+import MyEventsPage from "./pages/MyEventsPage";
+import ViewEventPage from "./pages/ViewEventPage";
 import { BrowserRouter, Routes, Route } from "react-router-dom"
-import ProfilePage from "./ProfilePage";
-import { WelcomeScreen } from './components/WelcomeScreen';
-import  {LoadUser} from './LoadUser';
+import ProfilePage from "./pages/ProfilePage";
+import { LoginPage } from './pages/LoginPage';
+import  {LoadUser} from './sso/LoadUser';
 import { AuthenticatedTemplate, UnauthenticatedTemplate } from '@azure/msal-react';
-
 
 const MainContent = () => {
   return (
@@ -31,8 +30,8 @@ const MainContent = () => {
           </AuthenticatedTemplate>
 
           <UnauthenticatedTemplate>
-            <WelcomeScreen>                
-            </WelcomeScreen>
+            <LoginPage>                
+            </LoginPage>
           </UnauthenticatedTemplate>
       </div>
   );
@@ -43,20 +42,3 @@ export default function App() {
     <MainContent />
   );
 }
-
-
-// function App() {
-//   return (
-    // <BrowserRouter>
-    //   <Routes>
-    //     <Route path="/" element={<HomePage/>}/>
-    //     <Route path="/createEvent" element={<CreateEventPage/>}/>
-    //     <Route path="/friendsPage" element={<FriendsPage/>}/>
-    //     <Route path="/myEventsPage" element={<MyEventsPage/>}/>
-    //     <Route path="/viewEvent/:eventId" element={<ViewEventPage/>}/>
-    //   </Routes>
-    // </BrowserRouter>
-//   );
-// }
-
-// export default App

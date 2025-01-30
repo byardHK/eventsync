@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import BottomNavBar from './BottomNavBar';
+import BottomNavBar from '../components/BottomNavBar';
 import Box from '@mui/material/Box';
 import { Button, Card, Grid2 } from '@mui/material';
 import axios from 'axios';
 import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
 import { format } from "date-fns";
-import DeleteRecurEventModal from './DeleteRecurEventModal';
-import { useUser } from './UserContext';
+import DeleteRecurEventModal from '../components/DeleteRecurEventModal';
+import { useUser } from '../sso/UserContext';
 
 const currentUserId = "segulinWH20@gcc.edu"; // Placeholder for the current user that is logged in. TODO: get the actual current user
 
@@ -15,8 +15,8 @@ const currentUserId = "segulinWH20@gcc.edu"; // Placeholder for the current user
 function MyEventsPage() {
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
-    console.log("friends page: ")
-    console.log(currentUserId);
+    // console.log("my events page: ")
+    // console.log(currentUserId);
 
     const [isListView, setIsListView] = useState<Boolean>(true); 
 

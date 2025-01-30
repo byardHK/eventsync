@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import axios from "axios";
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import { useUser } from './UserContext';
+import { useUser } from '../sso/UserContext';
 
 type TagModalProps= {
     savedTags: Tag[];

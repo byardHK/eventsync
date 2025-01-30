@@ -1,4 +1,4 @@
-import { Box, Button, Checkbox, Chip, Dialog, FormControlLabel } from '@mui/material';
+import { Box, Button, Dialog, FormControlLabel } from '@mui/material';
 import { useState } from 'react';
 import Radio from '@mui/material/Radio'; 
 import RadioGroup from '@mui/material/RadioGroup'; 
@@ -26,8 +26,6 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent | EventSyncEventWi
             }
         handleClose();
     }
-
-
 
     return <>
         <Button onClick={handleOpen}>Open Delete Recur Event modal</Button>
@@ -73,7 +71,6 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent | EventSyncEventWi
 
 type EventSyncEvent = {
     eventName : String;
-    // attendees : Number; TODO
     startTime: String;
     endTime: String;
     views: number;
@@ -83,10 +80,7 @@ type EventSyncEvent = {
 
 type EventSyncEventWithDate = {
     eventName : String;
-    // attendees : Number; TODO
     locationName: string;
-    // startTime: string;
-    // endTime: string;
     id: number;
     startTime: Date;
     endTime: Date;

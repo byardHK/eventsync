@@ -1,10 +1,9 @@
 import { Box, Chip } from "@mui/material";
-import TagModal, { Tag } from "./TagModal";
+import TagModal, { Tag } from "../components/TagModal";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useUser } from "./UserContext";
-import StyledCard from "./StyledCard";
-
+import { useUser } from "../sso/UserContext";
+import StyledCard from "../StyledCard";
 
 function ProfilePage(){
     const { userDetails } = useUser();
