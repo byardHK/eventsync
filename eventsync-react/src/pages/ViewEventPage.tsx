@@ -162,7 +162,7 @@ function ViewEventPage() {
 
 function GetEvent({ event, savedItems, expanded, handleChange, changeItemsSignedUpFor }: { event: Event, savedItems: Item[], expanded: string | false, handleChange: (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void , changeItemsSignedUpFor: (items: Item[]) => void}) {
     const [items, setItems] = useState<Item[]>(savedItems);
-    const [itemSignUpChanged, setItemSignUpChanged] = useState<Boolean>(false);
+    const [itemSignUpChanged, setItemSignUpChanged] = useState<Boolean[]>(new Array(items.length).fill(false));
     const { userDetails } = useUser();
     const currentUserId = userDetails.email
     
@@ -187,7 +187,6 @@ function GetEvent({ event, savedItems, expanded, handleChange, changeItemsSigned
     }
 
     function changeItemQuantity(amount: number, index: number){
-        setItemSignUpChanged(true);
         const newItems = [...items];
         newItems[index].myQuantitySignedUpFor += amount;
         if(newItems[index].myQuantitySignedUpFor < 0){
@@ -196,9 +195,12 @@ function GetEvent({ event, savedItems, expanded, handleChange, changeItemsSigned
             newItems[index].myQuantitySignedUpFor = items[index].amountNeeded - newItems[index].othersQuantitySignedUpFor;
         }
         setItems(newItems);
+        var newItemsSignedUpFor = [...itemSignUpChanged];
+        newItemsSignedUpFor[index] = true;
+        setItemSignUpChanged(newItemsSignedUpFor);
     }
 
-    async function updateItemsSignedUpFor(item: Item){
+    async function updateItemsSignedUpFor(item: Item, index: number){
         try {
             const postPath = `http://localhost:5000/edit_user_to_item/`;
             const data = {
@@ -215,6 +217,9 @@ function GetEvent({ event, savedItems, expanded, handleChange, changeItemsSigned
                 body: JSON.stringify(data),
             });
             console.log('Data sent successfully:', response.json());
+            var newItemsSignedUpFor = [...itemSignUpChanged];
+            newItemsSignedUpFor[index] = false;
+            setItemSignUpChanged(newItemsSignedUpFor);
         } catch (error) {
             console.error('Error fetching event:', error);
         }
@@ -253,8 +258,8 @@ function GetEvent({ event, savedItems, expanded, handleChange, changeItemsSigned
                                 <Button variant="contained" onClick={() => changeItemQuantity(1, index)}>
                                     <AddIcon></AddIcon> 
                                 </Button>
-                                <Button variant="text" style={itemSignUpChanged ? { color: "black" } : { color: "gray" }}
-                                    onClick={() => updateItemsSignedUpFor(item)}>
+                                <Button variant="text" style={itemSignUpChanged[index] ? { color: "black" } : { color: "gray" }}
+                                    onClick={() => updateItemsSignedUpFor(item, index)}>
                                     <CheckCircleOutlineRoundedIcon></CheckCircleOutlineRoundedIcon>
                                 </Button>
                             </Typography>))}
