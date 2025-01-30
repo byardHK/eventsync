@@ -10,7 +10,7 @@ import BottomNavBar from '../components/BottomNavBar';
 import DeleteRecurEventModal from '../components/DeleteRecurEventModal';
 import TagModal from '../components/TagModal';
 import { Link } from 'react-router-dom';
-import { SignOutButton } from '../components/SignOutButton';
+import SignOutButton  from '../components/SignOutButton';
 import { useUser } from '../sso/UserContext';
 
 function HomePage() {
