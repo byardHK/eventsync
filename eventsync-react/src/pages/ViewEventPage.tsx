@@ -16,9 +16,6 @@ import { useUser } from '../sso/UserContext';
 function ViewEventPage() {
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
-    // console.log("view events page: ")
-    // console.log(currentUserId);
-    
 
     const { eventId } = useParams<{ eventId: string }>();
     const [event, setEvent] = useState<Event | null>(null);
@@ -27,7 +24,6 @@ function ViewEventPage() {
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
-    const [items, setItems] = useState<Item[]>([]);
 
     function RsvpModal(){
         return <>
@@ -142,7 +138,7 @@ function ViewEventPage() {
             justifyContent="center"
         >
             {event ? (
-                <GetEvent event={event} savedItems={event.items} expanded={expanded} handleChange={handleChange} changeItemsSignedUpFor={changeItemsSignedUpFor}/>
+                <GetEvent event={event} initialItems={event.items} expanded={expanded} handleChange={handleChange}/>
             ) : (
                 <p>Loading Event {eventId}</p>
             )}
@@ -160,8 +156,8 @@ function ViewEventPage() {
     </>;
 };
 
-function GetEvent({ event, savedItems, expanded, handleChange, changeItemsSignedUpFor }: { event: Event, savedItems: Item[], expanded: string | false, handleChange: (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void , changeItemsSignedUpFor: (items: Item[]) => void}) {
-    const [items, setItems] = useState<Item[]>(savedItems);
+function GetEvent({ event, initialItems, expanded, handleChange}: { event: Event, initialItems: Item[], expanded: string | false, handleChange: (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void}) {
+    const [items, setItems] = useState<Item[]>(initialItems);
     const [itemSignUpChanged, setItemSignUpChanged] = useState<Boolean[]>(new Array(items.length).fill(false));
     const { userDetails } = useUser();
     const currentUserId = userDetails.email
@@ -191,7 +187,7 @@ function GetEvent({ event, savedItems, expanded, handleChange, changeItemsSigned
         newItems[index].myQuantitySignedUpFor += amount;
         if(newItems[index].myQuantitySignedUpFor < 0){
             newItems[index].myQuantitySignedUpFor = 0;
-        } else if (newItems[index].myQuantitySignedUpFor + newItems[index].othersQuantitySignedUpFor > items[index].amountNeeded){ // TODO: stuff
+        } else if (newItems[index].myQuantitySignedUpFor + newItems[index].othersQuantitySignedUpFor > items[index].amountNeeded){
             newItems[index].myQuantitySignedUpFor = items[index].amountNeeded - newItems[index].othersQuantitySignedUpFor;
         }
         setItems(newItems);
@@ -200,7 +196,7 @@ function GetEvent({ event, savedItems, expanded, handleChange, changeItemsSigned
         setItemSignUpChanged(newItemsSignedUpFor);
     }
 
-    async function updateItemsSignedUpFor(item: Item, index: number){
+    async function postItemSignedUpFor(item: Item, index: number){
         try {
             const postPath = `http://localhost:5000/edit_user_to_item/`;
             const data = {
@@ -258,8 +254,9 @@ function GetEvent({ event, savedItems, expanded, handleChange, changeItemsSigned
                                 <Button variant="contained" onClick={() => changeItemQuantity(1, index)}>
                                     <AddIcon></AddIcon> 
                                 </Button>
-                                <Button variant="text" style={itemSignUpChanged[index] ? { color: "black" } : { color: "gray" }}
-                                    onClick={() => updateItemsSignedUpFor(item, index)}>
+                                <Button variant="text"
+                                    onClick={() => postItemSignedUpFor(item, index)}
+                                    disabled={!itemSignUpChanged[index]}>
                                     <CheckCircleOutlineRoundedIcon></CheckCircleOutlineRoundedIcon>
                                 </Button>
                             </Typography>))}
