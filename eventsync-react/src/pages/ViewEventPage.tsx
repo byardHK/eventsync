@@ -44,7 +44,7 @@ function ViewEventPage() {
                 >
                     <h2>You have RSVP'd to </h2>
                     <h2>{event?.title}!</h2>
-                    <h3>Add to calendar?</h3>
+                    {/* <h3>Add to calendar?</h3>
                     <Box
                         display="flex"
                         flexDirection="row"
@@ -53,7 +53,8 @@ function ViewEventPage() {
                     >
                         <Button variant="outlined" fullWidth onClick={handleClose}>No</Button>
                         <Button variant="outlined" fullWidth onClick={handleClose}>Yes</Button>
-                    </Box>
+                    </Box> */}
+                    <Button variant="outlined" fullWidth onClick={handleClose}>Close</Button>
                 </Box>
             </Dialog>
         </>
