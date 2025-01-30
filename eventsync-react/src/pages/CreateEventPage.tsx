@@ -1,11 +1,6 @@
-import { Link } from "react-router-dom";
 import { TextField, Box, Button, Typography, FormControlLabel, Checkbox, Switch, Chip } from '@mui/material';
-import Autocomplete from '@mui/material/Autocomplete';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import { SetStateAction, useEffect, useState } from 'react';
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { JSX } from "react/jsx-runtime";
 import { MobileDateTimePicker } from "@mui/x-date-pickers/MobileDateTimePicker";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
@@ -14,15 +9,20 @@ import FormControl from '@mui/material/FormControl';
 import dayjs, { Dayjs } from "dayjs";
 import { useNavigate, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import TagModal, { Tag } from './TagModal';
-import ItemModal from './ItemModal';
+import TagModal, { Tag } from '../components/TagModal';
+import ItemModal from '../components/ItemModal';
 import CheckIcon from '@mui/icons-material/Check';
-import rootShouldForwardProp from '@mui/material/styles/rootShouldForwardProp';
 import axios from "axios";
+import { useUser } from "../sso/UserContext";
+import { useEffect, useState } from 'react';
 
-const currentUserId = "segulinWH20@gcc.edu";
 
 function CreateEventPage() {
+    const { userDetails } = useUser();
+    const currentUserId = userDetails.email;
+    // console.log("home page: ") for debugging
+    // console.log(currentUserId);
+        
     const { eventId } = useParams<{ eventId: string }>();
     const [eventInfoId, setEventInfoId] = useState<number | null>(null);
     const [titleText, setTitleText] = useState<String>("");    
@@ -66,19 +66,6 @@ function CreateEventPage() {
             </Box>
         </>
     }
-
-    // useEffect(() => {
-    //     const fetchData = async () => {
-    //         try {
-    //             const response = await axios.get(`http://localhost:5000/get_event_tags/${eventInfoId}/`);
-    //             const res: Tag[] = response.data;
-    //             setTags(res);
-    //         } catch (error) {
-    //             console.error('Error fetching tags:', error);
-    //         }
-    //     };
-    //     fetchData();
-    // }, [eventTagsTrigger]);
 
     const handleSave = async (tagsToAdd: Tag[], tagsToDelete: Tag[]) => {
         const newTags: Tag[] = [...tags];
