@@ -160,62 +160,62 @@ def delete_user_deselected_tags():
 # Here
 @app.post('/save_event_selected_tags/')
 def save_event_selected_tags():
-    body = request.json
-    eventInfoId = body["eventInfoId"]
-    values: str = ""
+    # body = request.json
+    # eventInfoId = body["eventInfoId"]
+    # values: str = ""
 
-    selectedTags = body["selectedTags"];
-    if len(selectedTags) == 0:
-        return {}
+    # selectedTags = body["selectedTags"];
+    # if len(selectedTags) == 0:
+    #     return {}
 
-    for tag in selectedTags:
-        values += f'("{eventInfoId}", {tag["id"]}), '
+    # for tag in selectedTags:
+    #     values += f'("{eventInfoId}", {tag["id"]}), '
 
-    #Remove extra comma and space afterwards
-    values = values[:-2]
+    # #Remove extra comma and space afterwards
+    # values = values[:-2]
 
-    try:  
-        conn = mysql.connector.connect(**db_config)
-        mycursor = conn.cursor()
-        query = f"""
-            INSERT INTO EventInfoToTag (eventInfoId, tagId)
-            VALUES {values};
-        """
-        mycursor.execute(query)
-        conn.commit()
-    except mysql.connector.Error as err:
-        print(f"Save Selected Tags Error: {err}")
+    # try:  
+    #     conn = mysql.connector.connect(**db_config)
+    #     mycursor = conn.cursor()
+    #     query = f"""
+    #         INSERT INTO EventInfoToTag (eventInfoId, tagId)
+    #         VALUES {values};
+    #     """
+    #     mycursor.execute(query)
+    #     conn.commit()
+    # except mysql.connector.Error as err:
+    #     print(f"Save Selected Tags Error: {err}")
     return {}
 
 @app.post('/delete_event_deselected_tags/')
 def delete_event_deselected_tags():
-    body = request.json
-    eventInfoId = body["eventInfoId"]
-    deselectedTags = body["deselectedTags"]
+    # body = request.json
+    # eventInfoId = body["eventInfoId"]
+    # deselectedTags = body["deselectedTags"]
 
-    #If we did not delete anything, there's no need to run the deletion query.
-    if len(deselectedTags) == 0:
-        return {}
+    # #If we did not delete anything, there's no need to run the deletion query.
+    # if len(deselectedTags) == 0:
+    #     return {}
 
-    values: str = ""
-    for tag in deselectedTags:
-        values += f'({eventInfoId}, {tag["id"]}), '
-    values = values[:-2]
-    try:  
-        conn = mysql.connector.connect(**db_config)
-        mycursor = conn.cursor()
-        query = f"""
-            DELETE FROM EventInfoToTag WHERE (eventInfoId, tagId) IN ({values});
-        """
-        mycursor.execute(query)
-        conn.commit()
+    # values: str = ""
+    # for tag in deselectedTags:
+    #     values += f'({eventInfoId}, {tag["id"]}), '
+    # values = values[:-2]
+    # try:  
+    #     conn = mysql.connector.connect(**db_config)
+    #     mycursor = conn.cursor()
+    #     query = f"""
+    #         DELETE FROM EventInfoToTag WHERE (eventInfoId, tagId) IN ({values});
+    #     """
+    #     mycursor.execute(query)
+    #     conn.commit()
 
-        if mycursor.rowcount == 0:
-            return jsonify({"Message":"Tags not found"})
-        else:
-            return jsonify({"Message":"Tags deleted successfully"})
-    except mysql.connector.Error as err:
-        print(f"Delete User Deselected Tags Error: {err}")
+    #     if mycursor.rowcount == 0:
+    #         return jsonify({"Message":"Tags not found"})
+    #     else:
+    #         return jsonify({"Message":"Tags deleted successfully"})
+    # except mysql.connector.Error as err:
+    #     print(f"Delete User Deselected Tags Error: {err}")
     return {}
 
 
@@ -581,7 +581,7 @@ def post_recurring_event():
 
         while curStartDate <= endDate:
             insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views)
-                        VALUES (@eventInfoId, "{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}", "{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}", "{dateCreated}"), 0";"""
+                        VALUES (@eventInfoId, "{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}", "{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}", "{dateCreated}"), 0;"""
             mycursor.execute(insertEvent)
             mycursor.execute("SET @eventId = last_insert_id();")
             for el in itemIds:
@@ -714,7 +714,8 @@ def edit_event(eventId):
                                     RSVPLimit = {data["rsvpLimit"]},
                                     isPublic = {int(data["isPublic"])},
                                     isWeatherDependant = {int(data["isWeatherSensitive"])},
-                                    venmo = '{data["venmo"]}'
+                                    venmo = '{data["venmo"]}',
+                                    recurFrequency = '{data["recurFrequency"]}'
                                 WHERE id = {eventInfoId}
                             """
             mycursor.execute(eventInfoUpdate)
@@ -764,7 +765,8 @@ def edit_event(eventId):
                 """)
                 existing_events = mycursor.fetchall()
                 existing_event_index = 0
-                curStartDate = datetime.strptime(existing_events[0][1], reqStrFormat)
+                curStartDate = existing_events[0][1]
+                curEndDate = existing_events[0][2]
 
                 while curStartDate <= endDate:
                     if existing_event_index < len(existing_events):
@@ -824,6 +826,12 @@ def edit_event(eventId):
                                         """
                             print(updateTag)
                             mycursor.execute(updateTag)
+                if existing_event_index < len(existing_events):
+                    outdated_events = existing_events[existing_event_index:]
+                    for event in outdated_events:
+                        mycursor.execute("DELETE FROM EventToItem WHERE eventId = %s", (event[0],))
+                        mycursor.execute("DELETE FROM EventToUser WHERE eventId = %s", (event[0],))
+                        mycursor.execute("DELETE FROM Event WHERE id = %s", (event[0],))
             else:
                 itemIds = []
 
