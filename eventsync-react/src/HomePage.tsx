@@ -27,9 +27,8 @@ function HomePage() {
             alignItems="right" 
             justifyContent="right"
             padding={2}
+            gap={2}
         >
-            <h5 className="card-title">Welcome {userDetails.firstName}</h5>
-
             <SignOutButton />
             
             <Link to="/profilePage">
@@ -37,6 +36,13 @@ function HomePage() {
                     <PersonIcon/>
                 </Button>
             </Link>
+        </Box>
+        <Box
+            display="flex"
+            alignItems="center" 
+            justifyContent="center"
+        >
+            <h5 className="card-title">Welcome {userDetails.firstName}!</h5>
         </Box>
         <Box
             display="flex"
@@ -152,6 +158,7 @@ function EventList() {
         padding={2}
     >
         {events.map(event =>
+        //TODO: Replace
             <Card variant ="outlined" key={event.id}>
                 <Box 
                     display="flex"
