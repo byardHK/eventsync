@@ -37,7 +37,7 @@ function HomePage() {
                 </Button>
             </Link>
         </Box>
-        <Box
+        {/* <Box
             display="flex"
             flexDirection="row"
             alignItems="center" 
@@ -58,8 +58,10 @@ function HomePage() {
                 onClick={() => {setIsComingSoon(false)}}
             >
                 Recommended
-            </Button>
-        </Box>
+            </Button> 
+        </Box> 
+        // uncomment for Sprint 2
+        */ }
         <Box
             display="flex"
             flexDirection="column"

@@ -334,7 +334,7 @@ function CreateEventPage() {
                     </div>
                 : null}
                 </Box>
-                <Box 
+                {/* <Box 
                     display="flex" 
                     flexDirection="column"
                     alignItems="center" 
@@ -378,7 +378,9 @@ function CreateEventPage() {
                             }
                         }}  
                     />
-                </Box>
+                </Box> */
+                // uncomment for Sprint 2
+                }
             </LocalizationProvider>
             <Box display="flex" justifyContent="center" mt={2}>
                 <a href="https://www.aaiscloud.com/GroveCityC/default.aspx" target="_blank" rel="noopener">

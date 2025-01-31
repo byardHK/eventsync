@@ -28,7 +28,7 @@ function ViewEventPage() {
     const [isRsvped, setIsRsvped] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
-
+  
     const handleRsvp = async () => {
         try {
             await axios.post('http://localhost:5000/rsvp', {
@@ -90,22 +90,13 @@ function ViewEventPage() {
                         sx={{ width: "100%" }}
                         minWidth={300}
                     >
-                        <h2>You have RSVP'd to </h2>
-                        <h2>{event?.title}!</h2>
-                        <h3>Add to calendar?</h3>
-                        <Box
-                            display="flex"
-                            flexDirection="row"
-                            padding={2}
-                            gap={2}
-                        >
-                            <Button variant="outlined" fullWidth onClick={handleClose}>No</Button>
-                            <Button variant="outlined" fullWidth onClick={handleClose}>Yes</Button>
-                        </Box>
-                    </Box>
-                </Dialog>
-            </>
-        );
+                        <Button variant="outlined" fullWidth onClick={handleClose}>No</Button>
+                        <Button variant="outlined" fullWidth onClick={handleClose}>Yes</Button>
+                    </Box> */}
+                    <Button variant="outlined" fullWidth onClick={handleClose}>Close</Button>
+                </Box>
+            </Dialog>
+        </>
     }
     
     function RsvpListModal({ eventId }: { eventId: number }) {
