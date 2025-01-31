@@ -227,12 +227,12 @@ def delete_event_deselected_tags():
     #     mycursor.execute(query)
     #     conn.commit()
 
-        if mycursor.rowcount == 0:
-            return jsonify({"Message":"Tags not found"})
-        else:
-            return jsonify({"Message":"Tags deleted successfully"})
-    except mysql.connector.Error as err:
-        print(f"Delete User Deselected Tags Error: {err}")
+    #     if mycursor.rowcount == 0:
+    #         return jsonify({"Message":"Tags not found"})
+    #     else:
+    #         return jsonify({"Message":"Tags deleted successfully"})
+    # except mysql.connector.Error as err:
+    #     print(f"Delete User Deselected Tags Error: {err}")
     return {}
 
 
@@ -717,15 +717,6 @@ def get_event(event_id):
         items = [{'name': item[0], 'amountNeeded': item[1], 'quantitySignedUpFor': item[2]} for item in items_response]
         event['items'] = items
 
-        mycursor.execute(f"""
-                        SELECT User.id, User.fname, User.lname
-                        FROM User
-                        JOIN EventToUser ON User.id = EventToUser.userId
-                        WHERE EventToUser.eventId = {event_id}
-                    """)
-        users_response = mycursor.fetchall()
-        users = [{'id': user[0], 'fname': user[1], 'lname': user[2]} for user in users_response]
-        event['users'] = users
         mycursor.close()
         conn.close()
         return jsonify(event)
@@ -995,3 +986,108 @@ def edit_event(eventId):
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
+
+@app.route('/rsvp', methods=['POST'])
+def rsvp():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        userId = body.get("userId")
+        eventId = body.get("eventId")
+
+        insertRsvp = f"""
+            INSERT INTO EventToUser (userId, eventId)
+            VALUES ('{userId}', {eventId});
+        """
+        mycursor.execute(insertRsvp)
+        
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"message": "RSVP successful"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/unrsvp', methods=['POST'])
+def unrsvp():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        userId = body.get("userId")
+        eventId = body.get("eventId")
+        
+        deleteRsvp = f"""
+            DELETE FROM EventToUser
+            WHERE userId = '{userId}' AND eventId = {eventId};
+        """
+        mycursor.execute(deleteRsvp)
+        
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        
+        return jsonify({"message": "Un-RSVP successful"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/check_rsvp', methods=['POST'])
+def check_rsvp():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        userId = body.get("userId")
+        eventId = body.get("eventId")
+
+        checkRsvp = f"""
+            SELECT * FROM EventToUser
+            WHERE userId = '{userId}' AND eventId = {eventId};
+        """
+        mycursor.execute(checkRsvp)
+        result = mycursor.fetchone()
+        
+        mycursor.close()
+        conn.close()
+        
+        if result:
+            return jsonify({"rsvp": True})
+        else:
+            return jsonify({"rsvp": False})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_rsvps', methods=['POST'])
+def get_rsvps():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        eventId = body.get("eventId")
+
+        if eventId is None:
+            return jsonify({"message": "Invalid eventId"}), 400
+
+        mycursor.execute(f"""
+                        SELECT User.id, User.fname, User.lname
+                        FROM User
+                        JOIN EventToUser ON User.id = EventToUser.userId
+                        WHERE EventToUser.eventId = {eventId}
+                    """)
+        users_response = mycursor.fetchall()
+        users = [{'id': user[0], 'fname': user[1], 'lname': user[2]} for user in users_response]
+
+        mycursor.close()
+        conn.close()
+        return jsonify(users)
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {} 
