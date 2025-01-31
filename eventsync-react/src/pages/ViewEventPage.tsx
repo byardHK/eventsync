@@ -88,13 +88,11 @@ function ViewEventPage() {
                         sx={{ width: "100%" }}
                         minWidth={300}
                     >
-                        <Button variant="outlined" fullWidth onClick={handleClose}>No</Button>
-                        <Button variant="outlined" fullWidth onClick={handleClose}>Yes</Button>
-                    </Box> */}
-                    <Button variant="outlined" fullWidth onClick={handleClose}>Close</Button>
-                </Box>
-            </Dialog>
-        </>
+                        <Button variant="outlined" fullWidth onClick={handleClose}>Close</Button>
+                    </Box>
+                </Dialog>
+            </>
+        );
     }
     
     function RsvpListModal({ eventId }: { eventId: number }) {
