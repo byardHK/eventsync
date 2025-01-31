@@ -10,6 +10,7 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
 import { Tag } from '../components/TagModal';
 import { useUser } from '../sso/UserContext';
+import { set } from 'date-fns';
 
 
 function ViewEventPage() {
@@ -24,32 +25,70 @@ function ViewEventPage() {
     const [expanded, setExpanded] = useState<string | false>(false);
     const intEventId = parseInt(eventId || '-1');
     const [open, setOpen] = useState(false);
+    const [isRsvped, setIsRsvped] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
+  
+    const handleRsvp = async () => {
+        try {
+            await axios.post('http://localhost:5000/rsvp', {
+                userId: currentUserId,
+                eventId: intEventId
+            });
+            setIsRsvped(true);
+            handleOpen();
+        } catch (error) {
+            console.error('Error:', error);
+            alert('RSVP failed');
+        }
+    };
 
-    function RsvpModal(){
-        return <>
-            <Button variant="outlined" onClick={handleOpen}>RSVP</Button>
-            <Dialog 
-                onClose={handleClose} 
-                open={open}
-            >
-                <Box
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="center"
-                    justifyContent="center" 
-                    sx={{width: "100%"}}
-                    minWidth={300}
-                >
-                    <h2>You have RSVP'd to </h2>
-                    <h2>{event?.title}!</h2>
-                    {/* <h3>Add to calendar?</h3>
+    const handleUnrsvp = async () => {
+        try {
+            console.log(`Sending userId: ${currentUserId}`);
+            console.log(`Sending eventId: ${intEventId}`);
+            
+            const response = await axios.post('http://localhost:5000/unrsvp', {
+                userId: currentUserId,
+                eventId: intEventId
+            });
+            setIsRsvped(false);
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Un-RSVP failed');
+        }
+    };
+
+    useEffect(() => {
+        const checkRsvpStatus = async () => {
+            try {
+                const response = await axios.post('http://localhost:5000/check_rsvp', {
+                    userId: currentUserId,
+                    eventId: intEventId
+                });
+                setIsRsvped(response.data.rsvp);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        };
+
+        checkRsvpStatus();
+    }, [currentUserId, intEventId]);
+
+    function RsvpModal() {
+        return (
+            <>
+                <Button variant="outlined" onClick={isRsvped ? handleUnrsvp : handleRsvp}>
+                    {isRsvped ? 'Un-RSVP' : 'RSVP'}
+                </Button>
+                <Dialog onClose={handleClose} open={open}>
                     <Box
                         display="flex"
-                        flexDirection="row"
-                        padding={2}
-                        gap={2}
+                        flexDirection="column"
+                        alignItems="center"
+                        justifyContent="center"
+                        sx={{ width: "100%" }}
+                        minWidth={300}
                     >
                         <Button variant="outlined" fullWidth onClick={handleClose}>No</Button>
                         <Button variant="outlined" fullWidth onClick={handleClose}>Yes</Button>
@@ -60,43 +99,52 @@ function ViewEventPage() {
         </>
     }
     
-    function RsvpListModal() {
+    function RsvpListModal({ eventId }: { eventId: number }) {
         const [openRsvpList, setOpenRsvpList] = useState(false);
-        const [rsvpList] = useState<Rsvp[]>(event?.rsvps || []);
+        const [rsvpList, setRsvpList] = useState<Rsvp[]>([]);
     
         const handleOpenRsvpList = () => {
             setOpenRsvpList(true);
+            fetchRsvpList();
         };
     
         const handleCloseRsvpList = () => setOpenRsvpList(false);
     
+        const fetchRsvpList = async () => {
+            try {
+                const response = await axios.post('http://localhost:5000/get_rsvps', {
+                    eventId: eventId
+                });
+                setRsvpList(response.data);
+            } catch (error) {
+                console.error('Error fetching RSVP list:', error);
+            }
+        };
+    
         return (
             <>
                 <Button variant="outlined" onClick={handleOpenRsvpList}>View RSVP List</Button>
-                <Dialog 
-                    onClose={handleCloseRsvpList} 
-                    open={openRsvpList}
-                >
+                <Dialog onClose={handleCloseRsvpList} open={openRsvpList}>
                     <Box
                         display="flex"
                         flexDirection="column"
                         alignItems="center"
-                        justifyContent="center" 
-                        sx={{width: "100%"}}
+                        justifyContent="center"
+                        sx={{ width: "100%" }}
                         minWidth={300}
                     >
-                        <h2>RSVP List</h2>
-                        <ul>
-                            {rsvpList.map(rsvp => (
-                                <li key={rsvp.userId}>{rsvp.firstName} {rsvp.lastName}</li>
-                            ))}
-                        </ul>
-                        <Button variant="outlined" onClick={handleCloseRsvpList}>Close</Button>
-                    </Box>
-                </Dialog>
-            </>
-        );
-    }
+                    <h2>RSVP List</h2>
+                    <ul>
+                        {rsvpList.map(user => (
+                            <li key={user.userId}>{user.fname} {user.lname}</li>
+                        ))}
+                    </ul>
+                    <Button variant="outlined" fullWidth onClick={handleCloseRsvpList}>Close</Button>
+                </Box>
+            </Dialog>
+        </>
+    );
+}
 
     useEffect(() => {
         const fetchEvent = async () => {
@@ -143,7 +191,7 @@ function ViewEventPage() {
             justifyContent="center"
             >
                 <RsvpModal/>     
-                <RsvpListModal/>       
+                <RsvpListModal eventId={intEventId}/>       
             </Box>
             <BottomNavBar/>
         </Box>
@@ -251,13 +299,12 @@ type Event = {
         quantitySignedUpFor: number 
     }[];
     venmo: string;
-    rsvps: Rsvp[];
 };
 
-type Rsvp = {
+interface Rsvp {
     userId: string;
-    firstName: string;
-    lastName: string;
+    fname: string;
+    lname: string;
 };
 
 export default ViewEventPage;
