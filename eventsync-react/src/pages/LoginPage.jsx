@@ -36,7 +36,7 @@ export const LoginPage = () => {
             alt="App Logo" 
             style={{ width: "120px", marginBottom: "15px" }} 
           />
-          <h5 clsss='login-text'>Your best moments start here.</h5>
+          <h5 className="login-text">Your best moments start here.</h5>
           <br />
           <div style={{ display: "flex", justifyContent: "center" }}>
             <SignInButton />

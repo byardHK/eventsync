@@ -5,8 +5,11 @@
     width: 75%;
   }
 
-  .login-text{
-    font-size: 1.2vw
-  }
+  .login-text {
+    font-size: 0.95rem; 
+}
 
+  /* .login-background-color{
+
+  } */
 

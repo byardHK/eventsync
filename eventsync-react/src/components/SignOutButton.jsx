@@ -1,18 +1,13 @@
 import React from "react";
 import { useMsal } from "@azure/msal-react";
-
+import { Button } from "@mui/material";
 
 
 export const SignOutButton = () => {
   const { instance } = useMsal();
 
   const handleLogout = (logoutType) => {
-    if (logoutType === "popup") {
-      instance.logoutPopup({
-        postLogoutRedirectUri: "/",
-        mainWindowRedirectUri: "/",
-      });
-    } else if (logoutType === "redirect") {
+   if (logoutType === "redirect") {
       instance.logoutRedirect({
         postLogoutRedirectUri: "/",
       });
@@ -20,18 +15,14 @@ export const SignOutButton = () => {
   };
 
   return (
-    <DropdownButton
-      variant="secondary"
-      className="ml-auto"
-      drop="start"
-      title="Sign Out"
-    >
-      <Dropdown.Item as="button" onClick={() => handleLogout("popup")}>
-        Sign out using Popup
-      </Dropdown.Item>
-      <Dropdown.Item as="button" onClick={() => handleLogout("redirect")}>
-        Sign out using Redirect
-      </Dropdown.Item>
-    </DropdownButton>
+    <Button onClick={() => handleLogout("redirect")} variant="contained" size="small">
+      <img 
+        src="src/images/logout1.png" 
+        alt="Logout"
+        style={{ width: "20px", height: "20px" }} 
+      />
+    </Button>
   );
 };
+
+export default SignOutButton;

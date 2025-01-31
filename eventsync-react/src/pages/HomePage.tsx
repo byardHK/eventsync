@@ -27,15 +27,18 @@ function HomePage() {
             justifyContent="right"
             padding={2}
         >
-            <h5 className="card-title">Welcome {userDetails.firstName}</h5>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+    <h5 className="card-title">Hey {userDetails.firstName}! 👋</h5>
+    <div style={{ display: "flex", gap: "10px" }}>
+        <SignOutButton />
+        <Link to="/profilePage">
+            <Button variant="contained" size="small">
+                <PersonIcon />
+            </Button>
+        </Link>
+    </div>
+</div>
 
-            <SignOutButton />
-            
-            <Link to="/profilePage">
-                <Button variant="contained">
-                    <PersonIcon/>
-                </Button>
-            </Link>
         </Box>
         {/* <Box
             display="flex"
