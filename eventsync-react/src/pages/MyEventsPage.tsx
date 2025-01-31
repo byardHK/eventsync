@@ -35,7 +35,7 @@ function MyEventsPage() {
             padding={2}
         >
             <h1>My Events</h1>
-            <Box
+            {/* <Box
                 display="flex"
                 flexDirection="row"
                 gap={2}
@@ -55,7 +55,9 @@ function MyEventsPage() {
                     Calendar
                 </Button>
 
-            </Box>
+            </Box> */
+            // uncomment for Sprint 2
+            }
             <EventLists></EventLists>
         </Box>
         <Box

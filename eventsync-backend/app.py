@@ -175,64 +175,64 @@ def delete_user_deselected_tags():
 # Here
 @app.post('/save_event_selected_tags/')
 def save_event_selected_tags():
-    body = request.json
-    eventInfoId = body["eventInfoId"]
-    values: str = ""
+    # body = request.json
+    # eventInfoId = body["eventInfoId"]
+    # values: str = ""
 
-    for tag in body["selectedTags"]:
-        values += f'({eventInfoId}, {tag["id"]}), '
+    # selectedTags = body["selectedTags"];
+    # if len(selectedTags) == 0:
+    #     return {}
 
-    #Remove extra comma and space afterwards
-    values = values[:-2]
+    # for tag in selectedTags:
+    #     values += f'("{eventInfoId}", {tag["id"]}), '
 
-    try:  
-        conn = mysql.connector.connect(**db_config)
-        mycursor = conn.cursor()
-        query = f"""
-            INSERT INTO EventInfoToTag (eventInfoId, tagId)
-            VALUES {values};
-        """
-        mycursor.execute(query)
-        conn.commit()
-        mycursor.close()
-        conn.close()
-    except mysql.connector.Error as err:
-        print(f"Save Selected Tags Error: {err}")
+    # #Remove extra comma and space afterwards
+    # values = values[:-2]
+
+    # try:  
+    #     conn = mysql.connector.connect(**db_config)
+    #     mycursor = conn.cursor()
+    #     query = f"""
+    #         INSERT INTO EventInfoToTag (eventInfoId, tagId)
+    #         VALUES {values};
+    #     """
+    #     mycursor.execute(query)
+    #     conn.commit()
+    #    mycursor.close()
+    #    conn.close()
+    # except mysql.connector.Error as err:
+    #     print(f"Save Selected Tags Error: {err}")
     return {}
 
 @app.post('/delete_event_deselected_tags/')
 def delete_event_deselected_tags():
-    body = request.json
-    eventInfoId = body["eventInfoId"]
-    deselectedTags = body["deselectedTags"]
+    # body = request.json
+    # eventInfoId = body["eventInfoId"]
+    # deselectedTags = body["deselectedTags"]
 
-    #If we did not delete anything, there's no need to run the deletion query.
-    if len(deselectedTags) == 0:
-        return {}
+    # #If we did not delete anything, there's no need to run the deletion query.
+    # if len(deselectedTags) == 0:
+    #     return {}
 
-    values: str = ""
-    for tag in deselectedTags:
-        values += f'({eventInfoId}, {tag["id"]}), '
-    values = values[:-2]
-    try:  
-        conn = mysql.connector.connect(**db_config)
-        mycursor = conn.cursor()
-        query = f"""
-            DELETE FROM EventInfoToTag WHERE (eventInfoId, tagId) IN ({values});
-        """
-        mycursor.execute(query)
-        conn.commit()
+    # values: str = ""
+    # for tag in deselectedTags:
+    #     values += f'({eventInfoId}, {tag["id"]}), '
+    # values = values[:-2]
+    # try:  
+    #     conn = mysql.connector.connect(**db_config)
+    #     mycursor = conn.cursor()
+    #     query = f"""
+    #         DELETE FROM EventInfoToTag WHERE (eventInfoId, tagId) IN ({values});
+    #     """
+    #     mycursor.execute(query)
+    #     conn.commit()
 
-        rowcount: int = mycursor.rowcount
-        mycursor.close()
-        conn.close()
-
-        if rowcount == 0:
-            return jsonify({"Message":"Tags not found"})
-        else:
-            return jsonify({"Message":"Tags deleted successfully"})
-    except mysql.connector.Error as err:
-        print(f"Delete User Deselected Tags Error: {err}")
+    #     if mycursor.rowcount == 0:
+    #         return jsonify({"Message":"Tags not found"})
+    #     else:
+    #         return jsonify({"Message":"Tags deleted successfully"})
+    # except mysql.connector.Error as err:
+    #     print(f"Delete User Deselected Tags Error: {err}")
     return {}
 
 
@@ -500,11 +500,11 @@ def post_event():
         db_endDateTime = datetime.strptime(endDateTime, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
        
         insertEventInfo = f"""
-                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo)
-                        VALUES ("{data["creatorId"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}", "{data["venmo"]}");
+                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency)
+                        VALUES ("{data["creatorId"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}", "{data["venmo"]}", "{data["recurFrequency"]}");
                      """
         insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views)
-                        VALUES (last_insert_id(), "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", "0");"""
+                        VALUES (last_insert_id(), "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", 0);"""
         tags = data["tags"]
         for tag in tags:
             updateTag = f"""
@@ -588,20 +588,20 @@ def post_recurring_event():
         reqStrFormat = '%Y-%m-%dT%H:%M:%S.%fZ'
         dateCreated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         insertEventInfo = f"""
-                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo)
-                        VALUES ("{data["creatorId"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", 10, True, False, 0, "{dateCreated}", "{data["venmo"]}");
+                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency)
+                        VALUES ("{data["creatorId"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", 10, True, False, 0, "{dateCreated}", "{data["venmo"]}", "{data["recurFrequency"]}");
                      """
         mycursor.execute(insertEventInfo)
         eventInfoId = mycursor.lastrowid
         mycursor.execute("SET @eventInfoId = last_insert_id();")
         tags = data["tags"]
         for tag in tags:
-                updateTag = f"""
-                                INSERT INTO EventInfoToTag(eventInfoId, tagId)
-                                VALUES ({eventInfoId} , {tag["id"]});
-                            """
-                print(updateTag)
-                mycursor.execute(updateTag)
+            updateTag = f"""
+                            INSERT INTO EventInfoToTag(eventInfoId, tagId)
+                            VALUES ({eventInfoId} , {tag["id"]});
+                        """
+            print(updateTag)
+            mycursor.execute(updateTag)
         # get event dates through start date and end date
         curStartDate = datetime.strptime(data["startDateTime"], reqStrFormat)
         curEndDate = datetime.strptime(data["endDateTime"], reqStrFormat)
@@ -627,8 +627,8 @@ def post_recurring_event():
 
 
         while curStartDate <= endDate:
-            insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
-                        VALUES (@eventInfoId, "{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}", "{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}", "{dateCreated}");"""
+            insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views)
+                        VALUES (@eventInfoId, "{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}", "{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}", "{dateCreated}"), 0;"""
             mycursor.execute(insertEvent)
             mycursor.execute("SET @eventId = last_insert_id();")
             for el in itemIds:
@@ -682,6 +682,7 @@ def get_event(event_id: int, user_id: int):
                         EventInfo.isPublic, 
                         EventInfo.isWeatherDependant, 
                         EventInfo.numTimesReported, 
+                        EventInfo.recurFrequency,
                         Event.startTime, 
                         Event.endTime
                         FROM Event
@@ -719,15 +720,6 @@ def get_event(event_id: int, user_id: int):
         items = [{'name': item[0], 'amountNeeded': item[1], 'othersQuantitySignedUpFor': item[2] - item[3], 'myQuantitySignedUpFor': item[3], 'id': item[4]} for item in items_response]
         event['items'] = items
 
-        mycursor.execute(f"""
-                        SELECT User.id, User.fname, User.lname
-                        FROM User
-                        JOIN EventToUser ON User.id = EventToUser.userId
-                        WHERE EventToUser.eventId = {event_id}
-                    """)
-        users_response = mycursor.fetchall()
-        users = [{'id': user[0], 'fname': user[1], 'lname': user[2]} for user in users_response]
-        event['users'] = users
         mycursor.close()
         conn.close()
         return jsonify(event)
@@ -741,15 +733,13 @@ def edit_event(eventId):
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         mycursor.execute(f"""
-            SELECT Event.eventInfoId
-            FROM Event
-            JOIN EventInfo ON Event.eventInfoId = EventInfo.id
-            WHERE Event.id = {eventId}
-        """)
-        response = mycursor.fetchall()
-        headers = [x[0] for x in mycursor.description]
-        event = dict(zip(headers, response[0]))
-        if not event:
+                        SELECT Event.eventInfoId
+                        FROM Event
+                        JOIN EventInfo ON Event.eventInfoId = EventInfo.id
+                        WHERE Event.id = {eventId}
+                    """)
+        eventInfoId = mycursor.fetchone()[0]
+        if not eventInfoId:
             return jsonify({"error": "Event not found"}), 404
 
         data = request.json
@@ -761,69 +751,230 @@ def edit_event(eventId):
         db_endDateTime = datetime.strptime(endDateTime, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
         if data.get("editAllEvents"):
             eventInfoUpdate = f"""
-                UPDATE EventInfo
-                SET title = '{data["title"]}',
-                    description = '{data["description"]}',
-                    locationName = '{data["locationName"]}',
-                    RSVPLimit = {data["rsvpLimit"]},
-                    isPublic = {int(data["isPublic"])},
-                    isWeatherDependant = {int(data["isWeatherSensitive"])},
-                    venmo = '{data["venmo"]}'
-                WHERE id = {event["eventInfoId"]}
-            """
+                                UPDATE EventInfo
+                                SET title = '{data["title"]}',
+                                    description = '{data["description"]}',
+                                    locationName = '{data["locationName"]}',
+                                    RSVPLimit = {data["rsvpLimit"]},
+                                    isPublic = {int(data["isPublic"])},
+                                    isWeatherDependant = {int(data["isWeatherSensitive"])},
+                                    venmo = '{data["venmo"]}',
+                                    recurFrequency = '{data["recurFrequency"]}'
+                                WHERE id = {eventInfoId}
+                            """
             mycursor.execute(eventInfoUpdate)
-            eventInfoId = mycursor.lastrowid
 
-            eventUpdate = f"""
-                UPDATE Event
-                SET startTime = '{db_startDateTime}', endTime = '{db_endDateTime}'
-                WHERE id = {eventId}
-            """
-            mycursor.execute(eventUpdate)
+            reqStrFormat = '%Y-%m-%dT%H:%M:%S.%fZ'
+            dateCreated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            curStartDate = datetime.strptime(data["startDateTime"], reqStrFormat)
+            curEndDate = datetime.strptime(data["endDateTime"], reqStrFormat)
+            if data["endRecurDateTime"]:
+                endDate = datetime.strptime(data["endRecurDateTime"], reqStrFormat)
 
-            tags = data["tags"]
-            if tags:
-                for tag in tags:
-                    updateTag = f"""
-                                    UPDATE Tag
-                                    SET numTimesUsed = numTimesUsed + 1
-                                    WHERE name="{tag["name"]}"
+                delta = ""
+                if data["recurFrequency"] == "":
+                    newDelta = f"""
+                                    SELECT EventInfo.recurFrequency
+                                    FROM EventInfo
+                                    WHERE id = {eventInfoId}
                                 """
-                mycursor.execute(updateTag)
+                    mycursor.execute(newDelta)
+                    delta = mycursor.fetchone()[0]
+                else:
+                    delta = data["recurFrequency"]
 
+                duration = curEndDate - curStartDate
+                if delta == "Monthly":
+                    weekdays = [MO, TU, WE, TH, FR, SA, SU]
+                    dayOfWeek = weekdays[curStartDate.weekday()] # day of the week of event
+                    nthWeekday = (curStartDate.day // 7) + 1 # what number ___day of the month is this event on?
+            
+                itemIds = []
+
+                for item in data["items"]:
+                    insertItem = f"""
+                                    INSERT INTO Item (name, creatorId)
+                                    VALUES ("{item["description"]}", "minnichjs21@gcc.edu"); 
+                                """ # TODO: change creator
+                    getItemId = "SELECT LAST_INSERT_ID();"
+                    mycursor.execute(insertItem)
+                    mycursor.execute(getItemId)
+                    itemIds.append((mycursor.fetchone()[0], item))
+
+                mycursor.execute(f"""
+                    SELECT id, startTime, endTime
+                    FROM Event
+                    WHERE eventInfoId = {eventInfoId}
+                    ORDER BY startTime
+                """)
+                existing_events = mycursor.fetchall()
+                existing_event_index = 0
+                curStartDate = existing_events[0][1]
+                curEndDate = existing_events[0][2]
+
+                while curStartDate <= endDate:
+                    if existing_event_index < len(existing_events):
+                        print("Updating existing event")
+                        existing_event = existing_events[existing_event_index]
+                        eventUpdate = f"""
+                            UPDATE Event
+                            SET startTime = '{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}', endTime = '{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}'
+                            WHERE id = {existing_event[0]}
+                        """
+                        mycursor.execute(eventUpdate)
+                        existing_event_index += 1
+                    else:
+                        insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
+                                    VALUES ({eventInfoId}, "{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}", "{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}", "{dateCreated}");"""
+                        mycursor.execute(insertEvent)
+                        mycursor.execute("SET @eventId = last_insert_id();")
+                        for el in itemIds:
+                            insertItem = f"""
+                                            INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
+                                            VALUES (@eventId, {el[0]}, {el[1]["amountNeeded"]}, 0);
+                                        """
+                            mycursor.execute(insertItem)
+                        
+                    if delta == "Daily":
+                        curStartDate = curStartDate + timedelta(days=1)
+                    elif delta == "Weekly":
+                        curStartDate = curStartDate + timedelta(weeks=1)
+                    elif delta == "Monthly":
+                        curStartDate = (curStartDate + relativedelta(months=1)).replace(day=1) # first day of the next month
+                        curStartDate = curStartDate + relativedelta(weekday=dayOfWeek(nthWeekday)) # next event date
+                    else:
+                        return "Invalid recurring frequency", 400
+                    curEndDate = curStartDate + duration
+
+                    tags = data["tags"]
+                    for tag in tags:
+                        check_query = f"""
+                                        SELECT COUNT(*)
+                                        FROM EventInfoToTag
+                                        WHERE eventInfoId = {eventInfoId} AND tagId = {tag["id"]}
+                                    """
+                        mycursor.execute(check_query)
+                        count = mycursor.fetchone()[0]
+
+                        if count == 0:
+                            updateTag = f"""
+                                            UPDATE Tag
+                                            SET numTimesUsed = numTimesUsed + 1
+                                            WHERE name="{tag["name"]}"
+                                        """
+                            mycursor.execute(updateTag)
+
+                            updateTag = f"""
+                                            INSERT INTO EventInfoToTag(eventInfoId, tagId)
+                                            VALUES ({eventInfoId} , {tag["id"]});
+                                        """
+                            print(updateTag)
+                            mycursor.execute(updateTag)
+                if existing_event_index < len(existing_events):
+                    outdated_events = existing_events[existing_event_index:]
+                    for event in outdated_events:
+                        mycursor.execute("DELETE FROM EventToItem WHERE eventId = %s", (event[0],))
+                        mycursor.execute("DELETE FROM EventToUser WHERE eventId = %s", (event[0],))
+                        mycursor.execute("DELETE FROM Event WHERE id = %s", (event[0],))
+            else:
+                itemIds = []
+
+                for item in data["items"]:
+                    insertItem = f"""
+                                    INSERT INTO Item (name, creatorId)
+                                    VALUES ("{item["description"]}", "minnichjs21@gcc.edu"); 
+                                """ # TODO: change creator
+                    getItemId = "SELECT LAST_INSERT_ID();"
+                    mycursor.execute(insertItem)
+                    mycursor.execute(getItemId)
+                    itemIds.append((mycursor.fetchone()[0], item))
+
+                eventUpdate = f"""
+                    UPDATE Event
+                    SET startTime = '{db_startDateTime}', endTime = '{db_endDateTime}'
+                    WHERE id = {eventId}
+                """
+                mycursor.execute(eventUpdate)
+
+                for el in itemIds:
+                        insertItem = f"""
+                                        INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
+                                        VALUES (@eventId, {el[0]}, {el[1]["amountNeeded"]}, 0);
+                                    """
+                        mycursor.execute(insertItem)
+
+                tags = data["tags"]
                 for tag in tags:
-                    updateTag = f"""
-                                    INSERT INTO EventInfoToTag(eventInfoId, tagId)
-                                    VALUES ({eventInfoId} , {tag["id"]});
+                    check_query = f"""
+                                    SELECT COUNT(*)
+                                    FROM EventInfoToTag
+                                    WHERE eventInfoId = {eventInfoId} AND tagId = {tag["id"]}
                                 """
-                    print(updateTag)
-                    mycursor.execute(updateTag)
+                    mycursor.execute(check_query)
+                    count = mycursor.fetchone()[0]
+
+                    if count == 0:
+                        updateTag = f"""
+                                        UPDATE Tag
+                                        SET numTimesUsed = numTimesUsed + 1
+                                        WHERE name="{tag["name"]}"
+                                    """
+                        mycursor.execute(updateTag)
+
+                        updateTag = f"""
+                                        INSERT INTO EventInfoToTag(eventInfoId, tagId)
+                                        VALUES ({eventInfoId} , {tag["id"]});
+                                    """
+                        print(updateTag)
+                        mycursor.execute(updateTag)
         else:
             currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             eventInfoInsert = f"""
-                INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo)
-                VALUES ('{data["creatorId"]}', 0, '{data["title"]}', '{data["description"]}', '{data["locationName"]}', '', {data["rsvpLimit"]}, {int(data["isPublic"])}, {int(data["isWeatherSensitive"])}, 0, '{currentDateTime}', '{data["venmo"]}');
+                INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency)
+                VALUES ('{data["creatorId"]}', 0, '{data["title"]}', '{data["description"]}', '{data["locationName"]}', '', {data["rsvpLimit"]}, {int(data["isPublic"])}, {int(data["isWeatherSensitive"])}, 0, '{currentDateTime}', '{data["venmo"]}', '{data["recurFrequency"]}');
             """
             mycursor.execute(eventInfoInsert)
-            eventInfoId = mycursor.lastrowid
             eventUpdate = f"""
                 UPDATE Event
                 SET eventInfoId = {eventInfoId}, startTime = '{db_startDateTime}', endTime = '{db_endDateTime}'
                 WHERE id = {eventId}
             """
             mycursor.execute(eventUpdate)
+            itemIds = []
 
+            for item in data["items"]:
+                insertItem = f"""
+                                INSERT INTO Item (name, creatorId)
+                                VALUES ("{item["description"]}", "minnichjs21@gcc.edu"); 
+                            """ # TODO: change creator
+                getItemId = "SELECT LAST_INSERT_ID();"
+                mycursor.execute(insertItem)
+                mycursor.execute(getItemId)
+                itemIds.append((mycursor.fetchone()[0], item))
+            for el in itemIds:
+                insertItem = f"""
+                                INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
+                                VALUES ({eventId}, {el[0]}, {el[1]["amountNeeded"]}, 0);
+                            """
+                mycursor.execute(insertItem)
             tags = data["tags"]
-            if tags:
-                for tag in tags:
+            for tag in tags:
+                check_query = f"""
+                                SELECT COUNT(*)
+                                FROM EventInfoToTag
+                                WHERE eventInfoId = {eventInfoId} AND tagId = {tag["id"]}
+                            """
+                mycursor.execute(check_query)
+                count = mycursor.fetchone()[0]
+
+                if count == 0:
                     updateTag = f"""
                                     UPDATE Tag
                                     SET numTimesUsed = numTimesUsed + 1
                                     WHERE name="{tag["name"]}"
                                 """
-                mycursor.execute(updateTag)
+                    mycursor.execute(updateTag)
 
-                for tag in tags:
                     updateTag = f"""
                                     INSERT INTO EventInfoToTag(eventInfoId, tagId)
                                     VALUES ({eventInfoId} , {tag["id"]});
@@ -862,3 +1013,108 @@ def edit_user_to_item():
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
+
+@app.route('/rsvp', methods=['POST'])
+def rsvp():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        userId = body.get("userId")
+        eventId = body.get("eventId")
+
+        insertRsvp = f"""
+            INSERT INTO EventToUser (userId, eventId)
+            VALUES ('{userId}', {eventId});
+        """
+        mycursor.execute(insertRsvp)
+        
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"message": "RSVP successful"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/unrsvp', methods=['POST'])
+def unrsvp():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        userId = body.get("userId")
+        eventId = body.get("eventId")
+        
+        deleteRsvp = f"""
+            DELETE FROM EventToUser
+            WHERE userId = '{userId}' AND eventId = {eventId};
+        """
+        mycursor.execute(deleteRsvp)
+        
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        
+        return jsonify({"message": "Un-RSVP successful"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/check_rsvp', methods=['POST'])
+def check_rsvp():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        userId = body.get("userId")
+        eventId = body.get("eventId")
+
+        checkRsvp = f"""
+            SELECT * FROM EventToUser
+            WHERE userId = '{userId}' AND eventId = {eventId};
+        """
+        mycursor.execute(checkRsvp)
+        result = mycursor.fetchone()
+        
+        mycursor.close()
+        conn.close()
+        
+        if result:
+            return jsonify({"rsvp": True})
+        else:
+            return jsonify({"rsvp": False})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_rsvps', methods=['POST'])
+def get_rsvps():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        eventId = body.get("eventId")
+
+        if eventId is None:
+            return jsonify({"message": "Invalid eventId"}), 400
+
+        mycursor.execute(f"""
+                        SELECT User.id, User.fname, User.lname
+                        FROM User
+                        JOIN EventToUser ON User.id = EventToUser.userId
+                        WHERE EventToUser.eventId = {eventId}
+                    """)
+        users_response = mycursor.fetchall()
+        users = [{'id': user[0], 'fname': user[1], 'lname': user[2]} for user in users_response]
+
+        mycursor.close()
+        conn.close()
+        return jsonify(users)
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {} 
