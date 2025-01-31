@@ -41,7 +41,7 @@ export const LoginPage = (props) => {
 
       <h5>
         <center>
-          Your best momments start here.
+          Your best moments start here.
         </center>
       </h5>
       <br />
