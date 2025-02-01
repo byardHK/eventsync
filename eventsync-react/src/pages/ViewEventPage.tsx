@@ -43,9 +43,6 @@ function ViewEventPage() {
 
     const handleUnrsvp = async () => {
         try {
-            console.log(`Sending userId: ${currentUserId}`);
-            console.log(`Sending eventId: ${intEventId}`);
-            
             const response = await axios.post('http://localhost:5000/unrsvp', {
                 userId: currentUserId,
                 eventId: intEventId
@@ -149,25 +146,16 @@ function ViewEventPage() {
             try {
                 const response = await axios.get(`http://localhost:5000/get_event/${intEventId}/${currentUserId}`);
                 setEvent(response.data);
-                console.log(event);
             } catch (error) {
                 console.error('Error fetching event:', error);
             }
         }
         fetchEvent();
-    }, [eventId]);
+    }, [eventId, isRsvped]);
 
     const handleChange = (panel: string) => (SyntheticEvent: React.SyntheticEvent, isExpanded: boolean) => {
         setExpanded(isExpanded ? panel : false);
     };
-
-    const changeItemsSignedUpFor = (items: Item[]) => {
-        if (event){
-            var updatedEvent = event;
-            updatedEvent.items = items
-            setEvent(updatedEvent);
-        }
-    }
 
     return <>
         <Box
@@ -187,7 +175,7 @@ function ViewEventPage() {
             justifyContent="center"
         >
             {event ? (
-                <GetEvent event={event} initialItems={event.items} expanded={expanded} handleChange={handleChange}/>
+                <GetEvent event={event} initialItems={event.items} expanded={expanded} handleChange={handleChange} isRsvped={isRsvped}/>
             ) : (
                 <p>Loading Event {eventId}</p>
             )}
@@ -205,12 +193,17 @@ function ViewEventPage() {
     </>;
 };
 
-function GetEvent({ event, initialItems, expanded, handleChange}: { event: Event, initialItems: Item[], expanded: string | false, handleChange: (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void}) {
+function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { event: Event, initialItems: Item[], expanded: string | false, handleChange: (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void, isRsvped: Boolean}) {
     const [items, setItems] = useState<Item[]>(initialItems);
     const [itemSignUpChanged, setItemSignUpChanged] = useState<Boolean[]>(new Array(items.length).fill(false));
     const { userDetails } = useUser();
     const currentUserId = userDetails.email
     
+    useEffect(() => {
+        setItems(initialItems)
+        setItemSignUpChanged(new Array(items.length).fill(false))
+    }, [event]);
+
     function ListTags(){
         return <>
             <Box
