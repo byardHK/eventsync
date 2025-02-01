@@ -90,11 +90,11 @@ function ViewEventPage() {
                     >
                         <Button variant="outlined" fullWidth onClick={handleClose}>No</Button>
                         <Button variant="outlined" fullWidth onClick={handleClose}>Yes</Button>
-                    </Box> */}
+                    </Box> 
                     <Button variant="outlined" fullWidth onClick={handleClose}>Close</Button>
-                </Box>
             </Dialog>
         </>
+        )
     }
     
     function RsvpListModal({ eventId }: { eventId: number }) {
@@ -295,21 +295,25 @@ function GetEvent({ event, initialItems, expanded, handleChange}: { event: Event
                     </AccordionSummary>
                     <AccordionDetails>
                         {items.map((item, index) => (
-                            <Typography key={index}>{`${item.name}: ${item.othersQuantitySignedUpFor + item.myQuantitySignedUpFor}/${item.amountNeeded}`}
-                                <Button variant="contained" onClick={() => changeItemQuantity(-1, index)}>
-                                    <RemoveIcon></RemoveIcon>
+                            <Typography key={index} style={{ display: 'flex', flexDirection: 'row', alignItems: "center" }}>
+                            <div style={{ width: '50%' }}>{`${item.name}: ${item.othersQuantitySignedUpFor + item.myQuantitySignedUpFor}/${item.amountNeeded}`}</div>
+                            <div style={{ width: '50%', display: 'flex', flexDirection: 'row' }}>
+                                <Button sx={{ m: 1 }} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="contained" onClick={() => changeItemQuantity(-1, index)}>
+                                    <RemoveIcon style={{ fontSize: 15 }}></RemoveIcon>
                                 </Button>
-                                <h3>{item.myQuantitySignedUpFor}</h3>
-                                <Button variant="contained" onClick={() => changeItemQuantity(1, index)}>
-                                    <AddIcon></AddIcon> 
+                                <Box display="flex" alignItems="center">
+                                {item.myQuantitySignedUpFor}
+                                </Box>
+                                <Button sx={{ m: 1 }} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="contained" onClick={() => changeItemQuantity(1, index)}>
+                                    <AddIcon style={{ fontSize: 15 }}></AddIcon> 
                                 </Button>
-                                <Button variant="text"
+                                <Button sx={{ m: 1 }} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="text"
                                     onClick={() => postItemSignedUpFor(item, index)}
                                     disabled={!itemSignUpChanged[index]}>
-                                    <CheckCircleOutlineRoundedIcon></CheckCircleOutlineRoundedIcon>
+                                    <CheckCircleOutlineRoundedIcon style={{ fontSize: 30 }}></CheckCircleOutlineRoundedIcon>
                                 </Button>
+                            </div>
                             </Typography>))}
-                        
                     </AccordionDetails>
                 </Accordion>
             )}
