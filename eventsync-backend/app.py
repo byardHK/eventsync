@@ -663,7 +663,7 @@ def post_recurring_event():
     return data, 201
 
 @app.route('/get_event/<int:event_id>/<string:user_id>', methods=['GET'])
-def get_event(event_id: int, user_id: int):
+def get_event(event_id: int, user_id: str):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()

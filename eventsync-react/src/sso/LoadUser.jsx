@@ -12,10 +12,8 @@ export const LoadUser = () => {
     function RequestUserData() {
       instance
           .acquireTokenSilent({
-            
               ...loginRequest,
               account: accounts[0],
-              
           })
           .then((response) => {
             callMsGraph(response.accessToken).then((response) => {
