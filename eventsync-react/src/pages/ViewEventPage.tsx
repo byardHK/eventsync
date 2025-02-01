@@ -297,6 +297,7 @@ function GetEvent({ event, initialItems, expanded, handleChange}: { event: Event
                         {items.map((item, index) => (
                             <Typography key={index} style={{ display: 'flex', flexDirection: 'row', alignItems: "center" }}>
                             <div style={{ width: '50%' }}>{`${item.name}: ${item.othersQuantitySignedUpFor + item.myQuantitySignedUpFor}/${item.amountNeeded}`}</div>
+                            {isRsvped && (
                             <div style={{ width: '50%', display: 'flex', flexDirection: 'row' }}>
                                 <Button sx={{ m: 1 }} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="contained" onClick={() => changeItemQuantity(-1, index)}>
                                     <RemoveIcon style={{ fontSize: 15 }}></RemoveIcon>
@@ -313,6 +314,7 @@ function GetEvent({ event, initialItems, expanded, handleChange}: { event: Event
                                     <CheckCircleOutlineRoundedIcon style={{ fontSize: 30 }}></CheckCircleOutlineRoundedIcon>
                                 </Button>
                             </div>
+                            )}
                             </Typography>))}
                     </AccordionDetails>
                 </Accordion>
