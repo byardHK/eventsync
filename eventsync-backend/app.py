@@ -228,10 +228,6 @@ def delete_event_deselected_tags():
     #     """
     #     mycursor.execute(query)
     #     conn.commit()
-<<<<<<< HEAD
-
-=======
->>>>>>> fb4241e (Styled home page and my events page)
     #     if mycursor.rowcount == 0:
     #         return jsonify({"Message":"Tags not found"})
     #     else:
