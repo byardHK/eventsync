@@ -92,6 +92,8 @@ def delete_custom_tag(tagId):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+        mycursor.execute("DELETE FROM UserToTag WHERE tagId = %s;", (tagId,))
+        mycursor.execute("DELETE FROM EventInfoToTag WHERE tagId = %s;", (tagId,))
         mycursor.execute("DELETE FROM Tag WHERE id = %s;", (tagId,))
         conn.commit()
         rowCount: int = mycursor.rowcount
@@ -226,7 +228,10 @@ def delete_event_deselected_tags():
     #     """
     #     mycursor.execute(query)
     #     conn.commit()
+<<<<<<< HEAD
 
+=======
+>>>>>>> fb4241e (Styled home page and my events page)
     #     if mycursor.rowcount == 0:
     #         return jsonify({"Message":"Tags not found"})
     #     else:
@@ -551,7 +556,7 @@ def get_my_events(user_id: str):
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         mycursor.execute(f"""
-                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName, Event.id, EventInfo.locationName, (
+                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName, Event.id, EventInfo.locationName, Event.views, (
                             SELECT COUNT(*) FROM Event WHERE Event.eventInfoId = EventInfo.id ) AS recurs
                         FROM Event
                         JOIN EventInfo 
@@ -562,7 +567,7 @@ def get_my_events(user_id: str):
         headers = mycursor.description
         hosting_events = sqlResponseToList(response, headers)
         mycursor.execute(f"""
-                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName, Event.id, EventInfo.locationName
+                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName, Event.id, EventInfo.locationName, Event.views
                         FROM Event
                         JOIN EventInfo
                         ON Event.eventInfoId = EventInfo.id

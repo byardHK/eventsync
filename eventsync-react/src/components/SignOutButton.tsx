@@ -1,4 +1,3 @@
-import React from "react";
 import { useMsal } from "@azure/msal-react";
 import { Button } from "@mui/material";
 
@@ -6,8 +5,8 @@ import { Button } from "@mui/material";
 export const SignOutButton = () => {
   const { instance } = useMsal();
 
-  const handleLogout = (logoutType) => {
-   if (logoutType === "redirect") {
+  const handleLogout = (logoutType: string) => {
+    if (logoutType === "redirect") {
       instance.logoutRedirect({
         postLogoutRedirectUri: "/",
       });

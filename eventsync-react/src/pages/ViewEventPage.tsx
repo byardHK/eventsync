@@ -12,6 +12,7 @@ import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlin
 import { Tag } from '../components/TagModal';
 import { useUser } from '../sso/UserContext';
 import { set } from 'date-fns';
+import "../styles/style.css";
 
 
 function ViewEventPage() {
