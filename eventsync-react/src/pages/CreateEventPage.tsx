@@ -114,11 +114,12 @@ function CreateEventPage() {
 
         reloadEventTags();
     };
+    
     useEffect(() => {
         if (eventId) {
             const fetchEvent = async () => {
                 try {
-                    const response = await axios.get(`http://localhost:5000/get_event/${eventId}`);
+                    const response = await axios.get(`http://localhost:5000/get_event/${eventId}/${currentUserId}`);
                     const event = response.data;
                     console.log("Fetched event data:", event);
                     setEventInfoId(event.eventInfoId);

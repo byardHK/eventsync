@@ -159,7 +159,7 @@ function EventList() {
         display="flex"
         alignItems="center" 
         justifyContent="center"
-        style={{maxHeight: '50vh', overflow: 'auto'}}
+        style={{maxHeight: '65vh', overflow: 'auto'}}
         padding={2}
     >
         {events.map(event =>

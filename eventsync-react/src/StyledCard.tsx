@@ -4,6 +4,7 @@ import { EventSyncEvent } from "./pages/HomePage";
 import dayjs, { Dayjs } from "dayjs";
 import { Tag } from "./components/TagModal";
 import axios from "axios";
+import { useUser } from "./sso/UserContext";
 
 export type StyledCardProps = {
     children?: ReactNode;
@@ -23,6 +24,9 @@ function StyledCard({children, key, event, showTags, showViews, viewEvent} : Sty
         textAlign: 'center',
       }));
     
+    const { userDetails } = useUser();
+    const currentUserId = userDetails.email;
+
     const start = dayjs(event.startTime);
     const end = dayjs(event.endTime);
 
@@ -31,7 +35,7 @@ function StyledCard({children, key, event, showTags, showViews, viewEvent} : Sty
         if(!showTags) { return; }
         const fetchEvent = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/get_event/${event.id}`);
+                const response = await axios.get(`http://localhost:5000/get_event/${event.id}/${currentUserId}`);
                 setEventTags(response.data.tags);
             } catch (error) {
                 console.error('Error fetching event:', error);
