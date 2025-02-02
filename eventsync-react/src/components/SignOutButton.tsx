@@ -1,4 +1,3 @@
-import React from "react";
 import { useMsal } from "@azure/msal-react";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import Dropdown from "react-bootstrap/Dropdown";
@@ -7,7 +6,7 @@ import Dropdown from "react-bootstrap/Dropdown";
 export const SignOutButton = () => {
   const { instance } = useMsal();
 
-  const handleLogout = (logoutType) => {
+  const handleLogout = (logoutType: string) => {
     if (logoutType === "popup") {
       instance.logoutPopup({
         postLogoutRedirectUri: "/",
@@ -36,3 +35,4 @@ export const SignOutButton = () => {
     </DropdownButton>
   );
 };
+

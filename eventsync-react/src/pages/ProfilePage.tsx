@@ -1,9 +1,12 @@
-import { Box, Chip } from "@mui/material";
+import { Box, Button, Chip } from "@mui/material";
 import TagModal, { Tag } from "../components/TagModal";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useUser } from "../sso/UserContext";
 import StyledCard from "../StyledCard";
+import "../styles/style.css"
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useNavigate } from "react-router-dom";
 
 function ProfilePage(){
     const { userDetails } = useUser();
@@ -74,15 +77,30 @@ function ProfilePage(){
         fetchData();
     }, [userTagsTrigger]);
 
+    const navigate = useNavigate();
+
+    const handleBackClick = () => {
+        navigate('/');
+    };
+
     return <>
+        <Button onClick={handleBackClick}>
+            <ArrowBackIcon />
+        </Button>
+        <Box display="flex" justifyContent="center" alignItems="center">
+            <h1>Profile Page</h1>
+        </Box>
         <Box
             display="flex"
-            flexDirection="column"
+            flexDirection="row"
+            justifyContent="center" 
+            alignItems="center"
         >
             <ListTags></ListTags>
+        </Box>
+        <Box display="flex" justifyContent="center" alignItems="center">
             <TagModal savedTags={userTags} handleSave={handleSave}></TagModal>
         </Box>
-        <StyledCard></StyledCard>
     </>
 }
 

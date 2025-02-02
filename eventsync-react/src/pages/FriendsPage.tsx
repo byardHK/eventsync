@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useUser } from '../sso/UserContext';
+import "../styles/style.css"
 
 function FriendsPage() {
     const { userDetails } = useUser();

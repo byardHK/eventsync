@@ -10,6 +10,7 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
 import { Tag } from '../components/TagModal';
 import { useUser } from '../sso/UserContext';
+import "../styles/style.css"
 
 
 function ViewEventPage() {
