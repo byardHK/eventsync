@@ -16,6 +16,7 @@ import { useUser } from '../sso/UserContext';
 function HomePage() {
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
+    const [searchKeyword, setSearchKeyword] = useState('');
     // console.log("home page: ")
     // console.log(currentUserId);
     
@@ -71,6 +72,7 @@ function HomePage() {
             <TextField 
                 id="outlined-basic" 
                 label="Search" 
+                onChange={(e) => setSearchKeyword(e.target.value)}
                 slotProps={{
                     input: {
                       startAdornment: (
@@ -82,13 +84,13 @@ function HomePage() {
                 }}
                 variant="outlined"
             />
-            <EventList/>
+            <EventList searchKeyword={searchKeyword}/>
             <BottomNavBar></BottomNavBar>
         </Box>
     </>;
 };
 
-function EventList() {
+function EventList({searchKeyword}: {searchKeyword: string}) {
     const [events, setEvents] = useState<EventSyncEvent[]>([]);    
     const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
 
@@ -144,6 +146,12 @@ function EventList() {
         navigate(`/viewEvent/${event.id}`);
     }
 
+    const filteredEvents = searchKeyword
+        ? events.filter(event =>
+            event.eventName.toLowerCase().includes(searchKeyword.toLowerCase())
+        )
+        : events;
+
     return <Grid2
         container spacing={3}
         display="flex"
@@ -152,7 +160,7 @@ function EventList() {
         style={{maxHeight: '55vh', overflow: 'auto'}}
         padding={2}
     >
-        {events.map(event =>
+        {filteredEvents.map(event =>
             <Card variant ="outlined" key={event.id}>
                 <Box 
                     display="flex"
