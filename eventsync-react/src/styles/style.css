@@ -1,8 +1,18 @@
 .login-logo {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    width: 75%;
-  }
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 75%;
+}
 
+.login-text {
+  font-size: 0.95rem; 
+}
 
+  /* .login-background-color{
+
+  } */
+
+input, select, textarea{
+  color: white;
+}

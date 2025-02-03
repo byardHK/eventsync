@@ -15,6 +15,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import axios from "axios";
 import { useUser } from "../sso/UserContext";
 import { useEffect, useState } from 'react';
+import "../styles/style.css"
 
 
 function CreateEventPage() {
@@ -113,11 +114,12 @@ function CreateEventPage() {
 
         reloadEventTags();
     };
+    
     useEffect(() => {
         if (eventId) {
             const fetchEvent = async () => {
                 try {
-                    const response = await axios.get(`http://localhost:5000/get_event/${eventId}`);
+                    const response = await axios.get(`http://localhost:5000/get_event/${eventId}/${currentUserId}`);
                     const event = response.data;
                     console.log("Fetched event data:", event);
                     setEventInfoId(event.eventInfoId);
@@ -242,6 +244,7 @@ function CreateEventPage() {
                     noValidate
                     autoComplete="off">
                     <TextField 
+                        sx={{input: {backgroundColor: 'white'}}}
                         id="outlined-basic" 
                         label="Title" 
                         variant="outlined" 
@@ -250,11 +253,13 @@ function CreateEventPage() {
                         onChange={(event) => setTitleText(event.target.value)}  
                     />
                     <MobileDateTimePicker
+                        sx={{input: {backgroundColor: 'white'}}}
                         label="Start"
                         value={startDateTime}
                         onChange={(newValue) => setStartDateTime(newValue)} 
                     />
                     <MobileDateTimePicker
+                        sx={{input: {backgroundColor: 'white'}}}
                         label="End"
                         value={startDateTime}
                         onChange={(newValue) => setEndDateTime(newValue)} 
@@ -267,6 +272,7 @@ function CreateEventPage() {
                     </Box>
                     <ListTags></ListTags>
                     <TextField 
+                        sx={{input: {backgroundColor: 'white'}}}
                         id="outlined-basic" 
                         label="Description" 
                         variant="outlined" 
@@ -275,6 +281,7 @@ function CreateEventPage() {
                         onChange={(event) => setDescriptionText(event.target.value)}  
                     />
                     <TextField 
+                        sx={{input: {backgroundColor: 'white'}}}
                         id="outlined-basic" 
                         label="Location" 
                         variant="outlined" 
@@ -283,6 +290,7 @@ function CreateEventPage() {
                         onChange={(event) => setLocationText(event.target.value)}  
                     />
                     <TextField 
+                        sx={{input: {backgroundColor: 'white'}}}
                         id="outlined-basic" 
                         label="Venmo" 
                         variant="outlined" 
@@ -365,7 +373,8 @@ function CreateEventPage() {
                             />
                         }
                     />
-                    <TextField 
+                    <TextField
+                        sx={{input: {backgroundColor: 'white'}}}
                         id="outlined-basic" 
                         label="RSVP Limit" 
                         variant="outlined" 

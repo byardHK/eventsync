@@ -12,6 +12,7 @@ import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlin
 import { Tag } from '../components/TagModal';
 import { useUser } from '../sso/UserContext';
 import { set } from 'date-fns';
+import "../styles/style.css";
 
 
 function ViewEventPage() {
@@ -43,9 +44,6 @@ function ViewEventPage() {
 
     const handleUnrsvp = async () => {
         try {
-            console.log(`Sending userId: ${currentUserId}`);
-            console.log(`Sending eventId: ${intEventId}`);
-            
             const response = await axios.post('http://localhost:5000/unrsvp', {
                 userId: currentUserId,
                 eventId: intEventId
@@ -88,11 +86,13 @@ function ViewEventPage() {
                         sx={{ width: "100%" }}
                         minWidth={300}
                     >
-                        <Button variant="outlined" fullWidth onClick={handleClose}>Close</Button>
-                    </Box>
-                </Dialog>
-            </>
-        );
+                        <Button variant="outlined" fullWidth onClick={handleClose}>No</Button>
+                        <Button variant="outlined" fullWidth onClick={handleClose}>Yes</Button>
+                    </Box> 
+                    <Button variant="outlined" fullWidth onClick={handleClose}>Close</Button>
+            </Dialog>
+        </>
+        )
     }
     
     function RsvpListModal({ eventId }: { eventId: number }) {
@@ -147,25 +147,16 @@ function ViewEventPage() {
             try {
                 const response = await axios.get(`http://localhost:5000/get_event/${intEventId}/${currentUserId}`);
                 setEvent(response.data);
-                console.log(event);
             } catch (error) {
                 console.error('Error fetching event:', error);
             }
         }
         fetchEvent();
-    }, [eventId]);
+    }, [eventId, isRsvped]);
 
     const handleChange = (panel: string) => (SyntheticEvent: React.SyntheticEvent, isExpanded: boolean) => {
         setExpanded(isExpanded ? panel : false);
     };
-
-    const changeItemsSignedUpFor = (items: Item[]) => {
-        if (event){
-            var updatedEvent = event;
-            updatedEvent.items = items
-            setEvent(updatedEvent);
-        }
-    }
 
     return <>
         <Box
@@ -185,7 +176,7 @@ function ViewEventPage() {
             justifyContent="center"
         >
             {event ? (
-                <GetEvent event={event} initialItems={event.items} expanded={expanded} handleChange={handleChange}/>
+                <GetEvent event={event} initialItems={event.items} expanded={expanded} handleChange={handleChange} isRsvped={isRsvped}/>
             ) : (
                 <p>Loading Event {eventId}</p>
             )}
@@ -203,12 +194,17 @@ function ViewEventPage() {
     </>;
 };
 
-function GetEvent({ event, initialItems, expanded, handleChange}: { event: Event, initialItems: Item[], expanded: string | false, handleChange: (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void}) {
+function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { event: Event, initialItems: Item[], expanded: string | false, handleChange: (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void, isRsvped: Boolean}) {
     const [items, setItems] = useState<Item[]>(initialItems);
     const [itemSignUpChanged, setItemSignUpChanged] = useState<Boolean[]>(new Array(items.length).fill(false));
     const { userDetails } = useUser();
     const currentUserId = userDetails.email
     
+    useEffect(() => {
+        setItems(initialItems)
+        setItemSignUpChanged(new Array(items.length).fill(false))
+    }, [event]);
+
     function ListTags(){
         return <>
             <Box
@@ -293,21 +289,27 @@ function GetEvent({ event, initialItems, expanded, handleChange}: { event: Event
                     </AccordionSummary>
                     <AccordionDetails>
                         {items.map((item, index) => (
-                            <Typography key={index}>{`${item.name}: ${item.othersQuantitySignedUpFor + item.myQuantitySignedUpFor}/${item.amountNeeded}`}
-                                <Button variant="contained" onClick={() => changeItemQuantity(-1, index)}>
-                                    <RemoveIcon></RemoveIcon>
+                            <Typography key={index} style={{ display: 'flex', flexDirection: 'row', alignItems: "center" }}>
+                            <div style={{ width: '50%' }}>{`${item.name}: ${item.othersQuantitySignedUpFor + item.myQuantitySignedUpFor}/${item.amountNeeded}`}</div>
+                            {isRsvped && (
+                            <div style={{ width: '50%', display: 'flex', flexDirection: 'row' }}>
+                                <Button sx={{ m: 1 }} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="contained" onClick={() => changeItemQuantity(-1, index)}>
+                                    <RemoveIcon style={{ fontSize: 15 }}></RemoveIcon>
                                 </Button>
-                                <h3>{item.myQuantitySignedUpFor}</h3>
-                                <Button variant="contained" onClick={() => changeItemQuantity(1, index)}>
-                                    <AddIcon></AddIcon> 
+                                <Box display="flex" alignItems="center">
+                                {item.myQuantitySignedUpFor}
+                                </Box>
+                                <Button sx={{ m: 1 }} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="contained" onClick={() => changeItemQuantity(1, index)}>
+                                    <AddIcon style={{ fontSize: 15 }}></AddIcon> 
                                 </Button>
-                                <Button variant="text"
+                                <Button sx={{ m: 1 }} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="text"
                                     onClick={() => postItemSignedUpFor(item, index)}
                                     disabled={!itemSignUpChanged[index]}>
-                                    <CheckCircleOutlineRoundedIcon></CheckCircleOutlineRoundedIcon>
+                                    <CheckCircleOutlineRoundedIcon style={{ fontSize: 30 }}></CheckCircleOutlineRoundedIcon>
                                 </Button>
+                            </div>
+                            )}
                             </Typography>))}
-                        
                     </AccordionDetails>
                 </Accordion>
             )}

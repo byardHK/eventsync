@@ -4,7 +4,7 @@ import FriendsPage from "./pages/FriendsPage";
 import MyEventsPage from "./pages/MyEventsPage";
 import ViewEventPage from "./pages/ViewEventPage";
 import { BrowserRouter, Routes, Route } from "react-router-dom"
-import ProfilePage from "./pages/ProfilePage";
+import ProfilePage from './pages/ProfilePage';
 import { LoginPage } from './pages/LoginPage';
 import  {LoadUser} from './sso/LoadUser';
 import { AuthenticatedTemplate, UnauthenticatedTemplate } from '@azure/msal-react';

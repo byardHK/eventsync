@@ -9,8 +9,10 @@ function BottomNavBar(){
     return<Box
         display="flex"
         flexDirection="row"
-        gap={2}
-        padding={3}
+        width="100%"
+        paddingBottom={2}
+        justifyContent="space-around"
+        style={{ position: 'fixed', bottom: '0' }}
     >
         <Link to="/">
             <Button variant="contained">
