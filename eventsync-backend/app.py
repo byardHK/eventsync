@@ -23,18 +23,33 @@ def get_events():
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         mycursor.execute("""
-                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName, Event.views, Event.id, (
+                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName, Event.views, Event.id, Event.eventInfoId, (
                             SELECT COUNT(*) FROM Event WHERE Event.eventInfoId = EventInfo.id ) AS recurs
                         from Event
                         JOIN EventInfo 
                         ON Event.eventInfoId = EventInfo.id
                      """)
-        response = mycursor.fetchall()
-        headers = mycursor.description
-        res = sqlResponseToJson(response, headers)
+        events_response = mycursor.fetchall()
+        headers = [x[0] for x in mycursor.description]
+        events = [dict(zip(headers, row)) for row in events_response]
+
+        for event in events:
+            mycursor.execute(f"""
+                SELECT Tag.id, Tag.name
+                FROM Tag
+                JOIN EventInfoToTag ON Tag.id = EventInfoToTag.tagId
+                WHERE EventInfoToTag.eventInfoId = {event['eventInfoId']}
+            """)
+            tags_response = mycursor.fetchall()
+            tags = [{
+                "id": tag[0],
+                "name": tag[1],
+            } for tag in tags_response]
+            event['tags'] = tags
+
         mycursor.close()
         conn.close()
-        return res
+        return jsonify(events)
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}

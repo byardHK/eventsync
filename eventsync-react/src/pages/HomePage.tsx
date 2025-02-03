@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import axios from "axios";
-import { Button, Grid2, InputAdornment, TextField } from '@mui/material';
+import { Button, Grid2, InputAdornment, TextField, Autocomplete } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PersonIcon from '@mui/icons-material/Person';
 import Card from '@mui/material/Card';
@@ -19,8 +19,22 @@ function HomePage() {
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
     const [searchKeyword, setSearchKeyword] = useState('');
+    const [tags, setTags] = useState<string[]>([]);
+    const [tagOptions, setTagOptions] = useState<string[]>([]);
     // console.log("home page: ")
     // console.log(currentUserId);
+
+    useEffect(() => {
+        const fetchTags = async () => {
+            try {
+                const response = await axios.get('http://localhost:5000/get_tags');
+                setTagOptions(response.data.map((tag: { name: string }) => tag.name));
+            } catch (error) {
+                console.error('Error fetching tags:', error);
+            }
+        };
+        fetchTags();
+    }, []);
     
     const [isComingSoon, setIsComingSoon] = useState<Boolean>(true); 
     return <>
@@ -94,13 +108,25 @@ function HomePage() {
                 }}
                 variant="outlined"
             />
-            <EventList searchKeyword={searchKeyword}/>
+            <Autocomplete
+                multiple
+                id="multiple-limit-tags"
+                options={tagOptions}
+                value={tags}
+                getOptionLabel={(option) => option}
+                renderInput={(params) => (
+                    <TextField {...params} label="Tags" type="text" />
+                )}
+                sx={{ width: '255px' }}
+                onChange={(_event, value) => { setTags(value); }}
+            />
+            <EventList searchKeyword={searchKeyword} tags={tags}/>
             <BottomNavBar></BottomNavBar>
         </Box>
     </>;
 };
 
-function EventList({searchKeyword}: {searchKeyword: string}) {
+function EventList({searchKeyword, tags}: {searchKeyword: string, tags: string[]}) {
     const [events, setEvents] = useState<EventSyncEvent[]>([]);    
     const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
 
@@ -156,11 +182,15 @@ function EventList({searchKeyword}: {searchKeyword: string}) {
         navigate(`/viewEvent/${event.id}`);
     }
 
-    const filteredEvents = searchKeyword
-        ? events.filter(event =>
-            event.eventName.toLowerCase().includes(searchKeyword.toLowerCase())
-        )
-        : events;
+    const filteredEvents = events.filter(event => {
+        const matchesKeyword = searchKeyword
+            ? event.eventName.toLowerCase().includes(searchKeyword.toLowerCase())
+            : true;
+        const matchesTags = tags.length > 0
+            ? tags.every(tag => event.tags && event.tags.map(t => t.name).includes(tag))
+            : true;
+        return matchesKeyword && matchesTags;
+    });
 
     return <Grid2
         container spacing={3}
