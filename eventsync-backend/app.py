@@ -1054,6 +1054,11 @@ def unrsvp():
             WHERE userId = '{userId}' AND eventId = {eventId};
         """
         mycursor.execute(deleteRsvp)
+        deleteItemSignUps = f"""
+            DELETE FROM UserToItem
+            WHERE userId = '{userId}' AND eventId = {eventId};
+        """
+        mycursor.execute(deleteItemSignUps)
         
         conn.commit()
         mycursor.close()
