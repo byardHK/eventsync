@@ -159,10 +159,12 @@ function EventList({ events, canDeleteEvents, setEventsChanged }: { events: Even
     >
         {events.map(event =>  
             <StyledCard key={event.id} event={event} viewEvent={viewEvent} showViews>
-                <Box display="flex" flexDirection="row" gap={2}>
-                    <Button fullWidth variant="contained" onClick={() => editEvent(event)}>Edit</Button>
-                    <Button fullWidth variant="contained" onClick={() => handleDeleteButton(event)}>Delete</Button>
-                </Box>
+                {canDeleteEvents && (
+                    <Box display="flex" flexDirection="row" gap={2}>
+                        <Button fullWidth variant="contained" onClick={() => editEvent(event)}>Edit</Button>
+                        <Button fullWidth variant="contained" onClick={() => handleDeleteButton(event)}>Delete</Button>
+                    </Box>
+                )}
                 {/* {canDeleteEvents && (event.recurs ?
                 <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}>
                 </DeleteRecurEventModal>
