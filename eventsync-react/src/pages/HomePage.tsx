@@ -8,10 +8,12 @@ import PersonIcon from '@mui/icons-material/Person';
 import Card from '@mui/material/Card';
 import BottomNavBar from '../components/BottomNavBar';
 import DeleteRecurEventModal from '../components/DeleteRecurEventModal';
-import TagModal from '../components/TagModal';
+import TagModal, { Tag } from '../components/TagModal';
 import { Link } from 'react-router-dom';
 import SignOutButton  from '../components/SignOutButton';
 import { useUser } from '../sso/UserContext';
+import "../styles/style.css"
+import StyledCard from '../StyledCard';
 
 function HomePage() {
     const { userDetails } = useUser();
@@ -26,21 +28,24 @@ function HomePage() {
             alignItems="right" 
             justifyContent="right"
             padding={2}
+            gap={2}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-    <h5 className="card-title">Hey {userDetails.firstName}! 👋</h5>
-    <div style={{ display: "flex", gap: "10px" }}>
-        <SignOutButton />
-        <Link to="/profilePage">
-            <Button variant="contained" size="small">
-                <PersonIcon />
-            </Button>
-        </Link>
-    </div>
-</div>
-
+            <SignOutButton />
+            
+            <Link to="/profilePage">
+                <Button variant="contained">
+                    <PersonIcon/>
+                </Button>
+            </Link>
         </Box>
         {/* <Box
+            display="flex"
+            alignItems="center" 
+            justifyContent="center"
+        >
+            <h3 className="card-title">Welcome {userDetails.firstName}!</h3>
+        </Box>
+        <Box
             display="flex"
             flexDirection="row"
             alignItems="center" 
@@ -70,8 +75,10 @@ function HomePage() {
             flexDirection="column"
             alignItems="center" 
             justifyContent="center"
+            gap={2}
         >
             <TextField 
+                sx={{input: {backgroundColor: 'white'}}}
                 id="outlined-basic" 
                 label="Search" 
                 slotProps={{
@@ -92,7 +99,7 @@ function HomePage() {
 };
 
 function EventList() {
-    const [events, setEvents] = useState<EventSyncEvent[]>([]);    
+    const [events, setEvents] = useState<EventSyncEvent[]>([]);
     const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
 
     useEffect(() => {
@@ -152,43 +159,53 @@ function EventList() {
         display="flex"
         alignItems="center" 
         justifyContent="center"
-        style={{maxHeight: '55vh', overflow: 'auto'}}
+        style={{maxHeight: '65vh', overflow: 'auto'}}
         padding={2}
     >
         {events.map(event =>
-            <Card variant ="outlined" key={event.id}>
-                <Box 
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="center" 
-                    justifyContent="center"
-                    minHeight={250}
-                    minWidth={250}
-                    gap={1}
-                >
-                    <p>{`Name: ${event.eventName}`}</p>
-                    <p>{`Start Date: ${event.startTime}`}</p>
-                    <p>{`End Date: ${event.endTime}`}</p>
-                    <p>{`${event.views} Views`}</p>
-                    <Button variant="contained" onClick={() => viewEvent(event)}>View Event</Button>
-                    <Button variant="contained" onClick={() => deleteEvent(event)}>Delete Event</Button>
-                    <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}>
-                    </DeleteRecurEventModal>
-                </Box>
-            </Card>
+        //TODO: Replace
+            // <Card variant ="outlined" key={event.id}>
+            //     <Box 
+            //         display="flex"
+            //         flexDirection="column"
+            //         alignItems="center" 
+            //         justifyContent="center"
+            //         minHeight={250}
+            //         minWidth={250}
+            //         gap={1}
+            //     >
+            //         <p>{`Name: ${event.eventName}`}</p>
+            //         <p>{`Start Date: ${event.startTime}`}</p>
+            //         <p>{`End Date: ${event.endTime}`}</p>
+            //         <p>{`${event.views} Views`}</p>
+            //         <Button variant="contained" onClick={() => viewEvent(event)}>View Event</Button>
+            //         <Button variant="contained" onClick={() => deleteEvent(event)}>Delete Event</Button>
+            //         <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}>
+            //         </DeleteRecurEventModal>
+            //     </Box>
+            // </Card>
+            // <Box >
+                <StyledCard key={event.id} event={event} viewEvent={viewEvent} showTags>
+                    {/* <Button variant="contained" onClick={() => viewEvent(event)}>View Event</Button>
+                    <Button variant="contained" onClick={() => deleteEvent(event)}>Delete Event</Button> */}
+                    {/* <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}> */}
+                    {/* </DeleteRecurEventModal> */}
+                </StyledCard>
+            // </Box>
         )}
     </Grid2>;
 };
 
 
-type EventSyncEvent = {
-    eventName : String;
+export type EventSyncEvent = {
+    eventName : string;
     // attendees : Number; TODO
-    startTime: String;
-    endTime: String;
+    startTime: string;
+    endTime: string;
     views: number;
     id: number;
     recurs: Boolean;
+    tags: Tag[];
 }
 
 export default HomePage;

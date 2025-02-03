@@ -2,18 +2,14 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import React from 'react';
 import App from './App'
-import ReactDOM from 'react-dom/client'; 
-
-
+import ReactDOM from 'react-dom/client';
 import { PublicClientApplication } from '@azure/msal-browser';
 import { MsalProvider } from '@azure/msal-react';
 import { msalConfig } from './authConfig.js';
 import { UserProvider1 } from './sso/UserContext'
 
-
-
-// Bootstrap components
-import 'bootstrap/dist/css/bootstrap.min.css';
+// import 'bootstrap/dist/css/bootstrap.min.css';
+import './styles/main.css';
 
 const msalInstance = new PublicClientApplication(msalConfig);
 const root = ReactDOM.createRoot(document.getElementById('root'));
