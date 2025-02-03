@@ -142,11 +142,11 @@ function EventList({ events, canDeleteEvents, setEventsChanged }: { events: Even
     }
 
     function handleDeleteButton(event: EventSyncEvent){
-        if(!event.recurs){
+        // if(!event.recurs){
             deleteEvent(event)
-        } else {
-            return <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}></DeleteRecurEventModal>
-        }
+        // } else {
+        //     return <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}></DeleteRecurEventModal>
+        // }
     }
 
     return <Grid2
