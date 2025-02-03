@@ -76,7 +76,7 @@ function ViewEventPage() {
                 <Button variant="outlined" onClick={isRsvped ? handleUnrsvp : handleRsvp}>
                     {isRsvped ? 'Un-RSVP' : 'RSVP'}
                 </Button>
-                <Dialog onClose={handleClose} open={open}>
+                {/* <Dialog onClose={handleClose} open={open}>
                     <Box
                         display="flex"
                         flexDirection="column"
@@ -89,7 +89,7 @@ function ViewEventPage() {
                         <Button variant="outlined" fullWidth onClick={handleClose}>Yes</Button>
                     </Box> 
                     <Button variant="outlined" fullWidth onClick={handleClose}>Close</Button>
-            </Dialog>
+                </Dialog> */}
         </>
         )
     }
