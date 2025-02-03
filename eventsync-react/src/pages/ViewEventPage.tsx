@@ -11,8 +11,9 @@ import AddIcon from '@mui/icons-material/Add';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 import { Tag } from '../components/TagModal';
 import { useUser } from '../sso/UserContext';
-import { set } from 'date-fns';
 import "../styles/style.css";
+import { timeToString2 } from '../StyledCard';
+import dayjs from 'dayjs';
 
 
 function ViewEventPage() {
@@ -77,7 +78,7 @@ function ViewEventPage() {
                 <Button variant="outlined" onClick={isRsvped ? handleUnrsvp : handleRsvp}>
                     {isRsvped ? 'Un-RSVP' : 'RSVP'}
                 </Button>
-                <Dialog onClose={handleClose} open={open}>
+                {/* <Dialog onClose={handleClose} open={open}>
                     <Box
                         display="flex"
                         flexDirection="column"
@@ -90,7 +91,7 @@ function ViewEventPage() {
                         <Button variant="outlined" fullWidth onClick={handleClose}>Yes</Button>
                     </Box> 
                     <Button variant="outlined" fullWidth onClick={handleClose}>Close</Button>
-            </Dialog>
+                </Dialog> */}
         </>
         )
     }
@@ -268,10 +269,9 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
         <Card variant="outlined">
             <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight={250} minWidth={250} gap={1}>
                 <p>{event.title}</p>
-                <p>{`Start Time: ${event.startTime}`}</p>
-                <p>{`End Time: ${event.endTime}`}</p>
+                <p>{timeToString2(dayjs(event.startTime), dayjs(event.endTime))}</p>
                 <p>{`Where?: ${event.locationName}`}</p>
-                <p>{`Created By: ${event.creatorId}`}</p>
+                <p>{`Created By: ${userDetails.firstName} ${userDetails.lastName}`}</p>
                 <ListTags></ListTags>
             </Box>
             <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>

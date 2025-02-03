@@ -142,11 +142,11 @@ function EventList({ events, canDeleteEvents, setEventsChanged }: { events: Even
     }
 
     function handleDeleteButton(event: EventSyncEvent){
-        if(!event.recurs){
+        // if(!event.recurs){
             deleteEvent(event)
-        } else {
-            return <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}></DeleteRecurEventModal>
-        }
+        // } else {
+        //     return <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}></DeleteRecurEventModal>
+        // }
     }
 
     return <Grid2
@@ -159,10 +159,12 @@ function EventList({ events, canDeleteEvents, setEventsChanged }: { events: Even
     >
         {events.map(event =>  
             <StyledCard key={event.id} event={event} viewEvent={viewEvent} showViews>
-                <Box display="flex" flexDirection="row" gap={2}>
-                    <Button fullWidth variant="contained" onClick={() => editEvent(event)}>Edit</Button>
-                    <Button fullWidth variant="contained" onClick={() => handleDeleteButton(event)}>Delete</Button>
-                </Box>
+                {canDeleteEvents && (
+                    <Box display="flex" flexDirection="row" gap={2}>
+                        <Button fullWidth variant="contained" onClick={() => editEvent(event)}>Edit</Button>
+                        <Button fullWidth variant="contained" onClick={() => handleDeleteButton(event)}>Delete</Button>
+                    </Box>
+                )}
                 {/* {canDeleteEvents && (event.recurs ?
                 <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}>
                 </DeleteRecurEventModal>
