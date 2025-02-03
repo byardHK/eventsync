@@ -84,11 +84,11 @@ function StyledCard({children, key, event, showTags, showViews, viewEvent} : Sty
     )
 }
 
-function timeToString(dayjsTime : Dayjs) : string {
+export function timeToString(dayjsTime : Dayjs) : string {
     return `${dayjsTime.format("dddd, M/D")} at ${dayjsTime.format("h:mm A")}`;
 }
 
-function timeToString2(startTime : Dayjs, endTime: Dayjs) : string {
+export function timeToString2(startTime : Dayjs, endTime: Dayjs) : string {
     return `${startTime.format("dddd, M/D")} from ${startTime.format("h:mm A")} - ${endTime.format("h:mm A")}`;
 }
 
