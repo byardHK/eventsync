@@ -12,6 +12,8 @@ import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlin
 import { Tag } from '../components/TagModal';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css";
+import { timeToString2 } from '../StyledCard';
+import dayjs from 'dayjs';
 
 
 function ViewEventPage() {
@@ -267,10 +269,9 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
         <Card variant="outlined">
             <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight={250} minWidth={250} gap={1}>
                 <p>{event.title}</p>
-                <p>{`Start Time: ${event.startTime}`}</p>
-                <p>{`End Time: ${event.endTime}`}</p>
+                <p>{timeToString2(dayjs(event.startTime), dayjs(event.endTime))}</p>
                 <p>{`Where?: ${event.locationName}`}</p>
-                <p>{`Created By: ${event.creatorId}`}</p>
+                <p>{`Created By: ${userDetails.firstName} ${userDetails.lastName}`}</p>
                 <ListTags></ListTags>
             </Box>
             <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
