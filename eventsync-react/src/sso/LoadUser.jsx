@@ -7,7 +7,6 @@ import {useUser} from './UserContext'
 export const LoadUser = () => {
    const { setUserDetails } = useUser();
     const { instance, accounts } = useMsal();
-    const [graphData, setGraphData] = useState(null);
   
     function RequestUserData() {
       instance
@@ -17,7 +16,6 @@ export const LoadUser = () => {
           })
           .then((response) => {
             callMsGraph(response.accessToken).then((response) => {
-                setGraphData(response)
                 setUserDetails({
                     firstName: response.givenName,
                     lastName: response.surname,
@@ -31,10 +29,17 @@ export const LoadUser = () => {
   
     useEffect(() => {
       RequestUserData();
-     }, [])
+
+      // the following code section was written by generative AI (ChatGPT)
+      const refreshInterval = setInterval(() => {
+        console.log("Refreshing token...");
+        RequestUserData();
+        },  45 * 60 * 1000);
+
+        return () => clearInterval(refreshInterval);
+     }, []);
+
+     // end of code section
   
-    return ( // return nothing, but sets the user data correctly
-        <>
-        </>
-    );
+    return null;
   };
