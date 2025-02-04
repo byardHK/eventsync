@@ -678,6 +678,26 @@ def post_recurring_event():
         print(f"Error: {err}")
     return data, 201
 
+@app.route('/get_event_creator_name/<string:user_id>/', methods=['GET'])
+def get_user_name(user_id: str):
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f"""SELECT CONCAT(fname, ' ', lname) AS fullName
+                            FROM User
+                            WHERE id = '{user_id}';""")
+        response = mycursor.fetchall()
+      
+        headers = [x[0] for x in mycursor.description]
+        user_name = dict(zip(headers, response[0]))
+
+        mycursor.close()
+        conn.close()
+        return jsonify(user_name)
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
 @app.route('/get_event/<int:event_id>/<string:user_id>', methods=['GET'])
 def get_event(event_id: int, user_id: str):
     try:  
@@ -700,7 +720,8 @@ def get_event(event_id: int, user_id: str):
                         EventInfo.numTimesReported, 
                         EventInfo.recurFrequency,
                         Event.startTime, 
-                        Event.endTime
+                        Event.endTime,
+                        EventInfo.creatorName
                         FROM Event
                         JOIN EventInfo ON Event.eventInfoId = EventInfo.id
                         WHERE Event.id = {event_id}

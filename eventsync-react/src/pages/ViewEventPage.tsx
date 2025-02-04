@@ -200,7 +200,7 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
     const [itemSignUpChanged, setItemSignUpChanged] = useState<Boolean[]>(new Array(items.length).fill(false));
     const { userDetails } = useUser();
     const currentUserId = userDetails.email
-    
+  
     useEffect(() => {
         setItems(initialItems)
         setItemSignUpChanged(new Array(items.length).fill(false))
@@ -271,7 +271,7 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
                 <p>{event.title}</p>
                 <p>{timeToString2(dayjs(event.startTime), dayjs(event.endTime))}</p>
                 <p>{`Where?: ${event.locationName}`}</p>
-                <p>{`Created By: ${userDetails.firstName} ${userDetails.lastName}`}</p>
+                <p>{`Created By: ${event.creatorName}`}</p>
                 <ListTags></ListTags>
             </Box>
             <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
@@ -358,6 +358,7 @@ type Event = {
     files: String[];
     items: Item[];
     venmo: string;
+    creatorName: string;
 };
 
 interface Rsvp {
