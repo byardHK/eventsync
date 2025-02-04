@@ -253,15 +253,19 @@ function CreateEventPage() {
                         onChange={(event) => setTitleText(event.target.value)}  
                     />
                     <MobileDateTimePicker
-                        sx={{input: {backgroundColor: 'white'}}}
+                        sx={{ input: { backgroundColor: "white" } }}
                         label="Start"
                         value={startDateTime}
-                        onChange={(newValue) => setStartDateTime(newValue)} 
+                        onChange={(newValue) => {
+                            setStartDateTime(newValue);
+                            setEndDateTime(newValue ? newValue.add(1, "hour") : null);
+                        }}
                     />
+                                        
                     <MobileDateTimePicker
                         sx={{input: {backgroundColor: 'white'}}}
                         label="End"
-                        value={startDateTime}
+                        value={endDateTime}
                         onChange={(newValue) => setEndDateTime(newValue)} 
                     />
                     <Box display="flex" alignItems="center">
