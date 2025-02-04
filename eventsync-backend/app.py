@@ -644,7 +644,7 @@ def post_recurring_event():
 
         while curStartDate <= endDate:
             insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views)
-                        VALUES (@eventInfoId, "{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}", "{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}", "{dateCreated}", 0);"""
+                        VALUES (@eventInfoId, "{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}", "{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}", "{dateCreated}", 0;"""
             mycursor.execute(insertEvent)
             mycursor.execute("SET @eventId = last_insert_id();")
             for el in itemIds:
@@ -785,6 +785,7 @@ def edit_event(eventId):
             curStartDate = datetime.strptime(data["startDateTime"], reqStrFormat)
             curEndDate = datetime.strptime(data["endDateTime"], reqStrFormat)
             if data["endRecurDateTime"]:
+                print("Updating all events")
                 endDate = datetime.strptime(data["endRecurDateTime"], reqStrFormat)
 
                 delta = ""
@@ -862,30 +863,25 @@ def edit_event(eventId):
                         return "Invalid recurring frequency", 400
                     curEndDate = curStartDate + duration
 
+                    removeTag = f"""
+                                DELETE FROM EventInfoToTag WHERE eventInfoId = {eventInfoId};
+                            """
+                    mycursor.execute(removeTag)
                     tags = data["tags"]
                     for tag in tags:
-                        check_query = f"""
-                                        SELECT COUNT(*)
-                                        FROM EventInfoToTag
-                                        WHERE eventInfoId = {eventInfoId} AND tagId = {tag["id"]}
+                        updateTag = f"""
+                                        UPDATE Tag
+                                        SET numTimesUsed = numTimesUsed + 1
+                                        WHERE name="{tag["name"]}"
                                     """
-                        mycursor.execute(check_query)
-                        count = mycursor.fetchone()[0]
+                        mycursor.execute(updateTag)
 
-                        if count == 0:
-                            updateTag = f"""
-                                            UPDATE Tag
-                                            SET numTimesUsed = numTimesUsed + 1
-                                            WHERE name="{tag["name"]}"
-                                        """
-                            mycursor.execute(updateTag)
-
-                            updateTag = f"""
-                                            INSERT INTO EventInfoToTag(eventInfoId, tagId)
-                                            VALUES ({eventInfoId} , {tag["id"]});
-                                        """
-                            print(updateTag)
-                            mycursor.execute(updateTag)
+                        updateTag = f"""
+                                        INSERT INTO EventInfoToTag(eventInfoId, tagId)
+                                        VALUES ({eventInfoId} , {tag["id"]});
+                                    """
+                        print(updateTag)
+                        mycursor.execute(updateTag)
                 if existing_event_index < len(existing_events):
                     outdated_events = existing_events[existing_event_index:]
                     for event in outdated_events:
@@ -893,6 +889,7 @@ def edit_event(eventId):
                         mycursor.execute("DELETE FROM EventToUser WHERE eventId = %s", (event[0],))
                         mycursor.execute("DELETE FROM Event WHERE id = %s", (event[0],))
             else:
+                print("Updating only event")
                 itemIds = []
 
                 for item in data["items"]:
@@ -919,37 +916,34 @@ def edit_event(eventId):
                                     """
                         mycursor.execute(insertItem)
 
+                removeTag = f"""
+                            DELETE FROM EventInfoToTag WHERE eventInfoId = {eventInfoId};
+                        """
+                mycursor.execute(removeTag)
                 tags = data["tags"]
                 for tag in tags:
-                    check_query = f"""
-                                    SELECT COUNT(*)
-                                    FROM EventInfoToTag
-                                    WHERE eventInfoId = {eventInfoId} AND tagId = {tag["id"]}
+                    updateTag = f"""
+                                    UPDATE Tag
+                                    SET numTimesUsed = numTimesUsed + 1
+                                    WHERE name="{tag["name"]}"
                                 """
-                    mycursor.execute(check_query)
-                    count = mycursor.fetchone()[0]
+                    mycursor.execute(updateTag)
 
-                    if count == 0:
-                        updateTag = f"""
-                                        UPDATE Tag
-                                        SET numTimesUsed = numTimesUsed + 1
-                                        WHERE name="{tag["name"]}"
-                                    """
-                        mycursor.execute(updateTag)
-
-                        updateTag = f"""
-                                        INSERT INTO EventInfoToTag(eventInfoId, tagId)
-                                        VALUES ({eventInfoId} , {tag["id"]});
-                                    """
-                        print(updateTag)
-                        mycursor.execute(updateTag)
+                    updateTag = f"""
+                                    INSERT INTO EventInfoToTag(eventInfoId, tagId)
+                                    VALUES ({eventInfoId} , {tag["id"]});
+                                """
+                    print(updateTag)
+                    mycursor.execute(updateTag)
         else:
+            print("Updating single event")
             currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             eventInfoInsert = f"""
                 INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency)
                 VALUES ('{data["creatorId"]}', 0, '{data["title"]}', '{data["description"]}', '{data["locationName"]}', '', {data["rsvpLimit"]}, {int(data["isPublic"])}, {int(data["isWeatherSensitive"])}, 0, '{currentDateTime}', '{data["venmo"]}', '{data["recurFrequency"]}');
             """
             mycursor.execute(eventInfoInsert)
+            eventInfoId = mycursor.lastrowid
             eventUpdate = f"""
                 UPDATE Event
                 SET eventInfoId = {eventInfoId}, startTime = '{db_startDateTime}', endTime = '{db_endDateTime}'
@@ -973,30 +967,26 @@ def edit_event(eventId):
                                 VALUES ({eventId}, {el[0]}, {el[1]["amountNeeded"]}, 0);
                             """
                 mycursor.execute(insertItem)
+
+            removeTag = f"""
+                        DELETE FROM EventInfoToTag WHERE eventInfoId = {eventInfoId};
+                    """
+            mycursor.execute(removeTag)
             tags = data["tags"]
             for tag in tags:
-                check_query = f"""
-                                SELECT COUNT(*)
-                                FROM EventInfoToTag
-                                WHERE eventInfoId = {eventInfoId} AND tagId = {tag["id"]}
+                updateTag = f"""
+                                UPDATE Tag
+                                SET numTimesUsed = numTimesUsed + 1
+                                WHERE name="{tag["name"]}"
                             """
-                mycursor.execute(check_query)
-                count = mycursor.fetchone()[0]
+                mycursor.execute(updateTag)
 
-                if count == 0:
-                    updateTag = f"""
-                                    UPDATE Tag
-                                    SET numTimesUsed = numTimesUsed + 1
-                                    WHERE name="{tag["name"]}"
-                                """
-                    mycursor.execute(updateTag)
-
-                    updateTag = f"""
-                                    INSERT INTO EventInfoToTag(eventInfoId, tagId)
-                                    VALUES ({eventInfoId} , {tag["id"]});
-                                """
-                    print(updateTag)
-                    mycursor.execute(updateTag)
+                updateTag = f"""
+                                INSERT INTO EventInfoToTag(eventInfoId, tagId)
+                                VALUES ({eventInfoId} , {tag["id"]});
+                            """
+                print(updateTag)
+                mycursor.execute(updateTag)
 
         conn.commit()
         mycursor.close()
