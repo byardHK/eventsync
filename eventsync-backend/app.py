@@ -17,6 +17,23 @@ db_config = {
     'database': 'event_sync'
 }
 
+@app.route('/api/check_user/<string:id>', methods=['GET'])
+def check_user(id):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("SELECT EXISTS(SELECT 1 FROM User WHERE id = %s)", (id,))
+        result = mycursor.fetchone()
+        user_exists = bool(result[0])
+        mycursor.close()
+        conn.close()
+
+        return jsonify({"exists": user_exists})
+    
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": "Database query failed"}), 500
+
 @app.route('/get_events/')
 def get_events():
     try:  
