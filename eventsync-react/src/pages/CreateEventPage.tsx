@@ -41,6 +41,7 @@ function CreateEventPage() {
     const [items, setItems] = useState<Item[]>([])
     const [descriptionText, setDescriptionText] = useState<String>("");
     const [editAllEvents, setEditAllEvents] = useState<boolean>(true);
+    const [creatorName, setCreatorName] = useState<String>(userDetails.firstName + " " + userDetails.lastName);
 
     const [eventTagsTrigger, setEventTagsTrigger] = useState<number>(0);
 
@@ -136,6 +137,7 @@ function CreateEventPage() {
                     setIsWeatherSensitive(event.isWeatherSensitive || false);
                     setIsPrivateEvent(event.isPublic !== undefined ? !event.isPublic : false);
                     setRsvpLimit(event.rsvpLimit !== undefined ? event.rsvpLimit : 0);
+                    setCreatorName(event.creatorName);
                 } catch (error) {
                     console.error('Error fetching event:', error);
                 }
@@ -164,7 +166,8 @@ function CreateEventPage() {
                 "isPublic": !isPrivateEvent,
                 "rsvpLimit": rsvpLimit,
                 "items": items,
-                "editAllEvents": editAllEvents
+                "editAllEvents": editAllEvents,
+                "creatorName": creatorName
             }
             const response = await fetch(postPath, {
                 method: eventId ? 'PUT' : 'POST',
@@ -191,6 +194,7 @@ function CreateEventPage() {
                 setRsvpLimit(0);
                 setItems([]);
                 setEditAllEvents(true);
+                setCreatorName("");
                 navigate('/myeventspage');
             }
            
