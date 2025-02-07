@@ -8,12 +8,15 @@ import PersonIcon from '@mui/icons-material/Person';
 import Card from '@mui/material/Card';
 import BottomNavBar from '../components/BottomNavBar';
 import DeleteRecurEventModal from '../components/DeleteRecurEventModal';
-import TagModal, { Tag } from '../components/TagModal';
+import TagModal from '../components/TagModal';
 import { Link } from 'react-router-dom';
 import SignOutButton  from '../components/SignOutButton';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css"
 import StyledCard from '../StyledCard';
+import FlagIcon from '@mui/icons-material/Flag';
+import EventSyncEvent from '../types/EventSyncEvent';
+import Tag from '../types/Tag';
 
 function HomePage() {
     const { userDetails } = useUser();
@@ -45,6 +48,12 @@ function HomePage() {
             padding={2}
             gap={2}
         >
+            <Link to="/adminPage">
+                <Button variant="contained">
+                    <FlagIcon/>
+                </Button>
+            </Link>
+
             <SignOutButton />
             
             <Link to="/profilePage">
@@ -197,7 +206,7 @@ function EventList({searchKeyword, tags}: {searchKeyword: string, tags: string[]
         display="flex"
         alignItems="center" 
         justifyContent="center"
-        style={{maxHeight: '65vh', overflow: 'auto'}}
+        style={{maxHeight: '58vh', overflow: 'auto'}}
         padding={2}
     >
         {filteredEvents.map(event =>
@@ -233,17 +242,5 @@ function EventList({searchKeyword, tags}: {searchKeyword: string, tags: string[]
         )}
     </Grid2>;
 };
-
-
-export type EventSyncEvent = {
-    eventName : string;
-    // attendees : Number; TODO
-    startTime: string;
-    endTime: string;
-    views: number;
-    id: number;
-    recurs: Boolean;
-    tags: Tag[];
-}
 
 export default HomePage;
