@@ -33,6 +33,48 @@ def check_user(id):
     except mysql.connector.Error as err:
         print(f"Error: {err}")
         return jsonify({"error": "Database query failed"}), 500
+    
+@app.route('/api/add_user/', methods=['POST'])
+def add_user():
+    try:
+        data = request.get_json()
+
+        id = data.get("id")
+        fname = data.get("fname")
+        lname = data.get("lname")
+        is_admin = data.get("isAdmin", 0)
+        bio = data.get("bio", "")
+        profile_picture = data.get("profilePicture", "")
+        notification_frequency = data.get("notificationFrequency", "Normal")
+        is_public = data.get("isPublic", 1)
+        is_banned = data.get("isBanned", 0)
+        num_times_reported = data.get("numTimesReported", 0)
+        notification_id = data.get("notificationId", None)
+
+        if not id or not fname or not lname:
+            return jsonify({"error": "Missing required fields"}), 400
+        
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        sql = """INSERT INTO User (id, fname, lname, isAdmin, bio, profilePicture, 
+                notificationFrequency, isPublic, isBanned, numTimesReported, notificationId) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+        
+        values = (id, fname, lname, is_admin, bio, profile_picture, 
+                  notification_frequency, is_public, is_banned, num_times_reported, notification_id)
+
+        mycursor.execute(sql, values)
+        conn.commit()
+        mycursor.close()
+        conn.close()
+
+        return jsonify({"message": "User added successfully"}), 201
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": "Database insert failed"}), 500
+
 
 @app.route('/get_events/')
 def get_events():

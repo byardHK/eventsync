@@ -6,6 +6,7 @@ import {useUser} from './UserContext'
 
 export const LoadUser = () => {
    const { setUserDetails } = useUser();
+   const [isNewUser, setIsNewUser] = useState[Boolean];
     const { instance, accounts } = useMsal();
   
     function RequestUserData() {
@@ -15,7 +16,47 @@ export const LoadUser = () => {
               account: accounts[0],
           })
           .then((response) => {
+
             callMsGraph(response.accessToken).then((response) => {
+              useEffect(() => {
+                const fetchUser = async () => {
+                    try {
+                        const response = await axios.get(f`http://localhost:5000/api/check_user/${response.userPrincipalName}`);
+                        setIsNewUser(!response.data.exists);
+                        console.log(isNewUser);
+                    } catch (error) {
+                        console.error('Error fetching tags:', error);
+                    }
+                };
+                fetchUser();
+
+              const setExistingUserData = async () => {
+                  try {
+                      const response = await axios.get(f`http://localhost:5000/api/check_user/${response.userPrincipalName}`);
+                      setIsNewUser(!response.data.exists);
+                      console.log(isNewUser);
+                  } catch (error) {
+                      console.error('Error fetching tags:', error);
+                  }
+              };
+              setExistingUserData();
+
+              const saveNewUserData = async () => {
+                try {
+                    const response = await axios.get(f`http://localhost:5000/api/check_user/${response.userPrincipalName}`);
+                    setIsNewUser(!response.data.exists);
+                    console.log(isNewUser);
+                } catch (error) {
+                    console.error('Error fetching tags:', error);
+                }
+            };
+            saveNewUserData();
+
+            }, []);
+
+
+
+
                 setUserDetails({
                     firstName: response.givenName,
                     lastName: response.surname,
