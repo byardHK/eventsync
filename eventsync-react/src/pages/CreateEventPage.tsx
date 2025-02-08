@@ -346,7 +346,7 @@ function CreateEventPage() {
                     </div>
                 : null}
                 </Box>
-                {/* <Box 
+                {<Box 
                     display="flex" 
                     flexDirection="column"
                     alignItems="center" 
@@ -391,8 +391,7 @@ function CreateEventPage() {
                             }
                         }}  
                     />
-                </Box> */
-                // uncomment for Sprint 2
+                </Box>
                 }
             </LocalizationProvider>
             <Box display="flex" justifyContent="center" mt={2}>
