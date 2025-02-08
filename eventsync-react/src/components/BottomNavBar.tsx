@@ -11,6 +11,7 @@ function BottomNavBar(){
         flexDirection="row"
         width="100%"
         paddingBottom={2}
+        paddingTop={2}
         justifyContent="space-around"
         style={{ position: 'fixed', bottom: '0' }}
     >

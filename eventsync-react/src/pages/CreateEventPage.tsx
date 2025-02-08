@@ -9,13 +9,14 @@ import FormControl from '@mui/material/FormControl';
 import dayjs, { Dayjs } from "dayjs";
 import { useNavigate, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import TagModal, { Tag } from '../components/TagModal';
+import TagModal from '../components/TagModal';
 import ItemModal from '../components/ItemModal';
 import CheckIcon from '@mui/icons-material/Check';
 import axios from "axios";
 import { useUser } from "../sso/UserContext";
 import { useEffect, useState } from 'react';
 import "../styles/style.css"
+import Tag from '../types/Tag';
 
 function CreateEventPage() {
     const { userDetails } = useUser();

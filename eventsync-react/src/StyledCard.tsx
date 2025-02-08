@@ -1,21 +1,19 @@
 import { Box, Chip, IconButton, Paper, styled } from "@mui/material"
 import React, { ReactNode, useEffect, useState } from "react";
-import { EventSyncEvent } from "./pages/HomePage";
 import dayjs, { Dayjs } from "dayjs";
-import { Tag } from "./components/TagModal";
 import axios from "axios";
 import { useUser } from "./sso/UserContext";
+import EventSyncEvent from "./types/EventSyncEvent";
 
 export type StyledCardProps = {
     children?: ReactNode;
-    key: React.Key;
     event: EventSyncEvent;
     showTags?: boolean;
     showViews?: boolean;
     viewEvent: (event : EventSyncEvent) => Promise<void>;
 };
 
-function StyledCard({children, key, event, showTags, showViews, viewEvent} : StyledCardProps){
+function StyledCard({children, event, showTags, showViews, viewEvent} : StyledCardProps){
     const EventCard = styled(Paper)(({ theme }) => ({
         width: 250,
         height: 175,
@@ -30,22 +28,8 @@ function StyledCard({children, key, event, showTags, showViews, viewEvent} : Sty
     const start = dayjs(event.startTime);
     const end = dayjs(event.endTime);
 
-    const [eventTags, setEventTags] = useState<Tag[]>([]);
-    useEffect(() => {
-        if(!showTags) { return; }
-        const fetchEvent = async () => {
-            try {
-                const response = await axios.get(`http://localhost:5000/get_event/${event.id}/${currentUserId}`);
-                setEventTags(response.data.tags);
-            } catch (error) {
-                console.error('Error fetching event:', error);
-            }
-        }
-        fetchEvent();
-    }, [event.id, showTags]);
-
     return (
-        <Box key={key} display="flex" justifyContent="center" alignItems="center">
+        <Box display="flex" justifyContent="center" alignItems="center">
             <EventCard elevation={10} square={false}>
                 <div onClick={() => { viewEvent(event); }} style={{cursor: "pointer"}}>
                     <p>{`Name: ${event.eventName}`}</p>
@@ -66,7 +50,7 @@ function StyledCard({children, key, event, showTags, showViews, viewEvent} : Sty
                         justifyContent="center"
                         flexWrap="wrap"
                     >
-                        {eventTags.map((tag, index) =>
+                        {event.tags.map((tag, index) =>
                             <Box 
                                 key={index}
                             >    

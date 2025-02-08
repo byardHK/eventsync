@@ -3,6 +3,7 @@ import CreateEventPage from "./pages/CreateEventPage";
 import FriendsPage from "./pages/FriendsPage";
 import MyEventsPage from "./pages/MyEventsPage";
 import ViewEventPage from "./pages/ViewEventPage";
+import AdminPage from "./pages/AdminPage";
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import ProfilePage from './pages/ProfilePage';
 import { LoginPage } from './pages/LoginPage';
@@ -25,6 +26,7 @@ const MainContent = () => {
                     <Route path="/myEventsPage" element={<MyEventsPage/>}/>
                     <Route path="/profilePage" element={<ProfilePage/>}/>
                     <Route path="/viewEvent/:eventId" element={<ViewEventPage/>}/>
+                    <Route path="/adminPage" element={<AdminPage/>}/>
                 </Routes>
             </BrowserRouter>
           </AuthenticatedTemplate>

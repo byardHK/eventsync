@@ -10,7 +10,7 @@ import DeleteRecurEventModal from '../components/DeleteRecurEventModal';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css"
 import StyledCard from '../StyledCard';
-import { EventSyncEvent } from './HomePage';
+import EventSyncEvent from '../types/EventSyncEvent';
 
 // const currentUserId = "segulinWH20@gcc.edu"; // Placeholder for the current user that is logged in. TODO: get the actual current user
 
@@ -154,7 +154,7 @@ function EventList({ events, canDeleteEvents, setEventsChanged }: { events: Even
         display="flex"
         alignItems="center" 
         justifyContent="center"
-        style={{maxHeight: '50vh', overflow: 'auto'}}
+        style={{maxHeight: '30vh', overflow: 'auto'}}
         padding={2}
     >
         {events.map(event =>  
