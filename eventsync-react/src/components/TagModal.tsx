@@ -109,6 +109,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
             variant="outlined" 
             sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
             onClick={handleOpenModal}
+            title="edit tags"
         >
             <AddIcon />
         </Button>
