@@ -17,7 +17,6 @@ import { useUser } from "../sso/UserContext";
 import { useEffect, useState } from 'react';
 import "../styles/style.css"
 
-
 function CreateEventPage() {
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
@@ -213,7 +212,7 @@ function CreateEventPage() {
     return <>
         <Box>
             <Box display="flex" alignItems="center" justifyContent="center">
-                <Button onClick={handleBackClick}>
+                <Button onClick={handleBackClick} title="go to My Events page">
                     <ArrowBackIcon />
                 </Button>
                 <Box display="flex" flexDirection="column">
@@ -403,8 +402,10 @@ function CreateEventPage() {
             <Box display="flex" justifyContent="space-between" mt={2}>
                 <Button 
                     variant="outlined" 
-                    sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
+                    sx={{ minWidth: '40px', minHeight: '40px', padding: 0, 
+                        color: "#000000"}}
                     onClick={handleBackClick}
+                    title="cancel"
                 >
                     Cancel
                 </Button>
@@ -412,6 +413,7 @@ function CreateEventPage() {
                     variant="outlined" 
                     sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
                     onClick={handleSubmit}
+                    title="submit"
                 >
                     <CheckIcon />
                 </Button>
