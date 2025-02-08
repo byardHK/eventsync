@@ -1166,3 +1166,33 @@ def get_reports():
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
+
+@app.route('/reportEvent', methods=['POST'])
+def reportEvent():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        eventDetails = body.get("details")
+        eventReportedBy = body.get("reportedBy")
+        eventId = body.get("reportedEventId")
+
+        mycursor.execute(f""" 
+            SELECT eventInfoId FROM Event WHERE id = {eventId};
+        """)
+        eventInfoId = mycursor.fetchone()[0]
+
+        reportEvent = f"""
+            INSERT INTO Report (details, reportedBy, reportedEventInfoId)
+            VALUES ("{eventDetails}", "{eventReportedBy}", {eventInfoId});
+        """
+        mycursor.execute(reportEvent)
+        
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"message": "report successful"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
