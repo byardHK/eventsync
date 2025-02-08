@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Radio from '@mui/material/Radio'; 
 import RadioGroup from '@mui/material/RadioGroup'; 
 import FormControl from '@mui/material/FormControl'; 
+import EventSyncEvent from '../types/EventSyncEvent';
 
 function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged: React.Dispatch<React.SetStateAction<Boolean>> }){
     const [isOpen, setOpen] = useState(false);
@@ -67,15 +68,6 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged:
             </Box>
         </Dialog>
     </>
-}
-
-type EventSyncEvent = {
-    eventName : String;
-    startTime: String;
-    endTime: String;
-    views: number;
-    id: number;
-    recurs: Boolean;
 }
 
 export default DeleteRecurEventModal

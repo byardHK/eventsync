@@ -616,7 +616,6 @@ def post_recurring_event():
                             INSERT INTO EventInfoToTag(eventInfoId, tagId)
                             VALUES ({eventInfoId} , {tag["id"]});
                         """
-            print(updateTag)
             mycursor.execute(updateTag)
         # get event dates through start date and end date
         curStartDate = datetime.strptime(data["startDateTime"], reqStrFormat)
@@ -1152,3 +1151,20 @@ def get_rsvps():
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {} 
+
+@app.route('/get_reports/')
+def get_reports():
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("""
+                        SELECT * FROM Report;
+                     """)
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        mycursor.close()
+        conn.close()
+        return sqlResponseToJson(response, headers)
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}

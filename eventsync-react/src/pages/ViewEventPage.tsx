@@ -9,11 +9,11 @@ import axios from 'axios';
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
-import { Tag } from '../components/TagModal';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css";
 import { timeToString2 } from '../StyledCard';
 import dayjs from 'dayjs';
+import Tag from '../types/Tag';
 
 
 function ViewEventPage() {
@@ -336,7 +336,6 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
         </Card>
     );
 }
-
 
 type Event = {
     eventName: string;

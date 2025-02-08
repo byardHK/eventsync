@@ -9,14 +9,14 @@ import FormControl from '@mui/material/FormControl';
 import dayjs, { Dayjs } from "dayjs";
 import { useNavigate, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import TagModal, { Tag } from '../components/TagModal';
+import TagModal from '../components/TagModal';
 import ItemModal from '../components/ItemModal';
 import CheckIcon from '@mui/icons-material/Check';
 import axios from "axios";
 import { useUser } from "../sso/UserContext";
 import { useEffect, useState } from 'react';
 import "../styles/style.css"
-
+import Tag from '../types/Tag';
 
 function CreateEventPage() {
     const { userDetails } = useUser();
@@ -217,7 +217,7 @@ function CreateEventPage() {
     return <>
         <Box>
             <Box display="flex" alignItems="center" justifyContent="center">
-                <Button onClick={handleBackClick}>
+                <Button onClick={handleBackClick} title="go to My Events page">
                     <ArrowBackIcon />
                 </Button>
                 <Box display="flex" flexDirection="column">
@@ -407,8 +407,10 @@ function CreateEventPage() {
             <Box display="flex" justifyContent="space-between" mt={2}>
                 <Button 
                     variant="outlined" 
-                    sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
+                    sx={{ minWidth: '40px', minHeight: '40px', padding: 0, 
+                        color: "#000000"}}
                     onClick={handleBackClick}
+                    title="cancel"
                 >
                     Cancel
                 </Button>
@@ -416,6 +418,7 @@ function CreateEventPage() {
                     variant="outlined" 
                     sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
                     onClick={handleSubmit}
+                    title="submit"
                 >
                     <CheckIcon />
                 </Button>

@@ -90,6 +90,7 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
             variant="outlined" 
             sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
             onClick={handleOpen}
+            title="edit items to bring"
         >
             <AddIcon />
         </Button>

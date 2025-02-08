@@ -4,6 +4,7 @@ import axios from "axios";
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { useUser } from '../sso/UserContext';
+import Tag from '../types/Tag';
 
 type TagModalProps= {
     savedTags: Tag[];
@@ -109,6 +110,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
             variant="outlined" 
             sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
             onClick={handleOpenModal}
+            title="edit tags"
         >
             <AddIcon />
         </Button>
@@ -215,11 +217,5 @@ function TagModal({savedTags, handleSave}: TagModalProps){
         </Dialog>
     </>
 }
-
-export type Tag = {
-    id: number;
-    name: String;
-    userId: number;
-};
 
 export default TagModal
