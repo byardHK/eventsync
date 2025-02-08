@@ -252,12 +252,22 @@ def delete_event_deselected_tags():
     return {}
 
 
-@app.route('/get_tags/')
-def get_tags():
+@app.route('/get_tags/', defaults={'userId': None})
+@app.route('/get_tags/<string:userId>/')
+def get_tags(userId):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute("SELECT Tag.id, Tag.name, Tag.userId FROM Tag")
+        if userId:
+            query = """
+                SELECT Tag.id, Tag.name, Tag.userId 
+                FROM Tag 
+                WHERE Tag.userId = %s OR Tag.userId IS NULL;
+            """
+            mycursor.execute(query, (userId,))
+        else:
+            query = "SELECT Tag.id, Tag.name, Tag.userId FROM Tag"
+            mycursor.execute(query)
         response = mycursor.fetchall()
         headers = mycursor.description
         res = sqlResponseToJson(response, headers)

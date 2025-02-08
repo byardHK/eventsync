@@ -83,7 +83,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/get_tags/');
+                const response = await axios.get(`http://localhost:5000/get_tags/${userId}`);
                 const res: Tag[] = response.data;
 
                 const defaultTags: Tag[] = [];
