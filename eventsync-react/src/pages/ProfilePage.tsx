@@ -35,6 +35,7 @@ function ProfilePage() {
                 invitedToEvent: invitedToEvent,
                 eventCancelled: eventCancelled
             };
+            console.log("data  sending: ", data)
             
             const response = await axios.post('http://localhost:5000/api/update_user_profile', data);
             if (response.status === 200) {
@@ -61,7 +62,7 @@ function ProfilePage() {
                         profilePicture: res.data[0].profilePicture || null,
                         friendRequest: res.data[0].friendRequest || null,
                         eventInvite: res.data[0].eventInvite || null,
-                        eventCancellation: res.data[0].eventCancellation || null,
+                        eventCancelled: res.data[0].eventCancelled || null,
                     };
                     console.log("Updated userDetails:", updatedDetails);
                     return updatedDetails;
@@ -133,7 +134,7 @@ function ProfilePage() {
                         profilePicture: res.data[0].profilePicture || null,
                         friendRequest: res.data[0].friendRequest || null,
                         eventInvite: res.data[0].eventInvite || null,
-                        eventCancellation: res.data[0].eventCancellation || null,
+                        eventCancelled: res.data[0].eventCancelled || null,
                     };
                     console.log("Updated userDetails:", updatedDetails);
                     return updatedDetails;
@@ -230,6 +231,7 @@ function ProfilePage() {
                                 <MenuItem value="None">None</MenuItem>
                                 <MenuItem value="Daily">Daily</MenuItem>
                                 <MenuItem value="Weekly">Weekly</MenuItem>
+                                <MenuItem value="Monthly">Monthly</MenuItem>
                             </Select>
                         </FormControl>
                     </Box>

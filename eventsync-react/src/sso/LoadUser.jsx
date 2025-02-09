@@ -61,7 +61,7 @@ export const LoadUser = () => {
                         profilePicture: res.data[0].profilePicture || null,
                         friendRequest: res.data[0].friendRequest || null,
                         eventInvite: res.data[0].eventInvite || null,
-                        eventCancellation: res.data[0].eventCancellation || null,
+                        eventCancelled: res.data[0].eventCancelled || null,
                     };
                     console.log("Updated userDetails:", updatedDetails);
                     return updatedDetails;
