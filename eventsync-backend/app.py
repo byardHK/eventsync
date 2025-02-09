@@ -1187,6 +1187,7 @@ def reportEvent():
             INSERT INTO Report (details, reportedBy, reportedEventInfoId)
             VALUES ("{eventDetails}", "{eventReportedBy}", {eventInfoId});
         """
+        print(reportEvent)
         mycursor.execute(reportEvent)
         
         conn.commit()
