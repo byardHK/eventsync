@@ -24,6 +24,7 @@ function HomePage() {
     const [searchKeyword, setSearchKeyword] = useState('');
     const [tags, setTags] = useState<string[]>([]);
     const [tagOptions, setTagOptions] = useState<string[]>([]);
+    const [inputValue, setInputValue] = useState('');
     // console.log("home page: ")
     // console.log(currentUserId);
 
@@ -127,7 +128,11 @@ function HomePage() {
                     <TextField {...params} label="Tags" type="text" />
                 )}
                 sx={{ width: '255px' }}
-                onChange={(_event, value) => { setTags(value); }}
+                inputValue={inputValue}
+                onInputChange={(event, newInputValue) => {
+                    setInputValue(newInputValue);
+                }}
+                open={inputValue !== ''}
             />
             <EventList searchKeyword={searchKeyword} tags={tags}/>
             <BottomNavBar></BottomNavBar>
