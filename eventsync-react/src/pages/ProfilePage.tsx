@@ -1,5 +1,5 @@
 import { Card, Box, Button, Chip, TextField, Switch, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
-import TagModal, { Tag } from "../components/TagModal";
+import TagModal from "../components/TagModal";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useUser } from "../sso/UserContext";
@@ -7,6 +7,7 @@ import "../styles/style.css";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router-dom";
 import SignOutButton from "../components/SignOutButton";
+import Tag from "../types/Tag";
 
 function ProfilePage() {
     const { userDetails, setUserDetails } = useUser();
