@@ -54,8 +54,6 @@ function HomePage() {
                     <FlagIcon/>
                 </Button>
             </Link>
-
-            <SignOutButton />
             
             <Link to="/profilePage">
                 <Button variant="contained">

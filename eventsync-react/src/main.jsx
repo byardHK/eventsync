@@ -6,7 +6,7 @@ import ReactDOM from 'react-dom/client';
 import { PublicClientApplication } from '@azure/msal-browser';
 import { MsalProvider } from '@azure/msal-react';
 import { msalConfig } from './authConfig.js';
-import { UserProvider1 } from './sso/UserContext'
+import { UserProvider } from './sso/UserContext'
 
 // import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/main.css';
@@ -20,9 +20,9 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
  root.render(
   <React.StrictMode>
       <MsalProvider instance={msalInstance}>
-        <UserProvider1>
+        <UserProvider>
             <App />
-        </UserProvider1>
+        </UserProvider>
       </MsalProvider>
   </React.StrictMode>
 );
