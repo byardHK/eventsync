@@ -23,7 +23,7 @@ def get_events():
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         mycursor.execute("""
-                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName, Event.views, Event.id, Event.eventInfoId, (
+                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName, EventInfo.creatorName, Event.views, Event.id, Event.eventInfoId, (
                             SELECT COUNT(*) FROM Event WHERE Event.eventInfoId = EventInfo.id ) AS recurs
                         from Event
                         JOIN EventInfo 
@@ -516,11 +516,11 @@ def post_event():
         db_endDateTime = datetime.strptime(endDateTime, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
        
         insertEventInfo = f"""
-                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency)
-                        VALUES ("{data["creatorId"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}", "{data["venmo"]}", "{data["recurFrequency"]}");
+                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency, creatorName)
+                        VALUES ("{data["creatorId"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}", "{data["venmo"]}", "{data["recurFrequency"]}", "{data["creatorName"]}");
                      """
-        insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views)
-                        VALUES (last_insert_id(), "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", 0);"""
+        insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views, numRsvps)
+                        VALUES (last_insert_id(), "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", 0, 0);"""
         tags = data["tags"]
         for tag in tags:
             updateTag = f"""
@@ -604,8 +604,8 @@ def post_recurring_event():
         reqStrFormat = '%Y-%m-%dT%H:%M:%S.%fZ'
         dateCreated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         insertEventInfo = f"""
-                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency)
-                        VALUES ("{data["creatorId"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", 10, True, False, 0, "{dateCreated}", "{data["venmo"]}", "{data["recurFrequency"]}");
+                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency, creatorName)
+                        VALUES ("{data["creatorId"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", 10, True, False, 0, "{dateCreated}", "{data["venmo"]}", "{data["recurFrequency"]}", "{data["creatorName"]}");
                      """
         mycursor.execute(insertEventInfo)
         eventInfoId = mycursor.lastrowid
@@ -642,8 +642,8 @@ def post_recurring_event():
 
 
         while curStartDate <= endDate:
-            insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views)
-                        VALUES (@eventInfoId, "{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}", "{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}", "{dateCreated}", 0);"""
+            insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views, numRsvps)
+                        VALUES (@eventInfoId, "{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}", "{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}", "{dateCreated}", 0, 0);"""
             mycursor.execute(insertEvent)
             mycursor.execute("SET @eventId = last_insert_id();")
             for el in itemIds:
@@ -804,9 +804,22 @@ def edit_event(eventId):
             dateCreated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             curStartDate = datetime.strptime(data["startDateTime"], reqStrFormat)
             curEndDate = datetime.strptime(data["endDateTime"], reqStrFormat)
-            if data["endRecurDateTime"]:
+            mycursor.execute(f"""
+                    SELECT id, startTime, endTime
+                    FROM Event
+                    WHERE eventInfoId = {eventInfoId}
+                    ORDER BY startTime
+                """)
+            existing_events = mycursor.fetchall()
+            existing_event_index = 0
+
+            if len(existing_events) > 1:
                 print("Updating all events")
-                endDate = datetime.strptime(data["endRecurDateTime"], reqStrFormat)
+                endDate = ""
+                if data["endRecurDateTime"]:
+                    endDate = datetime.strptime(data["endRecurDateTime"], reqStrFormat)
+                else:
+                    endDate = existing_events[-1][2]
 
                 delta = ""
                 if data["recurFrequency"] == "":
@@ -838,17 +851,6 @@ def edit_event(eventId):
                     mycursor.execute(getItemId)
                     itemIds.append((mycursor.fetchone()[0], item))
 
-                mycursor.execute(f"""
-                    SELECT id, startTime, endTime
-                    FROM Event
-                    WHERE eventInfoId = {eventInfoId}
-                    ORDER BY startTime
-                """)
-                existing_events = mycursor.fetchall()
-                existing_event_index = 0
-                curStartDate = existing_events[0][1]
-                curEndDate = existing_events[0][2]
-
                 while curStartDate <= endDate:
                     if existing_event_index < len(existing_events):
                         print("Updating existing event")
@@ -861,8 +863,8 @@ def edit_event(eventId):
                         mycursor.execute(eventUpdate)
                         existing_event_index += 1
                     else:
-                        insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated)
-                                    VALUES ({eventInfoId}, "{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}", "{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}", "{dateCreated}");"""
+                        insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views, numRsvps)
+                                    VALUES ({eventInfoId}, "{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}", "{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}", "{dateCreated}"), 0, 0;"""
                         mycursor.execute(insertEvent)
                         mycursor.execute("SET @eventId = last_insert_id();")
                         for el in itemIds:
@@ -959,8 +961,8 @@ def edit_event(eventId):
             print("Updating single event")
             currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             eventInfoInsert = f"""
-                INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency)
-                VALUES ('{data["creatorId"]}', 0, '{data["title"]}', '{data["description"]}', '{data["locationName"]}', '', {data["rsvpLimit"]}, {int(data["isPublic"])}, {int(data["isWeatherSensitive"])}, 0, '{currentDateTime}', '{data["venmo"]}', '{data["recurFrequency"]}');
+                INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency, creatorName)
+                VALUES ('{data["creatorId"]}', 0, '{data["title"]}', '{data["description"]}', '{data["locationName"]}', '', {data["rsvpLimit"]}, {int(data["isPublic"])}, {int(data["isWeatherSensitive"])}, 0, '{currentDateTime}', '{data["venmo"]}', '{data["recurFrequency"]}', '{data["creatorName"]}');
             """
             mycursor.execute(eventInfoInsert)
             eventInfoId = mycursor.lastrowid
