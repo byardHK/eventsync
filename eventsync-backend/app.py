@@ -17,6 +17,75 @@ db_config = {
     'database': 'event_sync'
 }
 
+
+@app.route('/api/update_user_profile', methods=['POST'])
+def update_user_profile():
+    try:
+        # Extract the data sent in the request
+        data = request.json
+        email = data.get('userId')
+        bio = data.get('bio')
+        is_private = data.get('isPrivate')
+        notification_frequency = data.get('notificationFrequency')
+        receive_friend_request = data.get('receiveFriendRequest')
+        invited_to_event = data.get('invitedToEvent')
+        event_cancelled = data.get('eventCancelled')
+
+        # Validate required fields
+        if not email:
+            return jsonify({"error": "Email is required"}), 400
+
+        # Establish connection to the database
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        # Update the profile in the database
+        update_query = """
+            UPDATE User SET 
+                bio = %s, 
+                isPublic = %s, 
+                notificationFrequency = %s, 
+                friendRequest = %s, 
+                eventInvite = %s, 
+                eventCancelled = %s
+            WHERE id = %s
+        """
+        mycursor.execute(update_query, (
+            bio, is_private, notification_frequency, 
+            receive_friend_request, invited_to_event, 
+            event_cancelled, email
+        ))
+
+        # Commit the changes to the database
+        conn.commit()
+        mycursor.close()
+        conn.close()
+
+        return jsonify({"message": "Profile updated successfully!"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/get_user/<string:id>', methods=['GET'])
+def get_user(id):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor(dictionary=True)  
+        mycursor.execute("SELECT * FROM User WHERE id = %s", (id,))
+        user = mycursor.fetchall()  # Fetch results as a list of dictionaries
+        mycursor.close()
+        conn.close()
+
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        return jsonify(user), 200
+    
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": "Database query failed"}), 500
+
 @app.route('/api/check_user/<string:id>', methods=['GET'])
 def check_user(id):
     try:

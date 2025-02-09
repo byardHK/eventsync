@@ -2,11 +2,24 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-interface UserDetails{
-    firstName: string | null;
-    lastName: string | null;
-    email: string | null;
-}
+type NotificationFrequency = "None" | "Low" | "Normal" | "High";
+
+interface UserDetails {
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  isAdmin: boolean | null;
+  bio: string | null;
+  profilePicture: string | null;
+  notificationFrequency: NotificationFrequency | null;
+  isPublic: boolean | null;
+  isBanned: boolean | null;
+  numTimesReported: number | null;
+  notificationId: number | null;
+  friendRequest: boolean | null,
+  eventInvite: boolean | null,
+  eventCancelled: boolean | null
+};
 
 interface UserContextType {
     userDetails: UserDetails;
@@ -15,12 +28,23 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-export const UserProvider1: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [userDetails, setUserDetails] = useState<UserDetails>({
-        firstName: null,
-        lastName: null,
-        email: null
-    })
+      email: null,
+      firstName: null,
+      lastName: null,
+      isAdmin: null,
+      bio: null,
+      profilePicture: null,
+      notificationFrequency: null,
+      isPublic: null,
+      isBanned: null,
+      numTimesReported: null,
+      notificationId: null,
+      friendRequest: null,
+      eventInvite: null,
+      eventCancelled: null
+  });
 
     return (
         <UserContext.Provider value={{ userDetails, setUserDetails }}>
