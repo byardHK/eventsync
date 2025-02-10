@@ -25,7 +25,7 @@ def update_user_profile():
         data = request.json
         email = data.get('userId')
         bio = data.get('bio')
-        is_private = data.get('isPrivate')
+        is_public = data.get('isPublic')
         notification_frequency = data.get('notificationFrequency')
         receive_friend_request = data.get('receiveFriendRequest')
         invited_to_event = data.get('invitedToEvent')
@@ -51,7 +51,7 @@ def update_user_profile():
             WHERE id = %s
         """
         mycursor.execute(update_query, (
-            bio, is_private, notification_frequency, 
+            bio, is_public, notification_frequency, 
             receive_friend_request, invited_to_event, 
             event_cancelled, email
         ))
@@ -114,11 +114,11 @@ def add_user():
         is_admin = data.get("isAdmin", 0)
         bio = data.get("bio", "")
         profile_picture = data.get("profilePicture", "")
-        notification_frequency = data.get("notificationFrequency", "Normal")
-        is_public = data.get("isPublic", 1)
+        notification_frequency = data.get("notificationFrequency", "None")
+        is_public = data.get("isPublic", 0)
         is_banned = data.get("isBanned", 0)
         num_times_reported = data.get("numTimesReported", 0)
-        notification_id = data.get("notificationId", None)
+        notification_id = data.get("notificationId")
 
         if not id or not fname or not lname:
             return jsonify({"error": "Missing required fields"}), 400
