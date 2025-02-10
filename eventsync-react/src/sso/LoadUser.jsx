@@ -47,11 +47,19 @@ export const LoadUser = () => {
                 const userExists = res.data.exists;
                 console.log("Does the user exist?", userExists);
                 setIsNewUser(!userExists);
-        
+
+
                 if (userExists) {
                     await setExistingUserData(userEmail);
                 } else {
                     console.log("New user detected.");
+                    setUserDetails({
+                        firstName: graphData.givenName,
+                        lastName: graphData.lastName,
+                        email: graphData.userPrincipalName,
+                        microsoftId: graphData.id
+                    })
+                    
                 }
         
             } catch (error) {

@@ -8,6 +8,7 @@ interface UserDetails {
   email: string | null;
   firstName: string | null;
   lastName: string | null;
+  microsoftId: string | null;
   isAdmin: boolean | null;
   bio: string | null;
   profilePicture: string | null;
@@ -35,6 +36,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       lastName: null,
       isAdmin: null,
       bio: null,
+      microsoftId: null,
       profilePicture: null,
       notificationFrequency: null,
       isPublic: null,
