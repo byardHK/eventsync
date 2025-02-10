@@ -14,13 +14,13 @@ function BottomNavBar(){
         justifyContent="space-around"
         style={{ position: 'fixed', bottom: '0' }}
     >
-        <Link to="/">
-            <Button variant="contained">
+        <Link title="Link to Home Page" to="/">
+            <Button title="Home Page Button" variant="contained">
                 <HomeIcon/>
             </Button>
         </Link>
-        <Link to="/myEventsPage">
-            <Button variant="contained">
+        <Link title="Link to My Events Page" to="/myEventsPage">
+            <Button title="My EVents Page Button" variant="contained">
                 <CalendarMonthIcon/>
             </Button>
         </Link>

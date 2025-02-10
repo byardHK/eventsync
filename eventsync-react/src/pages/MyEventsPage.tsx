@@ -91,15 +91,15 @@ function EventLists() {
             container
             direction="column"
         >
-            <h3>Attending</h3>
+            <h2>Attending</h2>
             <EventList events={attendingEvents} canDeleteEvents={false} setEventsChanged={setEventsChanged}></EventList>
             <Box
                 display="flex"
                 flexDirection="row"
                 gap={2}
             >
-                <h3>Hosting</h3>
-                <Button variant="contained" onClick={handleCreatEventClick}>
+                <h2>Hosting</h2>
+                <Button title="Add Event Button" variant="contained" onClick={handleCreatEventClick}>
                     <AddIcon/>
                 </Button>
             </Box>
