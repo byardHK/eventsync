@@ -61,7 +61,7 @@ function HomePage() {
                 </Button>
             </Link>
         </Box>
-        {/* <Box
+        <Box
             display="flex"
             alignItems="center" 
             justifyContent="center"
@@ -91,8 +91,6 @@ function HomePage() {
                 Recommended
             </Button> 
         </Box> 
-        // uncomment for Sprint 2
-        */ }
         <Box
             display="flex"
             flexDirection="column"
@@ -127,7 +125,7 @@ function HomePage() {
                 )}
                 sx={{ width: '255px' }}
                 inputValue={inputValue}
-                onInputChange={(event, newInputValue) => {
+                onInputChange={(_, newInputValue) => {
                     setInputValue(newInputValue);
                 }}
                 open={inputValue !== ''}

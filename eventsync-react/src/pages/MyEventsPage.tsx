@@ -49,7 +49,7 @@ function MyEventsPage() {
                     Calendar
                 </Button>
             </Box> */
-            // uncomment for Sprint 2
+            // uncomment for Sprint 3
             }
             <EventLists/>
             <BottomNavBar></BottomNavBar>

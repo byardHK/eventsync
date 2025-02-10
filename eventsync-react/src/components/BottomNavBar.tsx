@@ -25,7 +25,7 @@ function BottomNavBar(){
                 <CalendarMonthIcon/>
             </Button>
         </Link>
-        {/* <Link to="/friendsPage">
+        <Link to="/friendsPage">
             <Button variant="contained">
                 <ChatIcon/>
             </Button>
@@ -35,8 +35,7 @@ function BottomNavBar(){
                 <GroupIcon/>
             </Button>
         </Link>  
-        // uncomment for Sprint 2
-        */}
+       
     </Box>
 }
 
