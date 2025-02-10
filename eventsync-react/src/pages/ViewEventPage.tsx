@@ -15,6 +15,8 @@ import { timeToString2 } from '../StyledCard';
 import dayjs from 'dayjs';
 import Tag from '../types/Tag';
 import FlagIcon from '@mui/icons-material/Flag';
+import ReportModal from '../components/ReportModal';
+import EventSyncEvent from '../types/EventSyncEvent';
 
 
 function ViewEventPage() {
@@ -266,23 +268,13 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
         }
     }
 
-    async function reportEvent(event: Event) {
-        try {
-            const response = await axios.post('http://localhost:5000/reportEvent', {
-                details: event.description,
-                reportedBy: currentUserId,
-                reportedEventId: event.id
-            });
-        } catch (error) {
-            console.error('Error:', error);
-            alert('report failed');
-        }
-    };
+    const [reportModalOpen, setReportModalOpen] = useState<boolean>(false);
 
     return (
         <Card variant="outlined">
+            <ReportModal input={event} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="event"/>
             <Box display="flex" alignItems="right" justifyContent="right">
-                <IconButton onClick={()=>reportEvent(event)}>
+                <IconButton onClick={()=>setReportModalOpen(true)}>
                     <FlagIcon style={{ color: 'red'}}></FlagIcon>
                 </IconButton>
             </Box>
@@ -356,7 +348,7 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
     );
 }
 
-type Event = {
+export type Event = {
     eventName: string;
     startTime: string;
     endTime: string;
@@ -385,7 +377,7 @@ interface Rsvp {
     lname: string;
 };
 
-type Item = {
+export type Item = {
     name: string;
     amountNeeded: number;
     othersQuantitySignedUpFor: number;
