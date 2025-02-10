@@ -1,28 +1,42 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import React from 'react';
-import App from './App'
-import ReactDOM from 'react-dom/client';
-import { PublicClientApplication } from '@azure/msal-browser';
-import { MsalProvider } from '@azure/msal-react';
-import { msalConfig } from './authConfig.js';
-import { UserProvider } from './sso/UserContext'
-
-// import 'bootstrap/dist/css/bootstrap.min.css';
-import './styles/main.css';
+import React, { useEffect, useState } from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import { PublicClientApplication } from "@azure/msal-browser";
+import { MsalProvider } from "@azure/msal-react";
+import { msalConfig } from "./authConfig";
+import { UserProvider } from "./sso/UserContext";
+import "./styles/main.css";
 
 const msalInstance = new PublicClientApplication(msalConfig);
-const root = ReactDOM.createRoot(document.getElementById('root'));
 
-/**
- * We recommend wrapping most or all of your components in the MsalProvider component. It's best to render the MsalProvider as close to the root as possible.
- */
- root.render(
+const Main = () => {
+  const [isMsalInitialized, setIsMsalInitialized] = useState(false);
+
+  useEffect(() => {
+    const initializeMsal = async () => {
+      await msalInstance.initialize();  // Ensure MSAL is fully initialized
+      setIsMsalInitialized(true);
+    };
+
+    initializeMsal();
+  }, []);
+
+  if (!isMsalInitialized) {
+    return <div>Loading MSAL...</div>;  // Prevent errors by not rendering before MSAL is ready
+  }
+
+  return (
+    <MsalProvider instance={msalInstance}>
+      <UserProvider>
+        <App />
+      </UserProvider>
+    </MsalProvider>
+  );
+};
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(
   <React.StrictMode>
-      <MsalProvider instance={msalInstance}>
-        <UserProvider>
-            <App />
-        </UserProvider>
-      </MsalProvider>
+    <Main />
   </React.StrictMode>
 );
