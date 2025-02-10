@@ -13,32 +13,53 @@ export const LoadUser = () => {
     useEffect(() => {
         const RequestUserData = async () => {
             try {
-                const response = await instance.acquireTokenSilent({
-                    ...loginRequest,
-                    account: accounts[0],
-                });
-
+                // Ensure user is signed in
+                if (accounts.length === 0) {
+                    console.log("No active user session. Redirecting to login...");
+                    await instance.loginRedirect(loginRequest);
+                    return;
+                }
+        
+                let response;
+                try {
+                    // Try getting the token silently
+                    response = await instance.acquireTokenSilent({
+                        ...loginRequest,
+                        account: accounts[0],
+                    });
+                } catch (error) {
+                    if (error.name === "InteractionRequiredAuthError") {
+                        console.warn("Silent token acquisition failed. Attempting interactive login...");
+                        response = await instance.acquireTokenPopup(loginRequest);
+                    } else {
+                        throw error;
+                    }
+                }
+        
+                // Fetch user data from Microsoft Graph
                 const graphData = await callMsGraph(response.accessToken);
                 const userEmail = graphData.userPrincipalName;
-
+        
                 console.log("Fetched Graph User:", graphData);
-
+        
                 // Check if user exists in the database
                 const res = await axios.get(`http://localhost:5000/api/check_user/${userEmail}`);
                 const userExists = res.data.exists;
-                console.log("does the user exist", userExists);
+                console.log("Does the user exist?", userExists);
                 setIsNewUser(!userExists);
-
+        
                 if (userExists) {
                     await setExistingUserData(userEmail);
                 } else {
                     console.log("New user detected.");
                 }
-
+        
             } catch (error) {
-                console.error('Error fetching user data:', error);
+                console.error("Error fetching user data:", error);
             }
         };
+        
+        
 
         const setExistingUserData = async (email) => {
             try {
@@ -50,18 +71,18 @@ export const LoadUser = () => {
                         ...prevDetails,
                         firstName: res.data[0].fname,
                         lastName: res.data[0].lname,
-                        email: res.data[0].id || null,
-                        isAdmin: res.data[0].isAdmin || null,
+                        email: res.data[0].id,
+                        isAdmin: res.data[0].isAdmin,
                         isBanned: res.data[0].isBanned,
-                        isPublic: res.data[0].isPublic || null,
-                        bio: res.data[0].bio || null,
-                        notificationFrequency: res.data[0].notificationFrequency || null,
-                        notificationId: res.data[0].notificationId || null,
+                        isPublic: res.data[0].isPublic,
+                        bio: res.data[0].bio,
+                        notificationFrequency: res.data[0].notificationFrequency,
+                        notificationId: res.data[0].notificationId,
                         numTimesReported: res.data[0].numTimesReported,
-                        profilePicture: res.data[0].profilePicture || null,
-                        friendRequest: res.data[0].friendRequest || null,
-                        eventInvite: res.data[0].eventInvite || null,
-                        eventCancelled: res.data[0].eventCancelled || null,
+                        profilePicture: res.data[0].profilePicture,
+                        friendRequest: res.data[0].friendRequest,
+                        eventInvite: res.data[0].eventInvite,
+                        eventCancelled: res.data[0].eventCancelled,
                     };
                     console.log("Updated userDetails:", updatedDetails);
                     return updatedDetails;
