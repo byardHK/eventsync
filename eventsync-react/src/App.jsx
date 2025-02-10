@@ -9,6 +9,7 @@ import ProfilePage from './pages/ProfilePage';
 import { LoginPage } from './pages/LoginPage';
 import  {LoadUser} from './sso/LoadUser';
 import { AuthenticatedTemplate, UnauthenticatedTemplate } from '@azure/msal-react';
+import OnboardingPage from "./pages/OnboardingPage";
 
 const MainContent = () => {
   return (
@@ -27,6 +28,7 @@ const MainContent = () => {
                     <Route path="/profilePage" element={<ProfilePage/>}/>
                     <Route path="/viewEvent/:eventId" element={<ViewEventPage/>}/>
                     <Route path="/adminPage" element={<AdminPage/>}/>
+                    <Route path="/onboardingPage" element={<OnboardingPage/>}/>
                 </Routes>
             </BrowserRouter>
           </AuthenticatedTemplate>

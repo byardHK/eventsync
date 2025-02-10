@@ -60,6 +60,12 @@ function HomePage() {
                     <PersonIcon/>
                 </Button>
             </Link>
+
+            <Link to="/onboardingPage">
+                <Button variant="contained">
+                    Onboarding
+                </Button>
+            </Link>
         </Box>
         {/* <Box
             display="flex"
@@ -133,6 +139,8 @@ function HomePage() {
                 open={inputValue !== ''}
             />
             <EventList searchKeyword={searchKeyword} tags={tags}/>
+
+            
             <BottomNavBar></BottomNavBar>
         </Box>
     </>;
