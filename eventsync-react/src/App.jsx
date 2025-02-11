@@ -6,6 +6,7 @@ import ViewEventPage from "./pages/ViewEventPage";
 import AdminPage from "./pages/AdminPage";
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import ProfilePage from './pages/ProfilePage';
+import ChatPage from './pages/ChatPage';
 import { LoginPage } from './pages/LoginPage';
 import  {LoadUser} from './sso/LoadUser';
 import { AuthenticatedTemplate, UnauthenticatedTemplate } from '@azure/msal-react';
@@ -27,6 +28,7 @@ const MainContent = () => {
                     <Route path="/profilePage" element={<ProfilePage/>}/>
                     <Route path="/viewEvent/:eventId" element={<ViewEventPage/>}/>
                     <Route path="/adminPage" element={<AdminPage/>}/>
+                    <Route path="/chatPage" element={<ChatPage/>}/>
                 </Routes>
             </BrowserRouter>
           </AuthenticatedTemplate>
