@@ -6,10 +6,9 @@ import { Button, TextField } from "@mui/material";
 
 function ChatPage() {
     const channelName = "chat-channel";
-    const userName = "Allison";
-
-    const [chats, setChats] = useState([]);
-    const [msg, setMsg] = useState();
+    const user = "Allison"; // TODO: change these defaults
+    const [chats, setChats] = useState<Chat[]>([]);
+    const [msg, setMsg] = useState<Chat>();
 
     useEffect(() => {
         const pusher = new Pusher('d2b56055f7edd36cb4b6', {
@@ -18,9 +17,7 @@ function ChatPage() {
         });
         const channel = pusher.subscribe(channelName);
         channel.bind("new-message", (data: Chat) => {
-            console.log(`new message: ${data.text}`);
             setMsg(data);
-            console.log(`messages: ${msg.text}`);
         });
         return () => {
             pusher.unsubscribe(channelName);
@@ -29,84 +26,71 @@ function ChatPage() {
 
     useEffect(() => {
         if (msg) setChats([...chats, msg]);
-        console.log(chats.length);
     }, [msg]);
 
     return (
-        <div className="wrapper">
-            <div className="container">
-                <div className="userProfile">Hello, {userName}</div>
-                <ChatList chats={chats} username={userName} />
-                <ChatInput channelName={channelName} username={userName} />
-            </div>
+        <div>
+            <ChatList chats={chats} user={user} />
+            <ChatInput channelName={channelName} user={user} />
         </div>
     );
 };
 
 
-const ChatInput = (prop: { channelName: String, username: String }) => {
+const ChatInput = (prop: { channelName: String, user: String }) => {
     const [message, setMessage] = useState<string>("");
-    const [showErr, setShowErr] = useState<Boolean>(false);
 
-    const sendMessage = (e) => {
-        e.preventDefault();
-        console.log(`sending message: ${message}`);
+    const sendMessage = () => {
+        // e.preventDefault(); // I should do this
         if (message.trim().length > 0) {
-            let data = {
-                user: prop.username,
+            let data: Chat = {
+                user: prop.user,
                 text: message,
             };
-            setShowErr(false);
-            axios
-                .post(`http://localhost:5000/message/`, data)
-                .then(() => {
-                    setMessage("");
-                });
-        } else setShowErr(true);
+            axios.post(`http://localhost:5000/message/`, data);
+            setMessage("")
+        }
     };
 
     return (
         <div>
-            {/* // <form className="inputContainer" onSubmit={(e) => sendMessage(e)}> */}
             <TextField
                 type="text"
                 className="inputElement"
                 value={message}
                 onChange={(e) => { setMessage(e.target.value); console.log(`${e.target.value}`) }}
             />
-            <Button className="inputBtn" type="submit" onClick={sendMessage}>
+            <Button onClick={e => sendMessage(e)}>
                 Send
             </Button>
-            {/* //   {showErr && <div className="errorText">Enter your message</div>}
-    // </form> */}
         </div>
     );
 };
 
-const ChatList = (prop: { chats: Chat[], username: String }) => {
+const ChatList = (prop: { chats: Chat[], user: String }) => {
     return (
         <div className="chatsContainer">
             {prop.chats.map((chat) => {
                 console.log(chat.text);
                 return (
-                    <div className={chat.username === prop.username ? "divRight" : "divLeft"}>
+                    <div className={chat.user === prop.user ? "divRight" : "divLeft"}>
                         <div
                             className={
-                                chat.username === prop.username
+                                chat.user === prop.user
                                     ? " commonStyle myChatContainer "
                                     : "commonStyle chatContainer"
                             }
                             key={Math.random()}
                         >
-                            {chat.username !== prop.username && (
-                                <div className="msgAuthor">{chat.username}</div>
+                            {chat.user !== prop.user && (
+                                <div className="msgAuthor">{chat.user}</div>
                             )}
                             <div>{chat.text}</div>
                         </div>
 
                         <div
                             className={
-                                chat.username === prop.username
+                                chat.user === prop.user
                                     ? "arrowRight arrow"
                                     : "arrowLeft arrow"
                             }
@@ -119,7 +103,7 @@ const ChatList = (prop: { chats: Chat[], username: String }) => {
 };
 
 type Chat = {
-    username: String;
+    user: String;
     text: String
 }
 
