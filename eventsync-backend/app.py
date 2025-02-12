@@ -1350,8 +1350,23 @@ def reportEvent():
 @app.route('/message/', methods=['POST'])
 def message():
     data = request.get_json()
-    pusher_client.trigger('chat-channel', 'new-message', {'text': data['text'], 'user': data['user']})
-    return "message sent"
+    chat_id = 7 # TODO: make dynamic
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f""" 
+            INSERT INTO Message (chatId, senderId, messageContent, timeSent) 
+                VALUES ({chat_id}, "{data["senderId"]}", "{data["messageContent"]}", "{data["timeSent"]}");
+        """)
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        pusher_client.trigger('chat-channel', 'new-message', {'messageContent': data['messageContent'], 'senderId': data['senderId'],
+                                                              'chatId': data['chatId'], 'timeSent': data['timeSent'],})
+        return "message sent"
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
 
 @app.route('/messages/', methods=['GET'])
 def get_messages():

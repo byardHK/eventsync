@@ -6,7 +6,7 @@ import { Button, TextField } from "@mui/material";
 
 function ChatPage() {
     const channelName = "chat-channel";
-    const user = "Allison"; // TODO: change these defaults
+    const user = "harnlyam20@gcc.edu"; // TODO: change these defaults
     const [chats, setChats] = useState<Chat[]>([]);
     const [msg, setMsg] = useState<Chat>();
 
@@ -91,7 +91,7 @@ const ChatList = (prop: { chats: Chat[], user: String }) => {
         <div>
             {prop.chats.map((chat) => {
                 return (
-                    <div>{chat.messageContent}</div>
+                    <div>{chat.messageContent} ({chat.senderId})</div>
                 );
             })}
         </div>
