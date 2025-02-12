@@ -1352,3 +1352,20 @@ def message():
     data = request.get_json()
     pusher_client.trigger('chat-channel', 'new-message', {'text': data['text'], 'user': data['user']})
     return "message sent"
+
+@app.route('/messages/', methods=['GET'])
+def get_messages():
+    chat_id = 7 # TODO: make dynamic
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f"SELECT * FROM Message WHERE chatId={chat_id};")
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"chats": sqlResponseToList(response, headers)})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}

@@ -17,8 +17,10 @@ function ChatPage() {
         });
         const channel = pusher.subscribe(channelName);
         channel.bind("new-message", (data: Chat) => {
-            setMsg(data);
+            // setMsg(data);
+            addMessage(data);
         });
+        channel.bind("pusher:subscription_succeeded", retrieveHistory);
         return () => {
             pusher.unsubscribe(channelName);
         };
@@ -27,6 +29,19 @@ function ChatPage() {
     useEffect(() => {
         if (msg) setChats([...chats, msg]);
     }, [msg]);
+
+    function addMessage(message: Chat) {
+        const newChats = chats.concat(message);
+        setChats(newChats);
+        console.log(`current chats: ${chats.length}`);
+    }
+
+    async function retrieveHistory() {
+        const response = await axios.get<ChatList>(`http://localhost:5000/messages/`);
+        setChats(response.data.chats);
+    
+        
+    }
 
     return (
         <div>
@@ -44,8 +59,12 @@ const ChatInput = (prop: { channelName: String, user: String }) => {
         // e.preventDefault(); // I should do this
         if (message.trim().length > 0) {
             let data: Chat = {
-                user: prop.user,
-                text: message,
+                senderId: prop.user,
+                messageContent: message,
+                id: -1, // TODO: how do I want to do this?
+                chatId: 7,
+                timeSent: "2025-02-08 17:02:00" // TODO: get current time???
+
             };
             axios.post(`http://localhost:5000/message/`, data);
             setMessage("")
@@ -58,9 +77,9 @@ const ChatInput = (prop: { channelName: String, user: String }) => {
                 type="text"
                 className="inputElement"
                 value={message}
-                onChange={(e) => { setMessage(e.target.value); console.log(`${e.target.value}`) }}
+                onChange={(e) => setMessage(e.target.value)}
             />
-            <Button onClick={e => sendMessage(e)}>
+            <Button onClick={sendMessage}>
                 Send
             </Button>
         </div>
@@ -69,33 +88,10 @@ const ChatInput = (prop: { channelName: String, user: String }) => {
 
 const ChatList = (prop: { chats: Chat[], user: String }) => {
     return (
-        <div className="chatsContainer">
+        <div>
             {prop.chats.map((chat) => {
-                console.log(chat.text);
                 return (
-                    <div className={chat.user === prop.user ? "divRight" : "divLeft"}>
-                        <div
-                            className={
-                                chat.user === prop.user
-                                    ? " commonStyle myChatContainer "
-                                    : "commonStyle chatContainer"
-                            }
-                            key={Math.random()}
-                        >
-                            {chat.user !== prop.user && (
-                                <div className="msgAuthor">{chat.user}</div>
-                            )}
-                            <div>{chat.text}</div>
-                        </div>
-
-                        <div
-                            className={
-                                chat.user === prop.user
-                                    ? "arrowRight arrow"
-                                    : "arrowLeft arrow"
-                            }
-                        ></div>
-                    </div>
+                    <div>{chat.messageContent}</div>
                 );
             })}
         </div>
@@ -103,8 +99,15 @@ const ChatList = (prop: { chats: Chat[], user: String }) => {
 };
 
 type Chat = {
-    user: String;
-    text: String
+    id: Number;
+    chatId: Number;
+    senderId: String;
+    messageContent: String;
+    timeSent: String;
+}
+
+type ChatList = {
+    chats: Chat[]
 }
 
 export default ChatPage;
