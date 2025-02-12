@@ -61,13 +61,14 @@ function HomePage() {
                 </Button>
             </Link>
         </Box>
-        {/* <Box
+         <Box
             display="flex"
             alignItems="center" 
             justifyContent="center"
         >
             <h3 className="card-title">Welcome {userDetails.firstName}!</h3>
         </Box>
+
         <Box
             display="flex"
             flexDirection="row"
@@ -90,9 +91,7 @@ function HomePage() {
             >
                 Recommended
             </Button> 
-        </Box> 
-        // uncomment for Sprint 2
-        */ }
+        </Box>
         <Box
             display="flex"
             flexDirection="column"

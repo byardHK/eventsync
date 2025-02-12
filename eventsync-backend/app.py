@@ -1290,6 +1290,52 @@ def get_rsvps():
         print(f"Error: {err}")
     return {} 
 
+@app.route('/get_my_groups/<string:userId>')
+def get_my_groups(userId):
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(
+            f"""
+            SELECT GroupOfUser.id, GroupOfUser.groupName, GroupOfUser.creatorId, GroupOfUser.chatId, GroupOfUser.numTimesReported
+            FROM GroupOfUserToUser
+            INNER JOIN GroupOfUser 
+            ON GroupOfUserToUser.groupId = GroupOfUser.id 
+            WHERE GroupOfUserToUser.userId = "{userId}"
+            """
+        )
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        mycursor.close()
+        conn.close()
+        return sqlResponseToJson(response, headers)
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_users_in_group/<int:groupId>')
+def get_users_in_group(groupId):
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(
+            f"""
+            SELECT User.id
+            FROM GroupOfUserToUser
+            INNER JOIN User 
+            ON GroupOfUserToUser.userId = User.id 
+            WHERE GroupOfUserToUser.groupId = {groupId};
+            """
+        )
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        mycursor.close()
+        conn.close()
+        return sqlResponseToJson(response, headers)
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
 @app.route('/get_reports/')
 def get_reports():
     try:  

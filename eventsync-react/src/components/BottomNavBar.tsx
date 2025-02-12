@@ -29,14 +29,12 @@ function BottomNavBar(){
             <Button variant="contained">
                 <ChatIcon/>
             </Button>
-        </Link>
+        </Link> */}
         <Link to="/friendsPage">
             <Button variant="contained">
                 <GroupIcon/>
             </Button>
         </Link>  
-        // uncomment for Sprint 2
-        */}
     </Box>
 }
 
