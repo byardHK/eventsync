@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import BottomNavBar from '../components/BottomNavBar';
 import Box from '@mui/material/Box';
-import { Button, Card, Accordion, AccordionSummary, AccordionDetails, Typography, Chip, Dialog } from '@mui/material';
+import { Button, Card, Accordion, AccordionSummary, AccordionDetails, Typography, Chip, Dialog, IconButton } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PersonIcon from '@mui/icons-material/Person';
 import axios from 'axios';
@@ -14,6 +14,9 @@ import "../styles/style.css";
 import { timeToString2 } from '../StyledCard';
 import dayjs from 'dayjs';
 import Tag from '../types/Tag';
+import FlagIcon from '@mui/icons-material/Flag';
+import ReportModal from '../components/ReportModal';
+import EventSyncEvent from '../types/EventSyncEvent';
 
 
 function ViewEventPage() {
@@ -199,7 +202,7 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
     const [items, setItems] = useState<Item[]>(initialItems);
     const [itemSignUpChanged, setItemSignUpChanged] = useState<Boolean[]>(new Array(items.length).fill(false));
     const { userDetails } = useUser();
-    const currentUserId = userDetails.email
+    const currentUserId = userDetails.email;
   
     useEffect(() => {
         setItems(initialItems)
@@ -265,9 +268,17 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
         }
     }
 
+    const [reportModalOpen, setReportModalOpen] = useState<boolean>(false);
+
     return (
         <Card variant="outlined">
-            <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight={250} minWidth={250} gap={1}>
+            <ReportModal input={event} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="event"/>
+            <Box display="flex" alignItems="right" justifyContent="right">
+                <IconButton onClick={()=>setReportModalOpen(true)}>
+                    <FlagIcon style={{ color: 'red'}}></FlagIcon>
+                </IconButton>
+            </Box>
+            <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight={250} minWidth={250} gap={1} padding={2}>
                 <p>{event.title}</p>
                 <p>{timeToString2(dayjs(event.startTime), dayjs(event.endTime))}</p>
                 <p>{`Where?: ${event.locationName}`}</p>
@@ -337,7 +348,7 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
     );
 }
 
-type Event = {
+export type Event = {
     eventName: string;
     startTime: string;
     endTime: string;
@@ -366,7 +377,7 @@ interface Rsvp {
     lname: string;
 };
 
-type Item = {
+export type Item = {
     name: string;
     amountNeeded: number;
     othersQuantitySignedUpFor: number;
