@@ -4,6 +4,7 @@ import FriendsPage from "./pages/FriendsPage";
 import MyEventsPage from "./pages/MyEventsPage";
 import ViewEventPage from "./pages/ViewEventPage";
 import AdminPage from "./pages/AdminPage";
+import GroupsPage from "./pages/GroupsPage";
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import ProfilePage from './pages/ProfilePage';
 import { LoginPage } from './pages/LoginPage';
@@ -27,6 +28,7 @@ const MainContent = () => {
                     <Route path="/profilePage" element={<ProfilePage/>}/>
                     <Route path="/viewEvent/:eventId" element={<ViewEventPage/>}/>
                     <Route path="/adminPage" element={<AdminPage/>}/>
+                    <Route path="/groupsPage" element={<GroupsPage/>}/>
                 </Routes>
             </BrowserRouter>
           </AuthenticatedTemplate>
