@@ -1384,3 +1384,19 @@ def get_messages():
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
+
+@app.route('/get_my_chats/<string:user_id>', methods=['GET'])
+def get_my_chats(user_id: str):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f"SELECT * FROM Chat WHERE id IN (SELECT chatId FROM ChatToUser WHERE userId = '{user_id}');")
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return sqlResponseToJson(response, headers)
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
