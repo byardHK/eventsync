@@ -10,6 +10,7 @@ import ChatPage from './pages/ChatPage';
 import { LoginPage } from './pages/LoginPage';
 import  {LoadUser} from './sso/LoadUser';
 import { AuthenticatedTemplate, UnauthenticatedTemplate } from '@azure/msal-react';
+import ChatHomePage from './pages/ChatHomePage';
 
 const MainContent = () => {
   return (
@@ -29,6 +30,7 @@ const MainContent = () => {
                     <Route path="/viewEvent/:eventId" element={<ViewEventPage/>}/>
                     <Route path="/adminPage" element={<AdminPage/>}/>
                     <Route path="/chatPage" element={<ChatPage/>}/>
+                    <Route path="/chatHomePage" element={<ChatHomePage/>}/>
                 </Routes>
             </BrowserRouter>
           </AuthenticatedTemplate>
