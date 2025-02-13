@@ -25,8 +25,7 @@ function HomePage() {
     const [tags, setTags] = useState<string[]>([]);
     const [tagOptions, setTagOptions] = useState<string[]>([]);
     const [inputValue, setInputValue] = useState('');
-    // console.log("home page: ")
-    // console.log(currentUserId);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchTags = async () => {
@@ -60,12 +59,7 @@ function HomePage() {
                     <PersonIcon/>
                 </Button>
             </Link>
-
-            <Link to="/onboardingPage">
-                <Button variant="contained">
-                    Onboarding
-                </Button>
-            </Link>
+            
         </Box>
         {/* <Box
             display="flex"

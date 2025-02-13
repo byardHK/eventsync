@@ -107,18 +107,34 @@ def check_user(id):
 def add_user():
     try:
         data = request.get_json()
+        print(data)
 
-        id = data.get("id")
-        fname = data.get("fname")
-        lname = data.get("lname")
-        is_admin = data.get("isAdmin", 0)
+        id = data.get("email")  # Assuming email is used as ID
+        fname = data.get("firstName")
+        lname = data.get("lastName")
+        is_admin = int(data.get("isAdmin", 0))  # Default to 0
         bio = data.get("bio", "")
-        profile_picture = data.get("profilePicture", "")
+        profile_picture = data.get("profilePicture", "")  # Default to empty string
         notification_frequency = data.get("notificationFrequency", "None")
-        is_public = data.get("isPublic", 0)
-        is_banned = data.get("isBanned", 0)
-        num_times_reported = data.get("numTimesReported", 0)
-        notification_id = data.get("notificationId")
+        is_public = int(data.get("isPublic", 0))
+        is_banned = int(data.get("isBanned", 0))  # Default to 0
+        num_times_reported = int(data.get("numTimesReported", 0))  # Default to 0
+        notification_id = int(data.get("notificationId", 1))  # Default to 1
+        friend_request = int(data.get("receiveFriendRequest", 0))
+        event_invite = int(data.get("invitedToEvent", 0))
+        event_cancelled = int(data.get("eventCancelled", 0))
+        gender = data.get("gender", "Undefined")  # Default to "Undefined"
+
+        is_public = int(is_public)
+        is_admin = int(is_admin)
+        is_banned = int(is_banned)
+        friend_request = int(friend_request)
+        event_invite = int(event_invite)
+        event_cancelled = int(event_cancelled)
+
+        print("Final values:", (id, fname, lname, is_admin, bio, profile_picture, 
+                        notification_frequency, is_public, is_banned, num_times_reported, 
+                        notification_id, friend_request, event_invite, event_cancelled, gender))
 
         if not id or not fname or not lname:
             return jsonify({"error": "Missing required fields"}), 400
@@ -127,11 +143,12 @@ def add_user():
         mycursor = conn.cursor()
 
         sql = """INSERT INTO User (id, fname, lname, isAdmin, bio, profilePicture, 
-                notificationFrequency, isPublic, isBanned, numTimesReported, notificationId) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                notificationFrequency, isPublic, isBanned, numTimesReported, 
+                notificationId, friendRequest, eventInvite, eventCancelled, gender) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
         
         values = (id, fname, lname, is_admin, bio, profile_picture, 
-                  notification_frequency, is_public, is_banned, num_times_reported, notification_id)
+                  notification_frequency, is_public, is_banned, num_times_reported, notification_id, friend_request, event_invite, event_cancelled, gender)
 
         mycursor.execute(sql, values)
         conn.commit()
