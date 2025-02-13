@@ -1,6 +1,6 @@
 
 import Pusher from "pusher-js";
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from "axios";
 import { Button, TextField } from "@mui/material";
 
@@ -17,8 +17,8 @@ function ChatPage() {
         });
         const channel = pusher.subscribe(channelName);
         channel.bind("new-message", (data: Chat) => {
-            // setMsg(data);
-            addMessage(data);
+            setMsg(data);
+            console.log(`I got a new message! : ${data.messageContent}`);
         });
         channel.bind("pusher:subscription_succeeded", retrieveHistory);
         return () => {
@@ -28,19 +28,19 @@ function ChatPage() {
 
     useEffect(() => {
         if (msg) setChats([...chats, msg]);
+        console.log(chats.length);
     }, [msg]);
 
-    function addMessage(message: Chat) {
-        const newChats = chats.concat(message);
-        setChats(newChats);
-        console.log(`current chats: ${chats.length}`);
-    }
+    // function addMessage(message: Chat) {
+    //     console.log(`I will set chats now: ${chats.length}; ${message.messageContent}`);
+    //     setChats([...chats, message]);
+    //     console.log(`Chats have been set: ${chats.length}`);
+
+    // }
 
     async function retrieveHistory() {
         const response = await axios.get<ChatList>(`http://localhost:5000/messages/`);
         setChats(response.data.chats);
-    
-        
     }
 
     return (
@@ -58,16 +58,15 @@ const ChatInput = (prop: { channelName: String, user: String }) => {
     const sendMessage = () => {
         // e.preventDefault(); // I should do this
         if (message.trim().length > 0) {
-            let data: Chat = {
+            var data: Chat = {
                 senderId: prop.user,
                 messageContent: message,
                 id: -1, // TODO: how do I want to do this?
                 chatId: 7,
                 timeSent: "2025-02-08 17:02:00" // TODO: get current time???
-
             };
             axios.post(`http://localhost:5000/message/`, data);
-            setMessage("")
+            setMessage("");
         }
     };
 
