@@ -4,12 +4,14 @@ import axios from "axios";
 import { Button, TextField, Box } from "@mui/material";
 import { useUser } from '../sso/UserContext';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Message from '../types/Message';
 
 
-function ChatPage(chatId: Number) {
+function ChatPage() {
     const { userDetails } = useUser();
+    const { chatId } = useParams<{ chatId: string }>();
+    // const chatId = parseInt(strChatId || '-1');
     const userId = userDetails.email ? userDetails.email : "";
     const channelName = `chat-${chatId}`; // TODO: make this dynamic
     const [chats, setChats] = useState<Message[]>([]);
@@ -50,12 +52,12 @@ function ChatPage(chatId: Number) {
     // }
 
     async function retrieveHistory() {
-        const response = await axios.get<ChatList>(`http://localhost:5000/messages/`);
+        const response = await axios.get<ChatList>(`http://localhost:5000/get_chat_hist/${chatId}`);
         setChats(response.data.chats);
     }
 
     const handleBackClick = () => {
-        navigate('/myeventspage');
+        navigate('/chatHomePage');
     };
 
     return (

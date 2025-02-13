@@ -6,16 +6,37 @@ import axios from 'axios';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css"
 import Chat from '../types/Chat';
-
-// const currentUserId = "segulinWH20@gcc.edu"; // Placeholder for the current user that is logged in. TODO: get the actual current user
-
+import { useNavigate } from 'react-router-dom';
 
 function ChatHomePage() {
-    // console.log("my events page: ")
-    // console.log(currentUserId);
+    
+
+    return <>
+        <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center" 
+            justifyContent="center"
+        >
+            <h1>My Chats</h1>
+           
+            <ChatList ></ChatList>
+            {/* <BottomNavBar></BottomNavBar> */}
+        </Box>
+    </>;
+
+
+};
+
+
+
+function ChatList() {  
+
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
     const [chats, setChats] = useState<Chat[]>([]); 
+    const navigate = useNavigate();
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -29,43 +50,26 @@ function ChatHomePage() {
           }
         };
         fetchData();
-    });
+    }, []);
 
-    return <>
-        <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center" 
-            justifyContent="center"
-        >
-            <h1>My Chats</h1>
-           
-            <ChatList chats={chats}></ChatList>
-            <BottomNavBar></BottomNavBar>
-        </Box>
-    </>;
+    function viewChat(chat: Chat) {
+        navigate(`/viewChat/${chat.id}`);
+    }
 
-
-};
-
-
-
-function ChatList(props: {chats: Chat[]}) {
-
-    return <Grid2
+    return (<Grid2
         container spacing={3}
         display="flex"
         alignItems="center" 
         justifyContent="center"
         style={{maxHeight: '30vh', overflow: 'auto'}}
         padding={2}>
-            {props.chats.map(chat =>  
-                <Box display="flex" justifyContent="center" alignItems="center">
+            {chats.map(chat =>  
+                <Box style={{ backgroundColor: "white"}} display="flex" justifyContent="center" alignItems="center"
+                onClick={() => { viewChat(chat) }}>
                     <h2>{chat.name}</h2>
                 </Box>
-            )}
-                
-    </Grid2>
+            )}  
+    </Grid2>)
 }
 
 

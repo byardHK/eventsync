@@ -29,7 +29,7 @@ const MainContent = () => {
                     <Route path="/profilePage" element={<ProfilePage/>}/>
                     <Route path="/viewEvent/:eventId" element={<ViewEventPage/>}/>
                     <Route path="/adminPage" element={<AdminPage/>}/>
-                    <Route path="/chatPage" element={<ChatPage/>}/>
+                    <Route path="/viewChat/:chatId" element={<ChatPage/>}/>
                     <Route path="/chatHomePage" element={<ChatHomePage/>}/>
                 </Routes>
             </BrowserRouter>

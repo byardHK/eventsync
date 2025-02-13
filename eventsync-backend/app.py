@@ -1368,9 +1368,8 @@ def message():
         print(f"Error: {err}")
     return {}
 
-@app.route('/messages/', methods=['GET'])
-def get_messages():
-    chat_id = 7 # TODO: make dynamic
+@app.route('/get_chat_hist/<int:chat_id>', methods=['GET'])
+def get_chat_hist(chat_id: int):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
