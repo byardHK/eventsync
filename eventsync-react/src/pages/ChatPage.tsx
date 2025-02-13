@@ -1,4 +1,3 @@
-
 import Pusher from "pusher-js";
 import { useState, useEffect } from 'react';
 import axios from "axios";
@@ -26,8 +25,12 @@ function ChatPage() {
         };
     }, []);
 
-    useEffect(() => {
-        if (msg) setChats([...chats, msg]);
+    useEffect(() => {          
+        if (msg) setChats([...chats, msg].sort((a: Chat, b: Chat) => {
+            if (a.timeSent > b.timeSent) return -1;
+            else if (a.timeSent < b.timeSent) return 1;
+            else return 0;
+        }));
         console.log(chats.length);
     }, [msg]);
 
