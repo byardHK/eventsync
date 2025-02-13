@@ -63,7 +63,7 @@ const ChatInput = (prop: { channelName: String, user: String }) => {
                 messageContent: message,
                 id: -1, // TODO: how do I want to do this?
                 chatId: 7,
-                timeSent: "2025-02-08 17:02:00" // TODO: get current time???
+                timeSent: getCurDate()
             };
             axios.post(`http://localhost:5000/message/`, data);
             setMessage("");
@@ -107,6 +107,12 @@ type Chat = {
 
 type ChatList = {
     chats: Chat[]
+}
+
+function getCurDate() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} 
+        ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`; 
 }
 
 export default ChatPage;
