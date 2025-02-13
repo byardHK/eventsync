@@ -4,11 +4,14 @@ import React, { useState, useEffect } from 'react';
 import { useMsal } from '@azure/msal-react';
 import { useUser } from './UserContext';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
 
 export const LoadUser = () => {
     const { userDetails, setUserDetails } = useUser();
     const [isNewUser, setIsNewUser] = useState(false);
     const { instance, accounts } = useMsal();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const RequestUserData = async () => {
@@ -48,7 +51,6 @@ export const LoadUser = () => {
                 console.log("Does the user exist?", userExists);
                 setIsNewUser(!userExists);
 
-
                 if (userExists) {
                     await setExistingUserData(userEmail);
                 } else {
@@ -59,7 +61,7 @@ export const LoadUser = () => {
                         email: graphData.userPrincipalName,
                         microsoftId: graphData.id
                     })
-                    
+                    navigate('/onboarding')
                 }
         
             } catch (error) {

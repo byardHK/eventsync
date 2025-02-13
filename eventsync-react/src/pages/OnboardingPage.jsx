@@ -8,60 +8,86 @@ import "../styles/style.css";
 const OnboardingPage = () => {
     const { userDetails, setUserDetails } = useUser();
     const navigate = useNavigate();
+    console.log(userDetails);
 
     // Initialize form state with userDetails
-    const [firstName, setFirstName] = useState(userDetails.firstName || "");
-    const [lastName, setLastName] = useState(userDetails.lastName || "");
-    const [email, setEmail] = useState(userDetails.email || "");
+    const [firstName, setFirstName] = useState(userDetails.firstName);
+    const [lastName, setLastName] = useState(userDetails.lastName);
+    const [email, setEmail] = useState(userDetails.email);
     const [bio, setBio] = useState("");
-    const [isPublic, setIsPublic] = useState(true);
+    const [isPublic, setIsPublic] = useState(false);
     const [notificationFrequency, setNotificationFrequency] = useState("None");
-    const [adminPassword, setAdminPassword] = useState(""); // State for admin password
-    const [isAdmin, setIsAdmin] = useState(false); // State for 'Admin?' switch
+    const [gender, setGender] = useState("Undefined");
+    const [receiveFriendRequest, setReceiveFriendRequest] = useState(false);
+    const [invitedToEvent, setInvitedToEvent] = useState(false);
+    const [eventCancelled, setEventCancelled] = useState(false);
 
     const handleSubmit = async () => {
         const updatedUser = {
-            firstName,
-            lastName,
-            email,
-            bio,
-            isPublic,
-            notificationFrequency,
-            adminPassword: isAdmin ? adminPassword : null // Only send password if user is admin
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            bio: bio,
+            isPublic: isPublic,
+            notificationFrequency: notificationFrequency,
+            gender: gender,
+            receiveFriendRequest: receiveFriendRequest,
+            invitedToEvent: invitedToEvent, 
+            eventCancelled: eventCancelled
         };
 
         try {
-            await axios.post("http://localhost:5000/api/onboard_user", updatedUser);
+            console.log(updatedUser);
+            await axios.post("http://localhost:5000/api/add_user", updatedUser);
             //setUserDetails((prev) => ({ ...prev, ...updatedUser })); // Update global user state
-            navigate("/dashboard"); // Redirect to dashboard after onboarding
+
+            useEffect(() => {
+                fetchUserData();
+            }, []);
+            const fetchUserData = async () => {
+                try {
+                    const res = await axios.get(`http://localhost:5000/api/get_user/${userId}`);
+                    console.log("Fetched user data:", res.data);
+        
+                    setUserDetails(prev => ({
+                        ...prev,
+                        ...res.data[0]
+                    }));
+                } catch (error) {
+                    console.error("Error fetching user details:", error);
+                }
+            };
+            navigate("/"); // Redirect to dashboard after onboarding
         } catch (error) {
             console.error("Error submitting onboarding data:", error);
+            navigate("/");
         }
+
     };
 
     return (
         <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="flex-start" // Align to the top for better spacing
-            flexDirection="column" // Ensure layout is stacked vertically
-            bgcolor="rgb(66, 135, 245)" // Blue background color
-            padding="20px"
-            minHeight="100vh" // Ensure full page height
-            sx={{ overflow: "auto" }} // Allow scrolling if content exceeds height
-        >
-            <Card
-                sx={{
-                    width: "90%",
-                    maxWidth: "400px",
-                    padding: "20px",
-                    borderRadius: "12px",
-                    textAlign: "center",
-                    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
-                    marginTop: "20px", // Space above the card
-                    marginBottom: "20px", // Space below the card
-                }}
-            >
+    display="flex"
+    justifyContent="center" // Centers content horizontally
+    alignItems="center" // Centers content vertically
+    flexDirection="column"
+    bgcolor="rgb(66, 135, 245)"
+    padding="20px"
+    minHeight="100vh" // Ensure full page height
+    width="100vw" // Full width
+>
+    <Card
+        sx={{
+            width: "90%",
+            maxWidth: "400px",
+            padding: "20px",
+            borderRadius: "12px",
+            textAlign: "center",
+            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+            marginTop: "20px",
+            marginBottom: "20px",
+        }}
+    >
                 <h2>Welcome to EventSync.</h2>
                 <p>Sign up to start.</p>
 
@@ -88,6 +114,18 @@ const OnboardingPage = () => {
                     disabled
                     margin="normal"
                 />
+
+                <FormControl fullWidth margin="normal">
+                    <InputLabel>Gender</InputLabel>
+                    <Select
+                        value={gender}
+                        onChange={(e) => setGender(e.target.value)}
+                    >
+                        <MenuItem value="Undefined">Prefer Not To Say</MenuItem>
+                        <MenuItem value="Male">Male</MenuItem>
+                        <MenuItem value="Female">Female</MenuItem>
+                    </Select>
+                </FormControl>
 
                 <TextField
                     fullWidth
@@ -119,36 +157,18 @@ const OnboardingPage = () => {
 
                 <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
                     <span>Friend Request Notifications</span>
-                    <Switch checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
+                    <Switch checked={receiveFriendRequest} onChange={(e) => setReceiveFriendRequest(e.target.checked)} />
                 </Box>
 
                 <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
                     <span>Event Invite Notifications</span>
-                    <Switch checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
+                    <Switch checked={invitedToEvent} onChange={(e) => setInvitedToEvent(e.target.checked)} />
                 </Box>
                 
                 <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
                     <span>Event Cancellation Notifications</span>
-                    <Switch checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
+                    <Switch checked={eventCancelled} onChange={(e) => setEventCancelled(e.target.checked)} />
                 </Box>
-
-                {/* Admin Toggle */}
-                <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
-                    <span>Admin?</span>
-                    <Switch checked={isAdmin} onChange={(e) => setIsAdmin(e.target.checked)} />
-                </Box>
-
-                {/* Conditionally render Admin Password input */}
-                {isAdmin && (
-                    <TextField
-                        fullWidth
-                        label="Admin Password"
-                        type="password" // Mask the password input
-                        value={adminPassword}
-                        onChange={(e) => setAdminPassword(e.target.value)}
-                        margin="normal"
-                    />
-                )}
 
                 <Button
                     variant="contained"
@@ -157,7 +177,7 @@ const OnboardingPage = () => {
                     sx={{ mt: 2 }}
                     onClick={handleSubmit}
                 >
-                    Complete Setup
+                    Sign up
                 </Button>
             </Card>
         </Box>
