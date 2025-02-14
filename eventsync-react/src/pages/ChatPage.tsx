@@ -1,4 +1,4 @@
-import Pusher from "pusher-js";
+import Pusher, { Channel } from "pusher-js";
 import { useState, useEffect } from 'react';
 import axios from "axios";
 import { Button, TextField, Box } from "@mui/material";
@@ -16,6 +16,7 @@ function ChatPage() {
     const channelName = `chat-channel-${chatId}`; // TODO: make this dynamic
     const [chats, setChats] = useState<Message[]>([]);
     const [msg, setMsg] = useState<Message>();
+    // const [pusherChannel, setPusherChannel] = useState<Channel | null>(null);
 
     const navigate = useNavigate();
 
@@ -33,14 +34,14 @@ function ChatPage() {
         return () => {
             pusher.unsubscribe(channelName);
         };
-    }, []);
+    });
 
     useEffect(() => {          
-        if (msg) setChats([...chats, msg].sort((a: Message, b: Message) => {
-            if (a.timeSent > b.timeSent) return -1;
-            else if (a.timeSent < b.timeSent) return 1;
-            else return 0;
-        }));
+        // if (msg) setChats([...chats, msg].sort((a: Message, b: Message) => {
+        //     if (a.timeSent > b.timeSent) return -1;
+        //     else if (a.timeSent < b.timeSent) return 1;
+        //     else return 0;
+        // }));
         console.log(chats.length);
     }, [msg]);
 
@@ -66,13 +67,13 @@ function ChatPage() {
                 <ArrowBackIcon />
              </Button>
             <ChatList chats={chats} userId={userId} />
-            <ChatInput channelName={channelName} userId={userId} />
+            <ChatInput channelName={channelName} userId={userId} chatId={chatId ? chatId : "-1"} />
         </div>
     );
 };
 
 
-const ChatInput = (prop: { channelName: String, userId: String }) => {
+const ChatInput = (prop: { channelName: String, userId: String, chatId: string }) => {
     const [message, setMessage] = useState<string>("");
 
     const sendMessage = () => {
@@ -82,7 +83,7 @@ const ChatInput = (prop: { channelName: String, userId: String }) => {
                 senderId: prop.userId,
                 messageContent: message,
                 id: -1, // TODO: how do I want to do this?
-                chatId: 7,
+                chatId: Number(prop.chatId),
                 timeSent: getCurDate()
             };
             axios.post(`http://localhost:5000/message/`, data);
