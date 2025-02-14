@@ -13,7 +13,7 @@ function ChatPage() {
     const { chatId } = useParams<{ chatId: string }>();
     // const chatId = parseInt(strChatId || '-1');
     const userId = userDetails.email ? userDetails.email : "";
-    const channelName = `chat-${chatId}`; // TODO: make this dynamic
+    const channelName = `chat-channel-${chatId}`; // TODO: make this dynamic
     const [chats, setChats] = useState<Message[]>([]);
     const [msg, setMsg] = useState<Message>();
 

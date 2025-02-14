@@ -21,7 +21,7 @@ function ChatHomePage() {
             <h1>My Chats</h1>
            
             <ChatList ></ChatList>
-            {/* <BottomNavBar></BottomNavBar> */}
+            <BottomNavBar></BottomNavBar>
         </Box>
     </>;
 
