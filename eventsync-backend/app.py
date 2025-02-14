@@ -189,18 +189,7 @@ def get_users():
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         mycursor.execute("""
-                        SELECT u.fname, u.lname, u.bio, u.email
-                        FROM User u
-                        WHERE u.id != 5 AND u.id NOT IN (
-                            SELECT user2ID 
-                            FROM UserToUser 
-                            WHERE user1ID = 5
-                            AND isFriend = true
-                            UNION
-                            SELECT user1ID 
-                            FROM UserToUser 
-                            WHERE user2ID = 5
-                            AND isFriend = true
+                        SELECT * FROM User;
                         );
                      """)
         response = mycursor.fetchall()
