@@ -1293,37 +1293,154 @@ def get_my_groups(userId):
             WHERE GroupOfUserToUser.userId = "{userId}"
             """
         )
-        response = mycursor.fetchall()
-        headers = mycursor.description
+        group_responses = mycursor.fetchall()
+        headers = [x[0] for x in mycursor.description]
+        groups = [dict(zip(headers, group_response)) for group_response in group_responses]
+
+        for group in groups:
+            append_users_to_group_object(group, mycursor)
+
         mycursor.close()
         conn.close()
-        return sqlResponseToJson(response, headers)
+        return jsonify(groups)
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
 
-@app.route('/get_users_in_group/<int:groupId>')
-def get_users_in_group(groupId):
+@app.get('/get_group/<int:groupId>')
+def get_group(groupId):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+       
+        # Get group info
         mycursor.execute(
             f"""
-            SELECT User.id
-            FROM GroupOfUserToUser
-            INNER JOIN User 
-            ON GroupOfUserToUser.userId = User.id 
-            WHERE GroupOfUserToUser.groupId = {groupId};
+            SELECT * FROM GroupOfUser WHERE id = {groupId};
             """
         )
         response = mycursor.fetchall()
-        headers = mycursor.description
+        headers = [x[0] for x in mycursor.description]
+        group = dict(zip(headers, response[0]))
+
+        append_users_to_group_object(group, mycursor)
+
         mycursor.close()
         conn.close()
-        return sqlResponseToJson(response, headers)
+        return jsonify(group)
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
+
+def append_users_to_group_object(group, mycursor):
+    mycursor.execute(
+        f"""
+        SELECT User.id
+        FROM GroupOfUserToUser
+        INNER JOIN User 
+        ON GroupOfUserToUser.userId = User.id 
+        WHERE GroupOfUserToUser.groupId = {group["id"]};
+        """
+    )
+    users_response = mycursor.fetchall()
+    users = [{
+        "id": tag[0]
+    } for tag in users_response]
+    group["users"] = users
+
+@app.post('/edit_group')
+def edit_group():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        groupId = body.get("id")
+        groupName = body.get("groupName")
+        creatorId = body.get("creatorId")
+        users = body.get("users")
+
+        # Update users in group & group chat
+        removeGroupUsers = f"""
+            DELETE FROM GroupOfUserToUser WHERE groupId = {groupId}
+        """
+        mycursor.execute(removeGroupUsers)
+
+        removeChatUsers = f"""
+            DELETE ChatToUser FROM GroupOfUser JOIN ChatToUser ON GroupOfUser.chatId = ChatToUser.chatId
+            WHERE GroupOfUser.id = {groupId};
+        """
+        mycursor.execute(removeChatUsers)
+
+        add_users_to_group(users, groupId, mycursor)
+
+        # Update name of group
+        updateGroupName = f"""
+            UPDATE GroupOfUser SET groupName = "{groupName}" WHERE id = {groupId};
+        """
+        print(updateGroupName);
+        mycursor.execute(updateGroupName)
+        
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"message": "creation successful"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.post('/create_group')
+def create_group():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        groupName = body.get("groupName")
+        creatorId = body.get("creatorId")
+        users = body.get("users")
+
+        # Create chat for group
+        createChat = f"""
+            INSERT INTO Chat (name, isGroupChat) VALUES ("{groupName}", 1);
+        """
+        mycursor.execute(createChat)
+        chatId = mycursor.lastrowid
+
+        # Create group
+        createGroup = f"""
+           INSERT INTO GroupOfUser (groupName, creatorId, chatId, numTimesReported) VALUES ("{groupName}", "{creatorId}", {chatId}, 0);
+        """
+        mycursor.execute(createGroup)
+        groupId = mycursor.lastrowid
+
+        add_users_to_group(users, groupId, mycursor)
+        
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"message": "creation successful"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+def add_users_to_group(users, groupId, mycursor):
+    # Get chat id of group in question
+    getChatId = f"SELECT chatId FROM GroupOfUser WHERE GroupOfUser.id = {groupId};"
+    mycursor.execute(getChatId)
+    chatId = mycursor.fetchone()[0]
+
+    # Add each selected user to created group & group chat
+    for user in users:
+        addUserToGroup = f"""
+            INSERT INTO GroupOfUserToUser (groupId, userId) VALUES ({groupId}, "{user["id"]}");
+        """
+        mycursor.execute(addUserToGroup)
+
+        addUserToChat = f"""
+            INSERT INTO ChatToUser (chatId, userId) VALUES ({chatId}, "{user["id"]}");
+        """
+        mycursor.execute(addUserToChat)
 
 @app.route('/get_reports/')
 def get_reports():
