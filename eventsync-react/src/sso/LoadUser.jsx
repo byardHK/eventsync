@@ -70,6 +70,7 @@ export const LoadUser = () => {
                 setUserDetails(prevDetails => {
                     const updatedDetails = {
                     ...prevDetails,
+                        isOnboardingComplete: true,
                         firstName: res.data[0].fname,
                         lastName: res.data[0].lname,
                         email: res.data[0].id,
@@ -104,12 +105,10 @@ export const LoadUser = () => {
 
     useEffect(() => {
         if (userDataLoaded && isNewUser) {
-            const timer = setTimeout(() => navigate('/onboarding'), 100);
+            const timer = setTimeout(() => navigate('/onboardingPage'), 100);
             return () => clearTimeout(timer);
         }
-    }, [isNewUser, navigate, userDataLoaded]);
-
-    if (loading) return <div>Loading...</div>;
+    }, [isNewUser]);
 
     return null;
 };

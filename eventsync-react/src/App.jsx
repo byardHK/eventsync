@@ -28,9 +28,7 @@ const MainContent = () => {
                     <Route path="/friendsPage" element={<FriendsPage/>}/>
                     <Route path="/myEventsPage" element={<MyEventsPage/>}/>
                     <Route path="/profilePage" element={<ProfilePage/>}/>
-                    <Route path="/viewEvent/:eventId" element={<ViewEventPage/>}/>
-                    <Route path="/adminPage" element={<AdminPage/>}/>                  
-                    <Route path="/onboarding" element={<OnboardingPage />} />
+                    <Route path="/viewEvent/:eventId" element={<ViewEventPage/>}/>               
                     <Route path="/adminPage" element={<AdminPage/>}/>
                     <Route path="/groupsPage" element={<GroupsPage/>}/>
                     <Route path="/onboardingPage" element={<OnboardingPage/>}/>
