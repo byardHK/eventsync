@@ -20,7 +20,7 @@ const MainContent = () => {
 
             <LoadUser></LoadUser>
 
-            
+            <BrowserRouter>
                 <Routes>
                     <Route path="/" element={<HomePage/>}/>
                     <Route path="/createEvent" element={<CreateEventPage/>}/>
@@ -35,7 +35,6 @@ const MainContent = () => {
                     <Route path="/groupsPage" element={<GroupsPage/>}/>
                     <Route path="/onboardingPage" element={<OnboardingPage/>}/>
                 </Routes>
-           
               </BrowserRouter>
            
           </AuthenticatedTemplate>
