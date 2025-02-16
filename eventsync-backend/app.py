@@ -109,30 +109,27 @@ def add_user():
         data = request.get_json()
         print(data)
 
-        id = data.get("email")  # Assuming email is used as ID
+        id = data.get("email")  
         fname = data.get("firstName")
         lname = data.get("lastName")
-        is_admin = int(data.get("isAdmin", 0))  # Default to 0
         bio = data.get("bio", "")
-        profile_picture = data.get("profilePicture", "")  # Default to empty string
         notification_frequency = data.get("notificationFrequency", "None")
         is_public = int(data.get("isPublic", 0))
-        is_banned = int(data.get("isBanned", 0))  # Default to 0
+        is_banned = 0  # Default to 0
         num_times_reported = int(data.get("numTimesReported", 0))  # Default to 0
-        notification_id = int(data.get("notificationId", 1))  # Default to 1
+        notification_id = 1  # Default to 1
         friend_request = int(data.get("receiveFriendRequest", 0))
         event_invite = int(data.get("invitedToEvent", 0))
         event_cancelled = int(data.get("eventCancelled", 0))
         gender = data.get("gender", "Undefined")  # Default to "Undefined"
 
+        isAdmin = 0
         is_public = int(is_public)
-        is_admin = int(is_admin)
-        is_banned = int(is_banned)
         friend_request = int(friend_request)
         event_invite = int(event_invite)
         event_cancelled = int(event_cancelled)
 
-        print("Final values:", (id, fname, lname, is_admin, bio, profile_picture, 
+        print("Final values:", (id, fname, lname, bio, isAdmin,
                         notification_frequency, is_public, is_banned, num_times_reported, 
                         notification_id, friend_request, event_invite, event_cancelled, gender))
 
@@ -142,13 +139,13 @@ def add_user():
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
 
-        sql = """INSERT INTO User (id, fname, lname, isAdmin, bio, profilePicture, 
-                notificationFrequency, isPublic, isBanned, numTimesReported, 
+        sql = """INSERT INTO User (id, fname, lname, bio, 
+                notificationFrequency, isAdmin, isPublic, isBanned, numTimesReported, 
                 notificationId, friendRequest, eventInvite, eventCancelled, gender) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
         
-        values = (id, fname, lname, is_admin, bio, profile_picture, 
-                  notification_frequency, is_public, is_banned, num_times_reported, notification_id, friend_request, event_invite, event_cancelled, gender)
+        values = (id, fname, lname, bio, 
+                  notification_frequency, isAdmin, is_public, is_banned, num_times_reported, notification_id, friend_request, event_invite, event_cancelled, gender)
 
         mycursor.execute(sql, values)
         conn.commit()
