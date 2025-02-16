@@ -11,27 +11,14 @@ import EditIcon from '@mui/icons-material/Edit';
 import axios from "axios";
 import { useUser } from "../sso/UserContext";
 import User from "../types/User";
+import AddIcon from '@mui/icons-material/Add';
+import GroupModal from "../components/GroupModal";
 
-type Group = {
+export type Group = {
     id: number;
     groupName: string;
     creatorId: number;
-}
-
-function loadGroupUsers({id} : Group){
-    const [usersInGroup, setUsersInGroup] = useState<User[]>([]);
-    useEffect(() => {
-        const fetchData = async () => {
-          try {
-            const response = await axios.get(`http://localhost:5000/get_users_in_group/${id}`);
-            setUsersInGroup(response.data);
-            
-          } catch (error) {
-            console.error('Error fetching data:', error);
-          }
-        };
-        fetchData();
-    }, []);
+    users: User[];
 }
 
 function GroupsPage(){
@@ -40,17 +27,18 @@ function GroupsPage(){
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
 
-    useEffect(() => {
-        const fetchData = async () => {
-          try {
+    async function reloadMyGroups() {
+        try {
             const response = await axios.get(`http://localhost:5000/get_my_groups/${currentUserId}`);
             setGroups(response.data);
             
-          } catch (error) {
+        } catch (error) {
             console.error('Error fetching data:', error);
-          }
-        };
-        fetchData();
+        }
+    }
+
+    useEffect(() => {
+        reloadMyGroups();
     }, []);
 
 
@@ -61,6 +49,8 @@ function GroupsPage(){
             navigate('/friendsPage');
         }
     }
+
+    const [newGroupsModalOpen, setNewGroupsModalOpen] = useState<boolean>(false);
 
     return(
         <>
@@ -80,15 +70,23 @@ function GroupsPage(){
                     Groups
                 </Button>
             </Box>
+            <GroupModal open={newGroupsModalOpen} onClose={() => setNewGroupsModalOpen(false)} onSave={reloadMyGroups}/>
             <Box
                 display="flex"
                 flexDirection="column"
                 alignItems="center"
                 gap={2}
+                paddingTop={3}
+                sx={{height: "75vh"}}
             >
                 {groups.map(group =>
-                    <SplitButton group={group} key={group.id}/>
+                    <SplitButton group={group} key={group.id} onSave={reloadMyGroups}/>
                 )}
+            </Box>
+            <Box display="flex" justifyContent="flex-end" alignItems="flex-end">
+                <Button onClick={()=>setNewGroupsModalOpen(true)}>
+                    <AddIcon></AddIcon>
+                </Button>
             </Box>
             <BottomNavBar></BottomNavBar>
         </>
@@ -97,25 +95,14 @@ function GroupsPage(){
 
 type SplitButtonProps = {
     group: Group;
+    onSave: () => void;
 };
 
-function SplitButton({group}: SplitButtonProps) {
+function SplitButton({group, onSave}: SplitButtonProps) {
     const [open, setOpen] = React.useState(false);
     const anchorRef = React.useRef<HTMLDivElement>(null);
     const [selectedIndex, setSelectedIndex] = React.useState(1);
-    const [users, setUsers] = useState<User[]>([]);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await axios.get(`http://localhost:5000/get_users_in_group/${group.id}`);
-                setUsers(response.data);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
-        };
-        fetchData();
-    }, []);
+    const [editing, setEditing] = useState<boolean>(false);
 
     const handleMenuItemClick = (
         event: React.MouseEvent<HTMLLIElement, MouseEvent>,
@@ -143,38 +130,39 @@ function SplitButton({group}: SplitButtonProps) {
     const navigate = useNavigate();
 
     return (
-    <React.Fragment>
+    <>
+        <GroupModal groupId={group.id} open={editing} onClose={() => setEditing(false)} onSave={onSave}/>
         <ButtonGroup
             variant="contained"
             ref={anchorRef}
             aria-label="Button group with a nested menu"
         >
-        <Card sx={{padding: 3}}>
-            <h2>{group.groupName}</h2>
-            <Box display="flex" flexDirection="row">
-                {/* TODO: Make navigate to right things */}
-                <IconButton onClick={()=>navigate('/friendsPage')}>
-                    <FlagIcon style={{color: "red"}}></FlagIcon>
-                </IconButton>
-                <IconButton onClick={()=>navigate('/friendsPage')}>
-                    <ChatIcon style={{color: "blue"}}></ChatIcon>
-                </IconButton>
-                <IconButton onClick={()=>navigate('/friendsPage')}>
-                    <EditIcon style={{color: "blue"}}></EditIcon>
-                </IconButton>
-            </Box>
-        </Card>
-        <Button
-            size="small"
-            aria-controls={open ? 'split-button-menu' : undefined}
-            aria-expanded={open ? 'true' : undefined}
-            aria-label="select merge strategy"
-            aria-haspopup="menu"
-            sx={{backgroundColor: "white"}}
-            onClick={handleToggle}
-        >
-            <ArrowDropDownIcon sx={{color: "blue"}}/>
-        </Button>
+            <Card sx={{padding: 3}}>
+                <h2>{group.groupName}</h2>
+                <Box display="flex" flexDirection="row">
+                    {/* TODO: Make navigate to right things */}
+                    <IconButton onClick={()=>navigate('/friendsPage')}>
+                        <FlagIcon style={{color: "red"}}></FlagIcon>
+                    </IconButton>
+                    <IconButton onClick={()=>navigate('/friendsPage')}>
+                        <ChatIcon style={{color: "blue"}}></ChatIcon>
+                    </IconButton>
+                    <IconButton onClick={() => setEditing(true)}>
+                        <EditIcon style={{color: "blue"}}></EditIcon>
+                    </IconButton>
+                </Box>
+            </Card>
+            <Button
+                size="small"
+                aria-controls={open ? 'split-button-menu' : undefined}
+                aria-expanded={open ? 'true' : undefined}
+                aria-label="select merge strategy"
+                aria-haspopup="menu"
+                sx={{backgroundColor: "white"}}
+                onClick={handleToggle}
+            >
+                <ArrowDropDownIcon sx={{color: "blue"}}/>
+            </Button>
         </ButtonGroup>
         <Popper
             sx={{ zIndex: 1 }}
@@ -195,12 +183,9 @@ function SplitButton({group}: SplitButtonProps) {
             <Paper>
               <ClickAwayListener onClickAway={handleClose}>
                 <MenuList id="split-button-menu" autoFocusItem>
-                  {users.map((user, index) => (
+                  {group.users.map((user, index) => (
                     <MenuItem
                       key={user.id}
-                      disabled={index === 2}
-                      selected={index === selectedIndex}
-                      onClick={(event) => handleMenuItemClick(event, index)}
                     >
                       {user.id}
                     </MenuItem>
@@ -211,7 +196,7 @@ function SplitButton({group}: SplitButtonProps) {
           </Grow>
         )}
       </Popper>
-    </React.Fragment>
+    </>
   );
 }
 
