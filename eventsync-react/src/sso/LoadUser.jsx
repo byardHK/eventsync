@@ -6,70 +6,61 @@ import { useUser } from './UserContext';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-
 export const LoadUser = () => {
-    const { userDetails, setUserDetails } = useUser();
-    const [isNewUser, setIsNewUser] = useState(false);
+    const { setUserDetails } = useUser();
     const { instance, accounts } = useMsal();
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+    const [userDataLoaded, setUserDataLoaded] = useState(false);
+    const [isNewUser, setIsNewUser] = useState(false);
 
     useEffect(() => {
         const RequestUserData = async () => {
             try {
-                // Ensure user is signed in
                 if (accounts.length === 0) {
-                    console.log("No active user session. Redirecting to login...");
                     await instance.loginRedirect(loginRequest);
                     return;
                 }
-        
+
                 let response;
                 try {
-                    // Try getting the token silently
                     response = await instance.acquireTokenSilent({
                         ...loginRequest,
                         account: accounts[0],
                     });
                 } catch (error) {
                     if (error.name === "InteractionRequiredAuthError") {
-                        console.warn("Silent token acquisition failed. Attempting interactive login...");
                         response = await instance.acquireTokenPopup(loginRequest);
                     } else {
                         throw error;
                     }
                 }
-        
-                // Fetch user data from Microsoft Graph
+
                 const graphData = await callMsGraph(response.accessToken);
                 const userEmail = graphData.userPrincipalName;
-        
-                console.log("Fetched Graph User:", graphData);
-        
-                // Check if user exists in the database
+
                 const res = await axios.get(`http://localhost:5000/api/check_user/${userEmail}`);
                 const userExists = res.data.exists;
-                console.log("Does the user exist?", userExists);
                 setIsNewUser(!userExists);
 
                 if (userExists) {
                     await setExistingUserData(userEmail);
                 } else {
-                    console.log("New user detected.");
                     setUserDetails({
+                        isOnboardingComplete: false,
                         firstName: graphData.givenName,
-                        lastName: graphData.lastName,
+                        lastName: graphData.surname,
                         email: graphData.userPrincipalName,
                         microsoftId: graphData.id
-                    })
-                    navigate('/onboarding')
+                    });
                 }
-        
             } catch (error) {
                 console.error("Error fetching user data:", error);
+            } finally {
+                setLoading(false);
+                setUserDataLoaded(true);
             }
         };
-        
-        
 
         const setExistingUserData = async (email) => {
             try {
@@ -78,7 +69,7 @@ export const LoadUser = () => {
         
                 setUserDetails(prevDetails => {
                     const updatedDetails = {
-                        ...prevDetails,
+                    ...prevDetails,
                         firstName: res.data[0].fname,
                         lastName: res.data[0].lname,
                         email: res.data[0].id,
@@ -103,25 +94,22 @@ export const LoadUser = () => {
                 console.error('Error fetching user details:', error);
             }
         };
-        
 
-        // Initial request
         RequestUserData();
 
-        // Refresh user data every 45 minutes
-        const refreshInterval = setInterval(() => {
-            console.log("Refreshing user data...");
-            RequestUserData();
-        }, 45 * 60 * 1000);
-
+        const refreshInterval = setInterval(() => RequestUserData(), 45 * 60 * 1000);
         return () => clearInterval(refreshInterval);
 
     }, [instance, accounts, setUserDetails]);
 
-
     useEffect(() => {
-        console.log("Updated userDetails state:", userDetails);
-    }, [userDetails]); // Logs when userDetails changes
+        if (userDataLoaded && isNewUser) {
+            const timer = setTimeout(() => navigate('/onboarding'), 100);
+            return () => clearTimeout(timer);
+        }
+    }, [isNewUser, navigate, userDataLoaded]);
+
+    if (loading) return <div>Loading...</div>;
 
     return null;
 };
