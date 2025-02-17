@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import BottomNavBar from '../components/BottomNavBar';
+import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css";
 import { Button, Typography, Paper, Box } from '@mui/material';
@@ -38,6 +39,16 @@ function FriendsPage() {
         }
     };
 
+    const [isFriendsPage, setIsFriendsPage] = useState<Boolean>(true); 
+
+    const navigate = useNavigate();
+
+    function toggleFriendsGroupPages(isFriendsPage: boolean){
+        if(!isFriendsPage){
+            navigate('/groupsPage');
+        }
+    }
+
     return (
         <Box
             display="flex"
@@ -46,6 +57,22 @@ function FriendsPage() {
             justifyContent="center"
             padding={2}
         >
+            <Box display="flex" flexDirection="row">
+                <Button 
+                        variant={isFriendsPage ? "contained" : "outlined"} 
+                        fullWidth
+                        onClick={() => {toggleFriendsGroupPages(true)}}
+                    >
+                        Friends
+                    </Button>
+                    <Button 
+                        variant={!isFriendsPage ? "contained" : "outlined"} 
+                        fullWidth
+                        onClick={() => {toggleFriendsGroupPages(false)}}
+                    >
+                        Groups
+                    </Button>
+            </Box>
             <Typography variant="h4" gutterBottom>Users to Friend</Typography>
             <UserList users={users} refreshData={() => userDetails.email && refreshData(userDetails.email)} />
             
@@ -254,12 +281,12 @@ function PendingList({ pending, refreshData }: { pending: EventSyncUser[]; refre
     );
 }
 
-enum NotificationFrequency {
-    None = "none",
-    Low = "low",
-    Normal = "normal",
-    High = "high",
-}
+// enum NotificationFrequency {
+//     None = "none",
+//     Low = "low",
+//     Normal = "normal",
+//     High = "high",
+// }
 
 type EventSyncUser = {
     id: string;
