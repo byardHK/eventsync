@@ -25,7 +25,7 @@ function BottomNavBar(){
                 <CalendarMonthIcon/>
             </Button>
         </Link>
-        <Link to="/chatHomePage">
+        <Link to="/friendsPage">
             <Button variant="contained">
                 <ChatIcon/>
             </Button>
