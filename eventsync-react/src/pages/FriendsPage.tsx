@@ -281,12 +281,12 @@ function PendingList({ pending, refreshData }: { pending: EventSyncUser[]; refre
     );
 }
 
-// enum NotificationFrequency {
-//     None = "none",
-//     Low = "low",
-//     Normal = "normal",
-//     High = "high",
-// }
+enum NotificationFrequency {
+    None = "none",
+    Low = "low",
+    Normal = "normal",
+    High = "high",
+}
 
 type EventSyncUser = {
     id: string;
