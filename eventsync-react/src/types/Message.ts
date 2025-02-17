@@ -1,9 +1,5 @@
 type Message = {
-    id: Number;
-    chatId: Number;
-    senderId: String;
-    messageContent: String;
-    timeSent: String;
-}
+    id: number
+};
 
 export default Message;

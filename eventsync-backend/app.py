@@ -5,8 +5,6 @@ import mysql.connector
 from flask_cors import CORS
 from datetime import datetime, timedelta
 from dateutil.relativedelta import *
-import pusher
-import os
 
 app = Flask(__name__)
 CORS(app)
@@ -19,13 +17,6 @@ db_config = {
     'database': 'event_sync'
 }
 
-pusher_client = pusher.Pusher(
-  app_id='1939690',
-  key='d2b56055f7edd36cb4b6',
-  secret='fc12eddbc27d54975d56',
-  cluster='us2',
-  ssl=True
-)
 
 @app.route('/api/update_user_profile', methods=['POST'])
 def update_user_profile():
@@ -116,18 +107,31 @@ def check_user(id):
 def add_user():
     try:
         data = request.get_json()
+        print(data)
 
-        id = data.get("id")
-        fname = data.get("fname")
-        lname = data.get("lname")
-        is_admin = data.get("isAdmin", 0)
+        id = data.get("email")  
+        fname = data.get("firstName")
+        lname = data.get("lastName")
         bio = data.get("bio", "")
-        profile_picture = data.get("profilePicture", "")
         notification_frequency = data.get("notificationFrequency", "None")
-        is_public = data.get("isPublic", 0)
-        is_banned = data.get("isBanned", 0)
-        num_times_reported = data.get("numTimesReported", 0)
-        notification_id = data.get("notificationId")
+        is_public = int(data.get("isPublic", 0))
+        is_banned = 0  # Default to 0
+        num_times_reported = int(data.get("numTimesReported", 0))  # Default to 0
+        notification_id = 1  # Default to 1
+        friend_request = int(data.get("receiveFriendRequest", 0))
+        event_invite = int(data.get("invitedToEvent", 0))
+        event_cancelled = int(data.get("eventCancelled", 0))
+        gender = data.get("gender", "Undefined")  # Default to "Undefined"
+
+        isAdmin = 0
+        is_public = int(is_public)
+        friend_request = int(friend_request)
+        event_invite = int(event_invite)
+        event_cancelled = int(event_cancelled)
+
+        print("Final values:", (id, fname, lname, bio, isAdmin,
+                        notification_frequency, is_public, is_banned, num_times_reported, 
+                        notification_id, friend_request, event_invite, event_cancelled, gender))
 
         if not id or not fname or not lname:
             return jsonify({"error": "Missing required fields"}), 400
@@ -135,12 +139,13 @@ def add_user():
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
 
-        sql = """INSERT INTO User (id, fname, lname, isAdmin, bio, profilePicture, 
-                notificationFrequency, isPublic, isBanned, numTimesReported, notificationId) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+        sql = """INSERT INTO User (id, fname, lname, bio, 
+                notificationFrequency, isAdmin, isPublic, isBanned, numTimesReported, 
+                notificationId, friendRequest, eventInvite, eventCancelled, gender) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
         
-        values = (id, fname, lname, is_admin, bio, profile_picture, 
-                  notification_frequency, is_public, is_banned, num_times_reported, notification_id)
+        values = (id, fname, lname, bio, 
+                  notification_frequency, isAdmin, is_public, is_banned, num_times_reported, notification_id, friend_request, event_invite, event_cancelled, gender)
 
         mycursor.execute(sql, values)
         conn.commit()
