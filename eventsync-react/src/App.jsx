@@ -4,6 +4,7 @@ import FriendsPage from "./pages/FriendsPage";
 import MyEventsPage from "./pages/MyEventsPage";
 import ViewEventPage from "./pages/ViewEventPage";
 import AdminPage from "./pages/AdminPage";
+import GroupsPage from "./pages/GroupsPage";
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import ProfilePage from './pages/ProfilePage';
 import ChatPage from './pages/ChatPage';
@@ -31,6 +32,7 @@ const MainContent = () => {
                     <Route path="/adminPage" element={<AdminPage/>}/>
                     <Route path="/viewChat/:chatId" element={<ChatPage/>}/>
                     <Route path="/chatHomePage" element={<ChatHomePage/>}/>
+                    <Route path="/groupsPage" element={<GroupsPage/>}/>
                 </Routes>
             </BrowserRouter>
           </AuthenticatedTemplate>

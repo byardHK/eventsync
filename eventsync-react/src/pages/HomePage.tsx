@@ -68,6 +68,7 @@ function HomePage() {
         >
             <h3 className="card-title">Welcome {userDetails.firstName}!</h3>
         </Box>
+
         <Box
             display="flex"
             flexDirection="row"

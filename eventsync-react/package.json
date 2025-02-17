@@ -12,6 +12,7 @@
   "dependencies": {
     "@azure/msal-browser": "^4.0.2",
     "@azure/msal-react": "^3.0.2",
+    "@base-ui-components/react": "^1.0.0-alpha.6",
     "@date-io/dayjs": "^3.2.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
