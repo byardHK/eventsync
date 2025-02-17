@@ -5,6 +5,8 @@ import mysql.connector
 from flask_cors import CORS
 from datetime import datetime, timedelta
 from dateutil.relativedelta import *
+import pusher
+import os
 
 app = Flask(__name__)
 CORS(app)
@@ -17,6 +19,13 @@ db_config = {
     'database': 'event_sync'
 }
 
+pusher_client = pusher.Pusher(
+  app_id='1939690',
+  key='d2b56055f7edd36cb4b6',
+  secret='fc12eddbc27d54975d56',
+  cluster='us2',
+  ssl=True
+)
 
 @app.route('/api/update_user_profile', methods=['POST'])
 def update_user_profile():
@@ -1500,6 +1509,58 @@ def reportEvent():
         mycursor.close()
         conn.close()
         return jsonify({"message": "report successful"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/message/', methods=['POST'])
+def message():
+    data = request.get_json()
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f""" 
+            INSERT INTO Message (chatId, senderId, messageContent, timeSent) 
+                VALUES ({data['chatId']}, "{data["senderId"]}", "{data["messageContent"]}", "{data["timeSent"]}");
+        """)
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        pusher_client.trigger(f'chat-channnel-{data["chatId"]}', 'new-message', {'messageContent': data['messageContent'], 'senderId': data['senderId'],
+                                                              'chatId': data['chatId'], 'timeSent': data['timeSent'],})
+        return "message sent"
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_chat_hist/<int:chat_id>', methods=['GET'])
+def get_chat_hist(chat_id: int):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f"SELECT * FROM Message WHERE chatId={chat_id};")
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"chats": sqlResponseToList(response, headers)})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_my_chats/<string:user_id>', methods=['GET'])
+def get_my_chats(user_id: str):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f"SELECT * FROM Chat WHERE id IN (SELECT chatId FROM ChatToUser WHERE userId = '{user_id}');")
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return sqlResponseToJson(response, headers)
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}

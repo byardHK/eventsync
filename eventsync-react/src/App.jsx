@@ -7,9 +7,11 @@ import AdminPage from "./pages/AdminPage";
 import GroupsPage from "./pages/GroupsPage";
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import ProfilePage from './pages/ProfilePage';
+import ChatPage from './pages/ChatPage';
 import { LoginPage } from './pages/LoginPage';
 import  {LoadUser} from './sso/LoadUser';
 import { AuthenticatedTemplate, UnauthenticatedTemplate } from '@azure/msal-react';
+import ChatHomePage from './pages/ChatHomePage';
 import OnboardingPage from "./pages/OnboardingPage";
 
 const MainContent = () => {
@@ -30,6 +32,8 @@ const MainContent = () => {
                     <Route path="/profilePage" element={<ProfilePage/>}/>
                     <Route path="/viewEvent/:eventId" element={<ViewEventPage/>}/>
                     <Route path="/adminPage" element={<AdminPage/>}/>
+                    <Route path="/viewChat/:chatId" element={<ChatPage/>}/>
+                    <Route path="/chatHomePage" element={<ChatHomePage/>}/>
                     <Route path="/groupsPage" element={<GroupsPage/>}/>
                     <Route path="/onboardingPage" element={<OnboardingPage/>}/>
                 </Routes>
