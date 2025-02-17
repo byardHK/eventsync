@@ -149,7 +149,6 @@ function ProfilePage() {
 
     const navigate = useNavigate();
     const handleBackClick = () => navigate("/");
-    const handleLogout = () => console.log("Logout logic here");
 
     return (
         <Box display="flex" flexDirection="column" alignItems="center" width="85%" maxWidth="350px" margin="auto">
@@ -197,14 +196,19 @@ function ProfilePage() {
 
                 {/* Interests (Tags) */}
                 <Box width="100%" mt={2}>
-                    <h3>Interests</h3>
+                    <h3 style={{ display: 'flex', alignItems: 'center' }}>
+                        Interests
+                        <div style={{ marginLeft: '10px' }}>
+                            <TagModal savedTags={userTags} handleSave={handleSave} />
+                        </div>
+                    </h3>
                     <Box display="flex" flexWrap="wrap" gap={1}>
                         {userTags.map((tag, index) => (
                             <Chip key={index} label={tag.name} />
                         ))}
                     </Box>
                     <br />
-                    <TagModal savedTags={userTags} handleSave={handleSave} />
+                    
                 </Box>
 
                 {/* Settings */}
@@ -263,6 +267,18 @@ function ProfilePage() {
                                     onChange={(e) => setEventCancelled(e.target.checked)}
                                     onBlur={handleSaveChanges}  // Auto-save when focus is lost
                                 />
+                            </Box>
+                            <Box mt={3} textAlign="center">
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={() => {
+                                        handleSaveChanges();
+                                        handleSave([], []); // Adjust if there are changes in the tags as well
+                                    }}
+                                >
+                                    Save Changes
+                                </Button>
                             </Box>
                         </Box>
                     </Box>
