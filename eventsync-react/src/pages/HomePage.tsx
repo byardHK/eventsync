@@ -25,8 +25,7 @@ function HomePage() {
     const [tags, setTags] = useState<string[]>([]);
     const [tagOptions, setTagOptions] = useState<string[]>([]);
     const [inputValue, setInputValue] = useState('');
-    // console.log("home page: ")
-    // console.log(currentUserId);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchTags = async () => {
@@ -60,6 +59,7 @@ function HomePage() {
                     <PersonIcon/>
                 </Button>
             </Link>
+            
         </Box>
         <Box
             display="flex"
@@ -68,6 +68,7 @@ function HomePage() {
         >
             <h3 className="card-title">Welcome {userDetails.firstName}!</h3>
         </Box>
+
         <Box
             display="flex"
             flexDirection="row"
@@ -131,6 +132,8 @@ function HomePage() {
                 open={inputValue !== ''}
             />
             <EventList searchKeyword={searchKeyword} tags={tags}/>
+
+            
             <BottomNavBar></BottomNavBar>
         </Box>
     </>;

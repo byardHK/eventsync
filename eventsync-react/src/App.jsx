@@ -4,6 +4,7 @@ import FriendsPage from "./pages/FriendsPage";
 import MyEventsPage from "./pages/MyEventsPage";
 import ViewEventPage from "./pages/ViewEventPage";
 import AdminPage from "./pages/AdminPage";
+import GroupsPage from "./pages/GroupsPage";
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import ProfilePage from './pages/ProfilePage';
 import ChatPage from './pages/ChatPage';
@@ -11,15 +12,17 @@ import { LoginPage } from './pages/LoginPage';
 import  {LoadUser} from './sso/LoadUser';
 import { AuthenticatedTemplate, UnauthenticatedTemplate } from '@azure/msal-react';
 import ChatHomePage from './pages/ChatHomePage';
+import OnboardingPage from "./pages/OnboardingPage";
 
 const MainContent = () => {
   return (
       <div className="App">
           <AuthenticatedTemplate>
 
-            <LoadUser></LoadUser>
+            
 
             <BrowserRouter>
+            <LoadUser></LoadUser>
                 <Routes>
                     <Route path="/" element={<HomePage/>}/>
                     <Route path="/createEvent" element={<CreateEventPage/>}/>
@@ -31,8 +34,10 @@ const MainContent = () => {
                     <Route path="/adminPage" element={<AdminPage/>}/>
                     <Route path="/viewChat/:chatId" element={<ChatPage/>}/>
                     <Route path="/chatHomePage" element={<ChatHomePage/>}/>
+                    <Route path="/groupsPage" element={<GroupsPage/>}/>
+                    <Route path="/onboardingPage" element={<OnboardingPage/>}/>
                 </Routes>
-            </BrowserRouter>
+            </BrowserRouter>  
           </AuthenticatedTemplate>
 
           <UnauthenticatedTemplate>
