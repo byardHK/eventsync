@@ -1360,8 +1360,8 @@ def message():
         conn.commit()
         mycursor.close()
         conn.close()
-        pusher_client.trigger(f'channel_name1', 'private_channel_id', {'messageContent': data['messageContent'], 'senderId': data['senderId'],
-                                                              'chatId': data['chatId'], 'timeSent': data['timeSent'], 'id': data['id']}) # TODO: change id
+        pusher_client.trigger(f'chat-{data["chatId"]}', 'new-message', {'messageContent': data['messageContent'], 'senderId': data['senderId'],
+                                    'chatId': data['chatId'], 'timeSent': data['timeSent'], 'id': data['id']}) # TODO: change id
         return "message sent"
     except mysql.connector.Error as err:
         print(f"Error: {err}")

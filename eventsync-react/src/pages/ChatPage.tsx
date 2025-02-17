@@ -5,7 +5,7 @@ import Message from '../types/Message';
 import { useState } from 'react';
 import { useUser } from '../sso/UserContext';
 import { useNavigate, useParams } from 'react-router-dom';
-
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 //Pusher
 import Pusher from 'pusher-js';
@@ -15,6 +15,8 @@ function ChatPage() {
     const [msg, setMsg] = useState<Message>();
     const { userDetails } = useUser();
     const userId = userDetails.email ? userDetails.email : "";
+    const channelName = `chat-${chatId}`;
+    const navigate = useNavigate();
 
 
 	//This will be called when your component is mounted
@@ -22,18 +24,18 @@ function ChatPage() {
 		const pusher = new Pusher('d2b56055f7edd36cb4b6', {
 			cluster: 'us2'
 		})
-		const channel1 = pusher.subscribe('channel_name1');
+		const channel = pusher.subscribe(channelName);
 		// You can bind more channels here like this
 		// const channel2 = pusher.subscribe('channel_name2')
-		channel1.bind('private_channel_id', function(data: Message) {
+		channel.bind('new-message', function(data: Message) {
             setMsg(data);
             console.log(data);
 		    // Code that runs when channel1 listens to a new message
 		});
-        channel1.bind("pusher:subscription_succeeded", retrieveHistory);
+        channel.bind("pusher:subscription_succeeded", retrieveHistory);
 		
 		return (() => {
-			pusher.unsubscribe('channel_name1')
+			pusher.unsubscribe(channelName)
 			// pusher.unsubscribe('channel_name2')
 		})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -52,8 +54,15 @@ function ChatPage() {
         setChats(response.data.chats);
     }
 
+    const handleBackClick = () => {
+        navigate('/chatHomePage');
+    };
+
 	return(
 		<div>
+            <Button onClick={handleBackClick} title="go to My Events page">
+                <ArrowBackIcon />
+             </Button>
             <ChatList chats={chats} userId={'harnlyam20@gcc.edu'}></ChatList>
             <ChatInput channelName={""} userId={userId} chatId={chatId ?? "-1"}></ChatInput>
 		</div>
