@@ -69,7 +69,7 @@ function ChatPage() {
                 </Button>
                 {/* <h2>{chat}</h2> */}
             </div>
-            <ChatList messages={chats} userId={'harnlyam20@gcc.edu'}></ChatList>
+            <ChatList messages={chats} userId={userId}></ChatList>
             <ChatInput channelName={""} userId={userId} chatId={chatId ?? "-1"}></ChatInput>
 		</div>
 	)
