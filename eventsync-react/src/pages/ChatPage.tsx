@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import {useEffect} from 'react';
 import { Button, TextField, Box } from "@mui/material";
 import axios from "axios";
 import Message from '../types/Message';
@@ -6,9 +6,11 @@ import { useState } from 'react';
 import { useUser } from '../sso/UserContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import '../styles/chat.css'
 
 //Pusher
 import Pusher from 'pusher-js';
+
 function ChatPage() {
     const [chats, setChats] = useState<Message[]>([]);
     const { chatId } = useParams<{ chatId: string }>() ;
@@ -59,35 +61,36 @@ function ChatPage() {
     };
 
 	return(
-		<div>
-            <Button onClick={handleBackClick} title="go to My Events page">
-                <ArrowBackIcon />
-             </Button>
-            <ChatList chats={chats} userId={'harnlyam20@gcc.edu'}></ChatList>
+		<div className="chat-container">
+            
+             <div className="chat-header">
+                <Button  onClick={handleBackClick} title="go to My Events page">
+                    <ArrowBackIcon style={{ color: 'white'}} />
+                </Button>
+                {/* <h2>{chat}</h2> */}
+            </div>
+            <ChatList messages={chats} userId={'harnlyam20@gcc.edu'}></ChatList>
             <ChatInput channelName={""} userId={userId} chatId={chatId ?? "-1"}></ChatInput>
 		</div>
 	)
 }
 
-const ChatList = (prop: { chats: Message[], userId: String }) => {
-    return (
-        <div style={{}}>
-            {prop.chats.map((chat) => {
-                return (
-                    <Box
-                        style={{ width: '50%', display: "flex" }}
-                        >
-                        <Box
-                            style={chat.senderId == prop.userId ? { right: '0', backgroundColor: 'white', alignItems: 'baseline'} : 
-                            {   backgroundColor: '#90D5FF' }}
-                            >
-                            {chat.messageContent}<br></br>
-                        </Box>
-                    </Box>
-                );
-            })}
-        </div>
-    );
+const ChatList = (props: { messages: Message[], userId: String }) => {
+    return (       
+        <div className="messages-container">
+            {props.messages.map((message, index) => (
+            <div>
+                <div
+                    // style={{alignSelf: 'flex-start'}}
+                    key={index}
+                    className={`message ${message.senderId === props.userId ? "user" : "bot"}`}
+                >
+                    <p>{message.messageContent}</p>
+                </div>
+                <br></br>
+            </div>
+            ))}
+        </div>)
 };
 
 const ChatInput = (props: { channelName: String, userId: String, chatId: string }) => {
@@ -109,25 +112,17 @@ const ChatInput = (props: { channelName: String, userId: String, chatId: string 
     };
 
     return (
-        <Box
-        display="flex"
-        flexDirection="row"
-        width="100%"
-        paddingBottom={2}
-        paddingTop={2}
-        justifyContent="space-around"
-        style={{ position: 'fixed', bottom: '0', backgroundColor: 'white' }}
-    >
-            <TextField
-                type="text"
-                className="inputElement"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-            />
-            <Button onClick={sendMessage}>
-                Send
-            </Button>
-        </Box>
+        <div>
+        <div className="chat-input-container">
+          <input
+            type="text"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Message"
+          />
+          <button onClick={sendMessage}>Send</button>
+        </div>
+      </div>
     );
 };
 
