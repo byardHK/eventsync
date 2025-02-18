@@ -19,7 +19,9 @@ function MyEventsPage() {
     // console.log("my events page: ")
     // console.log(currentUserId);
 
-    const [isListView, setIsListView] = useState<Boolean>(true); 
+    const [isListView, setIsListView] = useState<Boolean>(true);
+    const { userDetails } = useUser();
+    const currentUserId = userDetails.email;
 
     return <>
         <Box
@@ -52,7 +54,7 @@ function MyEventsPage() {
             // uncomment for Sprint 3
             }
             <EventLists/>
-            <BottomNavBar></BottomNavBar>
+            <BottomNavBar userId={currentUserId!}/>
         </Box>
     </>;
 };
