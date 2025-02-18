@@ -21,6 +21,7 @@ function FriendsPage() {
     const [searchInput, setSearchInput] = useState('');
     const [filteredUsers, setFilteredUsers] = useState(users);
     const [isFriendsPage, setIsFriendsPage] = useState<Boolean>(true); 
+    const [refreshTrigger, setRefreshTrigger] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -67,6 +68,10 @@ function FriendsPage() {
         setFilteredUsers(users.filter(user => `${user.fname} ${user.lname}`.toLowerCase().includes(value.toLowerCase())));
     };
 
+    const handleRequestAction = () => {
+        setRefreshTrigger(!refreshTrigger);
+    };
+
     return (
         <Box
             display="flex"
@@ -96,7 +101,7 @@ function FriendsPage() {
             <FriendsList friends={friends} refreshData={() => userDetails.email && refreshData(userDetails.email)} />
             
             <Typography variant="h4" gutterBottom>Friend Requests</Typography>
-            <RequestsList requests={requests} refreshData={() => userDetails.email && refreshData(userDetails.email)} />
+            <RequestsList requests={requests} refreshData={() => userDetails.email && refreshData(userDetails.email)} onRequestAction={handleRequestAction} />
 
             <Typography variant="h4" gutterBottom>Pending Friends</Typography>
             <PendingList pending={pending} refreshData={() => userDetails.email && refreshData(userDetails.email)}/>
@@ -138,7 +143,7 @@ function FriendsPage() {
                     </DialogContent>
                 </Box>
             </Dialog>
-            <BottomNavBar/>
+            <BottomNavBar userId={userDetails.email!} key={refreshTrigger.toString()} />
         </Box>
     );
 }
@@ -234,13 +239,14 @@ function UserList({ users, refreshData, onAddFriend }: { users: EventSyncUser[];
     );
 }
 
-function RequestsList({ requests, refreshData }: { requests: EventSyncUser[]; refreshData: () => void }) {
+function RequestsList({ requests, refreshData, onRequestAction }: { requests: EventSyncUser[]; refreshData: () => void; onRequestAction: () => void }) {
     const { userDetails } = useUser();
 
     const acceptFriend = async (userId: string, friendId: string) => {
         try {
             await axios.post(`http://localhost:5000/accept_friend_request/${userId}/${friendId}/`);
             refreshData();
+            onRequestAction();
         } catch (error) {
             console.error('Error accepting friend request:', error);
         }
@@ -250,6 +256,7 @@ function RequestsList({ requests, refreshData }: { requests: EventSyncUser[]; re
         try {
             await axios.delete(`http://localhost:5000/reject_friend_request/${userId}/${friendId}/`);
             refreshData();
+            onRequestAction();
         } catch (error) {
             console.error('Error rejecting request:', error);
         }

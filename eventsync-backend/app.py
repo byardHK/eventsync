@@ -543,6 +543,28 @@ def get_pending_friends(userId):
         print(f"Error: {err}")
     return {}
 
+@app.route('/get_friend_requests/<userId>/')
+def get_friend_requests(userId):
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        query = """
+            SELECT COUNT(*)
+            FROM User u
+            WHERE u.id IN (
+                SELECT user1ID FROM UserToUser
+                WHERE user2ID = %s AND isFriend = false
+            );
+        """
+        mycursor.execute(query, (userId,))
+        response = mycursor.fetchone()
+        mycursor.close()
+        conn.close()
+        return jsonify({"friendRequestsCount": response[0]})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
 @app.route('/accept_friend_request/<string:userId>/<string:friendId>/', methods=['POST'])
 def accept_friend_request(userId, friendId):
     try:
