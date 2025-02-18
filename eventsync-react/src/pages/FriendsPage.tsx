@@ -4,10 +4,12 @@ import BottomNavBar from '../components/BottomNavBar';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css";
-import { Button, Typography, Paper, Box } from '@mui/material';
+import { Button, Typography, Paper, Box, Dialog, DialogTitle, DialogContent, Fab, Autocomplete, TextField } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
+import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import { set } from 'date-fns';
 
 function FriendsPage() {
     const { userDetails } = useUser();
@@ -15,6 +17,11 @@ function FriendsPage() {
     const [friends, setFriends] = useState<EventSyncUser[]>([]);
     const [requests, setRequests] = useState<EventSyncUser[]>([]);
     const [pending, setPending] = useState<EventSyncUser[]>([]);
+    const [OpenDialog, setOpenDialog] = useState(false);
+    const [searchInput, setSearchInput] = useState('');
+    const [filteredUsers, setFilteredUsers] = useState(users);
+    const [isFriendsPage, setIsFriendsPage] = useState<Boolean>(true); 
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (userDetails?.email) {
@@ -39,15 +46,26 @@ function FriendsPage() {
         }
     };
 
-    const [isFriendsPage, setIsFriendsPage] = useState<Boolean>(true); 
-
-    const navigate = useNavigate();
-
     function toggleFriendsGroupPages(isFriendsPage: boolean){
         if(!isFriendsPage){
             navigate('/groupsPage');
         }
     }
+
+    const handleOpenDialog = () => {
+        setOpenDialog(true);
+    };
+
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
+        setSearchInput('');
+    };
+
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        setSearchInput(value);
+        setFilteredUsers(users.filter(user => `${user.fname} ${user.lname}`.toLowerCase().includes(value.toLowerCase())));
+    };
 
     return (
         <Box
@@ -73,18 +91,53 @@ function FriendsPage() {
                         Groups
                     </Button>
             </Box>
-            <Typography variant="h4" gutterBottom>Users to Friend</Typography>
-            <UserList users={users} refreshData={() => userDetails.email && refreshData(userDetails.email)} />
-            
-            <Typography variant="h4" gutterBottom>Friends of Current User</Typography>
+        
+            <Typography variant="h4" gutterBottom>Friends</Typography>
             <FriendsList friends={friends} refreshData={() => userDetails.email && refreshData(userDetails.email)} />
             
             <Typography variant="h4" gutterBottom>Friend Requests</Typography>
             <RequestsList requests={requests} refreshData={() => userDetails.email && refreshData(userDetails.email)} />
 
-            <Typography variant="h4" gutterBottom>Pending Friend Requests</Typography>
+            <Typography variant="h4" gutterBottom>Pending Friends</Typography>
             <PendingList pending={pending} refreshData={() => userDetails.email && refreshData(userDetails.email)}/>
 
+            <Fab 
+                color="primary" 
+                aria-label="add" 
+                style={{ position: 'fixed', bottom: '70px', right: '16px', width: '56px', height: '56px', borderRadius: '8px' }}
+                onClick={handleOpenDialog}
+            >
+                <AddIcon />
+            </Fab>
+            <Dialog open={OpenDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm" scroll='body'>
+                <Box
+                    alignItems="center"
+                    width="300px"
+                    height="500px"
+                    bgcolor="white"
+                >
+                    <DialogTitle>
+                        <TextField
+                            sx={{ width: '250px' }}
+                            value={searchInput}
+                            onChange={handleSearchChange}
+                            label="Search Users"
+                            variant="outlined"
+                            fullWidth
+                        />
+                        <Button
+                            aria-label="close"
+                            onClick={handleCloseDialog}
+                            style={{ position: 'absolute', right: '-12px', top: '8px' }}
+                        >
+                            <CloseIcon />
+                        </Button>
+                    </DialogTitle>
+                    <DialogContent>
+                        <UserList users={filteredUsers} refreshData={() => userDetails.email && refreshData(userDetails.email)} onAddFriend={handleCloseDialog} />
+                    </DialogContent>
+                </Box>
+            </Dialog>
             <BottomNavBar/>
         </Box>
     );
@@ -120,12 +173,13 @@ function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refre
                         >
                             <Button 
                                 variant="contained" 
-                                color="secondary" 
                                 onClick={() => userDetails.email && removeFriend(userDetails.email, friend.id)}
                             >
-                                <DeleteOutlineIcon/>
+                                <CloseIcon/>
                             </Button>
-                            {`${friend.fname} ${friend.lname}`}
+                            <Box flexGrow={1} textAlign="left" marginLeft={5}>
+                                {`${friend.fname} ${friend.lname}`}
+                            </Box>
                         </Box>
                     </Paper>
                 </li>
@@ -134,7 +188,7 @@ function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refre
     );
 }
 
-function UserList({ users, refreshData }: { users: EventSyncUser[]; refreshData: () => void }) {
+function UserList({ users, refreshData, onAddFriend }: { users: EventSyncUser[]; refreshData: () => void; onAddFriend: () => void }) {
     const { userDetails } = useUser();
 
     const addFriend = async (userId: string, friendId: string) => {
@@ -155,19 +209,22 @@ function UserList({ users, refreshData }: { users: EventSyncUser[]; refreshData:
                             display="flex"
                             justifyContent="space-between"
                             alignItems="center"
-                            width="300px"
+                            width="240px"
                             padding="10px"
                             border="1px solid #ccc"
                             borderRadius="5px"
                             margin="5px 0"
                             bgcolor="white"
                         >
-                        {`${user.fname} ${user.lname}`}
+                            {`${user.fname} ${user.lname}`}
                             <Button 
                                 variant="contained" 
-                                onClick={() => userDetails.email && addFriend(userDetails.email, user.id)}
+                                onClick={() => {
+                                    userDetails.email && addFriend(userDetails.email, user.id)
+                                    onAddFriend();
+                                }}
                             >
-                                Add Friend
+                                <AddIcon/>
                             </Button>
                         </Box>
                     </Paper>
@@ -272,7 +329,9 @@ function PendingList({ pending, refreshData }: { pending: EventSyncUser[]; refre
                             >
                                 <CloseIcon/>
                             </Button>
-                            {`${user.fname} ${user.lname}`}
+                            <Box flexGrow={1} textAlign="left" marginLeft={5}>
+                                {`${user.fname} ${user.lname}`}
+                            </Box>
                         </Box>
                     </Paper>
                 </li>
