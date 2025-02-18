@@ -5,6 +5,8 @@ import mysql.connector
 from flask_cors import CORS
 from datetime import datetime, timedelta
 from dateutil.relativedelta import *
+import pusher
+import os
 
 app = Flask(__name__)
 CORS(app)
@@ -17,6 +19,13 @@ db_config = {
     'database': 'event_sync'
 }
 
+pusher_client = pusher.Pusher(
+  app_id='1939690',
+  key='d2b56055f7edd36cb4b6',
+  secret='fc12eddbc27d54975d56',
+  cluster='us2',
+  ssl=True
+)
 
 @app.route('/api/update_user_profile', methods=['POST'])
 def update_user_profile():

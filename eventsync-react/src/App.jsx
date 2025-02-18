@@ -12,7 +12,7 @@ import  {LoadUser} from './sso/LoadUser';
 import { AuthenticatedTemplate, UnauthenticatedTemplate } from '@azure/msal-react';
 import OnboardingPage from "./pages/OnboardingPage";
 import ChatPage from "./pages/ChatPage"
-// import ChatHomePage from "./pages/ChatHomePage"
+import ChatHomePage from "./pages/ChatHomePage"
 
 
 const MainContent = () => {
@@ -34,7 +34,7 @@ const MainContent = () => {
                     <Route path="/viewEvent/:eventId" element={<ViewEventPage/>}/>
                     <Route path="/adminPage" element={<AdminPage/>}/>
                     <Route path="/viewChat/:chatId" element={<ChatPage/>}/>
-                    {/* <Route path="/chatHomePage" element={<ChatHomePage/>}/> */}
+                    <Route path="/chatHomePage" element={<ChatHomePage/>}/>
                     <Route path="/groupsPage" element={<GroupsPage/>}/>
                 </Routes>
             </BrowserRouter>  

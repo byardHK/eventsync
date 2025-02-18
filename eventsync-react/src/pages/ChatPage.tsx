@@ -114,12 +114,11 @@ const ChatInput = (props: { channelName: String, userId: String, chatId: string 
     return (
         <div>
         <div className="chat-input-container">
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Message"
-          />
+        <TextField 
+            type="text" 
+            value={message} 
+            onChange={(event) => setMessage(event.target.value)}  
+        />
           <button onClick={sendMessage}>Send</button>
         </div>
       </div>
