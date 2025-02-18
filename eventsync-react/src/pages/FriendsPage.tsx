@@ -175,9 +175,11 @@ function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refre
                                 variant="contained" 
                                 onClick={() => userDetails.email && removeFriend(userDetails.email, friend.id)}
                             >
-                                <DeleteOutlineIcon/>
+                                <CloseIcon/>
                             </Button>
-                            {`${friend.fname} ${friend.lname}`}
+                            <Box flexGrow={1} textAlign="left" marginLeft={5}>
+                                {`${friend.fname} ${friend.lname}`}
+                            </Box>
                         </Box>
                     </Paper>
                 </li>
@@ -327,7 +329,9 @@ function PendingList({ pending, refreshData }: { pending: EventSyncUser[]; refre
                             >
                                 <CloseIcon/>
                             </Button>
-                            {`${user.fname} ${user.lname}`}
+                            <Box flexGrow={1} textAlign="left" marginLeft={5}>
+                                {`${user.fname} ${user.lname}`}
+                            </Box>
                         </Box>
                     </Paper>
                 </li>
