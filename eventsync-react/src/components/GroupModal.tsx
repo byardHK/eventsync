@@ -40,15 +40,6 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
           try {
             const friendsReponse = await axios.get(`http://localhost:5000/get_friends/${userDetails.email}`);
             setFriends(friendsReponse.data);
-            const loggedInUserResponse = await axios.get(`http://localhost:5000/get_user/${userDetails.email}`);
-            setFriends([...friends, loggedInUserResponse.data]);
-            if(!groupId) {
-                if(group.users.findIndex(user => user.id === userDetails.email) === -1) {
-                    const updatedGroup : Group = {...group};
-                    updatedGroup.users.push({ id: userDetails.email! });
-                    setGroup({...group})
-                }
-            }
           } catch (error) {
             console.error('Error fetching data:', error);
           }
@@ -126,7 +117,7 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                     }}
                     variant="outlined"
                 />
-                {/* {friends.filter((friend) => friend.id.toLowerCase().includes(searchKeyword.toLowerCase())).map((friend) =>
+                {friends.filter((friend) => friend.id.toLowerCase().includes(searchKeyword.toLowerCase())).map((friend) =>
                     <Box>
                         <FormControlLabel control={<Checkbox disabled={friend.id === userDetails.email} checked={!!group.users.find((user) => { return user.id === friend.id; })} onChange={(event) => {
                             const updatedGroup : Group = {...group};
@@ -136,12 +127,7 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                                 updatedGroup.users = updatedGroup.users.filter((user) => { return user.id !== friend.id; });
                             }
                             setGroup(updatedGroup);
-                        }}/>} label={friend.id} />
-                    </Box>
-                )} */}
-                {friends.map(friend =>  
-                    <Box>
-                        <p></p>
+                        }}/>} label={`${friend.fname} ${friend.lname}`} />
                     </Box>
                 )}
                 <Box display="flex" flexDirection="row" justifyContent="space-betweem">
