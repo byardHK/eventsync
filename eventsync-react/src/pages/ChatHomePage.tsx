@@ -7,6 +7,7 @@ import { useUser } from '../sso/UserContext';
 import "../styles/style.css"
 import Chat from '../types/Chat';
 import { useNavigate } from 'react-router-dom';
+import "../styles/chatHome.css";
 
 function ChatHomePage() {
     
@@ -63,14 +64,29 @@ function ChatList() {
         justifyContent="center"
         style={{maxHeight: '30vh', overflow: 'auto'}}
         padding={2}>
-            {chats.map(chat =>  
-                <Box style={{ backgroundColor: "white"}} display="flex" justifyContent="center" alignItems="center"
-                onClick={() => { viewChat(chat) }}>
-                    <h2>{chat.name}</h2>
-                </Box>
+            {chats.map(chat => 
+                <ChatListItem chat={chat} />
+                // <Box style={{ backgroundColor: "white"}} display="flex" justifyContent="center" alignItems="center"
+                // onClick={() => { viewChat(chat) }}>
+                //     <h2>{chat.name}</h2>
+                // </Box>
             )}  
     </Grid2>)
 }
+
+const ChatListItem = ({chat} : { chat: Chat }) => {
+    return (
+      <div className="chat-list-item">
+        <div className="chat-info">
+          <h4>{chat.name}</h4>
+          {/* <p>{chat.lastMessage}</p> */}
+        </div>
+        {/* <div className="timestamp">
+          <span>{chat.timestamp}</span>
+        </div> */}
+      </div>
+    );
+  };
 
 
 
