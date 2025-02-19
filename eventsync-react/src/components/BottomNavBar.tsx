@@ -42,7 +42,7 @@ function BottomNavBar({ userId }: { userId: string }) {
                 <CalendarMonthIcon/>
             </Button>
         </Link>
-        <Link to="/friendsPage">
+        <Link to="/chatHomePage">
             <Button variant="contained">
                 <ChatIcon/>
             </Button>

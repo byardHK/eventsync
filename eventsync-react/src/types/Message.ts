@@ -1,5 +1,9 @@
 type Message = {
-    id: number
+    id: number,
+    senderId: string,
+    messageContent: string,
+    groupId: number, 
+    chatId: string,
 };
 
 export default Message;
