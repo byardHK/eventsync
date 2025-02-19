@@ -27,7 +27,7 @@ function AdminPage(){
     const navigate = useNavigate();
 
     const handleBackClick = () => {
-        navigate('/');
+        navigate('/home');
     };
     
     const [reports, setReports] = useState<Report[]>([]);

@@ -23,7 +23,8 @@ const OnboardingPage = () => {
     const [invitedToEvent, setInvitedToEvent] = useState(false);
     const [eventCancelled, setEventCancelled] = useState(false);
 
-    const handleSubmit = async () => {
+
+    const addNewUser = async () => {
         const updatedUser = {
             firstName: firstName,
             lastName: lastName,
@@ -39,32 +40,38 @@ const OnboardingPage = () => {
 
         try {
             console.log(updatedUser);
-            await axios.post(`${BASE_URL}/api/add_user`, updatedUser);
-            //setUserDetails((prev) => ({ ...prev, ...updatedUser })); // Update global user state
-
-            useEffect(() => {
-                fetchUserData();
-            }, []);
-            const fetchUserData = async () => {
-                try {
-                    const res = await axios.get(`${BASE_URL}/api/get_user/${userId}`);
-                    console.log("Fetched user data:", res.data);
-        
-                    setUserDetails(prev => ({
-                        ...prev,
-                        ...res.data[0]
-                    }));
-                } catch (error) {
-                    console.error("Error fetching user details:", error);
-                }
-            };
-            navigate("/"); // Redirect to dashboard after onboarding
-        } catch (error) {
+            await axios.post("http://localhost:5000/api/add_user", updatedUser);
+        }
+        catch(error){
             console.error("Error submitting onboarding data:", error);
-            navigate("/");
         }
 
+    }
+    
+    const fetchUserData = async () => {
+        try {
+            const res = await axios.get(`http://localhost:5000/api/get_user/${userId}`);
+            console.log("Fetched user data:", res.data);
+
+            setUserDetails(prev => ({
+                ...prev,
+                ...res.data[0]
+            }));
+        } catch (error) {
+            console.error("Error retrieving user details from database or setting them internally:", error);
+        }
     };
+
+    const handleSubmit = async () => {
+        try {
+            await addNewUser();     
+            await fetchUserData();   
+            navigate("/home");      
+        } catch (error) {
+            console.error("Error submitting new user:", error);
+        }
+    };
+    
 
     return (
         <Box
@@ -116,17 +123,19 @@ const OnboardingPage = () => {
                     margin="normal"
                 />
 
-                <FormControl fullWidth margin="normal">
-                    <InputLabel>Gender</InputLabel>
-                    <Select
-                        value={gender}
-                        onChange={(e) => setGender(e.target.value)}
-                    >
-                        <MenuItem value="Undefined">Prefer Not To Say</MenuItem>
-                        <MenuItem value="Male">Male</MenuItem>
-                        <MenuItem value="Female">Female</MenuItem>
-                    </Select>
-                </FormControl>
+<FormControl fullWidth margin="normal">
+    <InputLabel id="gender-label">Gender</InputLabel>
+    <Select
+        labelId="gender-label"
+        value={gender}
+        onChange={(e) => setGender(e.target.value)}
+        label="Gender" // Explicitly associate the label
+    >
+        <MenuItem value="Undefined">Prefer Not To Say</MenuItem>
+        <MenuItem value="Male">Male</MenuItem>
+        <MenuItem value="Female">Female</MenuItem>
+    </Select>
+</FormControl>
 
                 <TextField
                     fullWidth
@@ -186,3 +195,5 @@ const OnboardingPage = () => {
 };
 
 export default OnboardingPage;
+
+export default fetchUserData;

@@ -18,7 +18,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/base": "^5.0.0-beta.68",
     "@mui/icons-material": "^6.2.1",
-    "@mui/material": "^6.4.0",
+    "@mui/material": "^6.4.4",
     "@mui/x-date-pickers": "^7.23.6",
     "@react-navigation/native": "^7.0.14",
     "axios": "^1.7.9",

@@ -6,5 +6,5 @@ export const OnboardingRoute = ({ element, ...props }) => {
   const { userDetails } = useUser();
 
   const isOnboardingComplete = userDetails?.isOnboardingComplete;
-  return isOnboardingComplete ? <Navigate to="/" /> : element;
+  return isOnboardingComplete ? <Navigate to="/home" /> : element;
 };

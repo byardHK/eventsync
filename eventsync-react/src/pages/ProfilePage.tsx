@@ -151,8 +151,8 @@ function ProfilePage() {
             fetchData();
         }, [userTagsTrigger]);
 
-        const navigate = useNavigate();
-        const handleBackClick = () => navigate("/");
+    const navigate = useNavigate();
+    const handleBackClick = () => navigate("/home");
 
         return (
             <Box display="flex" flexDirection="column" alignItems="center" width="85%" maxWidth="350px" margin="auto">
