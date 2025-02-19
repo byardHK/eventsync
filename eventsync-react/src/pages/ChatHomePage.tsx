@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react';
 import BottomNavBar from '../components/BottomNavBar';
 import Box from '@mui/material/Box';
-import { Grid2 } from '@mui/material';
+import { Button, Grid2 } from '@mui/material';
 import axios from 'axios';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css"
 import Chat from '../types/Chat';
 import { useNavigate } from 'react-router-dom';
 import "../styles/chatHome.css";
+import { Link } from 'react-router-dom';
+
 
 function ChatHomePage() {
     
+  const { userDetails } = useUser();
+  const currentUserId = userDetails.email;
 
     return <>
         <Box
@@ -22,7 +26,7 @@ function ChatHomePage() {
             <h1>My Chats</h1>
            
             <ChatList ></ChatList>
-            <BottomNavBar></BottomNavBar>
+            <BottomNavBar userId={currentUserId!}></BottomNavBar>
         </Box>
     </>;
 
@@ -43,7 +47,6 @@ function ChatList() {
         const fetchData = async () => {
           try {
             const response = await axios.get<Chat[]>(`http://localhost:5000/get_my_chats/${currentUserId}`);
-            console.log(response);
             setChats(response.data);
             
           } catch (error) {
@@ -53,10 +56,6 @@ function ChatList() {
         fetchData();
     }, []);
 
-    function viewChat(chat: Chat) {
-        navigate(`/viewChat/${chat.id}`);
-    }
-
     return (<Grid2
         container spacing={3}
         display="flex"
@@ -65,26 +64,24 @@ function ChatList() {
         style={{maxHeight: '30vh', overflow: 'auto'}}
         padding={2}>
             {chats.map(chat => 
-                <ChatListItem chat={chat} />
-                // <Box style={{ backgroundColor: "white"}} display="flex" justifyContent="center" alignItems="center"
-                // onClick={() => { viewChat(chat) }}>
-                //     <h2>{chat.name}</h2>
-                // </Box>
+                <Link title="Link to Home Page" to={`/viewChat/${chat.id}`}>
+                  <ChatListItem chat={chat} />
+                </Link>
             )}  
     </Grid2>)
 }
 
 const ChatListItem = ({chat} : { chat: Chat }) => {
     return (
-      <div className="chat-list-item">
-        <div className="chat-info">
-          <h4>{chat.name}</h4>
-          {/* <p>{chat.lastMessage}</p> */}
+        <div className="chat-list-item">
+          <div className="chat-info">
+            <h4>{chat.name}</h4>
+            {/* <p>{chat.lastMessage}</p> */}
+          </div>
+          {/* <div className="timestamp">
+            <span>{chat.timestamp}</span>
+          </div> */}
         </div>
-        {/* <div className="timestamp">
-          <span>{chat.timestamp}</span>
-        </div> */}
-      </div>
     );
   };
 
