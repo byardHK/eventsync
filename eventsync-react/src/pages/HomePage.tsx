@@ -134,7 +134,7 @@ function HomePage() {
             <EventList searchKeyword={searchKeyword} tags={tags}/>
 
             
-            <BottomNavBar></BottomNavBar>
+            <BottomNavBar userId={currentUserId!}/>
         </Box>
     </>;
 };

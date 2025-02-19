@@ -49,7 +49,7 @@ def update_user_profile():
         mycursor = conn.cursor()
 
         # Update the profile in the database
-        update_query = """
+        updateQuery = """
             UPDATE User SET 
                 bio = %s, 
                 isPublic = %s, 
@@ -59,7 +59,7 @@ def update_user_profile():
                 eventCancelled = %s
             WHERE id = %s
         """
-        mycursor.execute(update_query, (
+        mycursor.execute(updateQuery, (
             bio, is_public, notification_frequency, 
             receive_friend_request, invited_to_event, 
             event_cancelled, email
@@ -205,7 +205,6 @@ def get_events():
         print(f"Error: {err}")
     return {}
 
-
 @app.route('/get_users/')
 def get_users():
     try:  
@@ -215,6 +214,32 @@ def get_users():
                         SELECT * FROM User;
                         );
                      """)
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        res = sqlResponseToJson(response, headers)
+        mycursor.close()
+        conn.close()
+        return res
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_unfriended_users/<userId>/')
+def get_unfriended_users(userId):
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        query ="""
+            SELECT u.fname, u.lname, u.id
+            FROM User u
+            WHERE u.id != %s
+            AND u.id NOT IN (
+                SELECT user1ID FROM UserToUser WHERE user2ID = %s
+                UNION
+                SELECT user2ID FROM UserToUser WHERE user1ID = %s
+            );
+        """
+        mycursor.execute(query, (userId, userId, userId))
         response = mycursor.fetchall()
         headers = mycursor.description
         res = sqlResponseToJson(response, headers)
@@ -461,26 +486,27 @@ def get_event_tags(eventInfoId):
     return {}
 
 
-@app.route('/get_friends/')
-def get_friends():
+@app.route('/get_friends/<userId>/')
+def get_friends(userId):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute("""
-                        SELECT u.fname, u.lname, u.bio, u.email
-                        FROM User u
-                        WHERE u.id IN (
-                            SELECT user2ID 
-                            FROM UserToUser 
-                            WHERE user1ID = 5
-                            AND isFriend = true
-                            UNION
-                            SELECT user1ID 
-                            FROM UserToUser 
-                            WHERE user2ID = 5
-                            AND isFriend = true
-                        );
-                     """)
+        query = """
+            SELECT u.fname, u.lname, u.id
+            FROM User u
+            WHERE u.id IN (
+                SELECT user2ID 
+                FROM UserToUser 
+                WHERE user1ID = %s
+                AND isFriend = true
+                UNION
+                SELECT user1ID 
+                FROM UserToUser 
+                WHERE user2ID = %s
+                AND isFriend = true
+            );
+        """
+        mycursor.execute(query, (userId, userId,))
         response = mycursor.fetchall()
         headers = mycursor.description
         res = sqlResponseToJson(response, headers)
@@ -491,18 +517,74 @@ def get_friends():
         print(f"Error: {err}")
     return {}
 
-@app.route('/add_friend/<string:friendEmail>/')
-def add_friend(friendEmail):
+@app.route('/get_pending_friends/<userId>/')
+def get_pending_friends(userId):
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor(dictionary=True)
+        pendingQuery = """
+            SELECT u.fname, u.lname, u.id
+            FROM User u
+            WHERE u.id IN (
+                SELECT user2ID FROM UserToUser
+                WHERE user1ID = %s AND isFriend = false
+            );
+        """
+        mycursor.execute(pendingQuery, (userId,))
+        pendingResponse = mycursor.fetchall()
+        requestsQuery = """
+            SELECT u.fname, u.lname, u.id
+            FROM User u
+            WHERE u.id IN (
+                SELECT user1ID FROM UserToUser
+                WHERE user2ID = %s AND isFriend = false
+            );
+        """
+        mycursor.execute(requestsQuery, (userId,))
+        requestsResponse = mycursor.fetchall()
+        mycursor.close()
+        conn.close()
+        return jsonify({
+            "pending": pendingResponse,
+            "requests": requestsResponse
+        })
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_friend_requests/<userId>/')
+def get_friend_requests(userId):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        query = f"""
-                INSERT INTO UserToUser(user1Id, user2Id, isFriend)
-                SELECT 5, id, TRUE
-                FROM User
-                WHERE email = '{friendEmail}';
+        query = """
+            SELECT COUNT(*)
+            FROM User u
+            WHERE u.id IN (
+                SELECT user1ID FROM UserToUser
+                WHERE user2ID = %s AND isFriend = false
+            );
+        """
+        mycursor.execute(query, (userId,))
+        response = mycursor.fetchone()
+        mycursor.close()
+        conn.close()
+        return jsonify({"friendRequestsCount": response[0]})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/accept_friend_request/<string:userId>/<string:friendId>/', methods=['POST'])
+def accept_friend_request(userId, friendId):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        query = """
+                UPDATE UserToUser
+                SET isFriend = TRUE
+                WHERE user1Id = %s AND user2Id = %s;
                 """
-        mycursor.execute(query)
+        mycursor.execute(query, (friendId, userId))
         conn.commit()
         mycursor.close()
         conn.close()
@@ -510,17 +592,67 @@ def add_friend(friendEmail):
         print(f"Error: {err}")
     return {}
 
-@app.route('/remove_friend/<string:friendEmail>/', methods=['DELETE'])
-def remove_friend(friendEmail):
+@app.route('/reject_friend_request/<string:userId>/<string:friendId>/', methods=['DELETE'])
+def reject_friend_request(userId, friendId):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        query = f"""
+        query = """
                 DELETE FROM UserToUser
-                WHERE (user1Id = 5 AND user2Id = (SELECT id FROM User WHERE email = '{friendEmail}'))
-                OR (user1Id = (SELECT id FROM User WHERE email = '{friendEmail}') AND user2Id = 5);
+                WHERE user1Id = %s AND user2Id = %s;
                 """
-        mycursor.execute(query)
+        mycursor.execute(query, (friendId, userId))
+        conn.commit()
+        mycursor.close()
+        conn.close()
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/remove_friend_request/<string:userId>/<string:friendId>/', methods=['DELETE'])
+def remove_friend_request(userId, friendId):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        query = """
+                DELETE FROM UserToUser
+                WHERE user1Id = %s AND user2Id = %s;
+                """
+        mycursor.execute(query, (userId, friendId))
+        conn.commit()
+        mycursor.close()
+        conn.close()
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/add_friend/<string:userId>/<string:friendId>/', methods=['POST'])
+def add_friend(userId, friendId):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        query = """
+                INSERT INTO UserToUser(user1Id, user2Id, isFriend)
+                VALUES (%s, %s, FALSE)
+                """
+        mycursor.execute(query, (userId, friendId))
+        conn.commit()
+        mycursor.close()
+        conn.close()
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/remove_friend/<string:userId>/<string:friendId>/', methods=['DELETE'])
+def remove_friend(userId, friendId):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        query = """
+                DELETE FROM UserToUser
+                WHERE (user1Id = %s AND user2Id = %s) OR (user1Id = %s AND user2Id = %s);
+                """
+        mycursor.execute(query, (userId, friendId, friendId, userId))
         conn.commit()
         mycursor.close()
         conn.close()

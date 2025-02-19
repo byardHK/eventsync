@@ -193,7 +193,7 @@ function ViewEventPage() {
                 <RsvpModal/>     
                 <RsvpListModal eventId={intEventId}/>       
             </Box>
-            <BottomNavBar/>
+            <BottomNavBar userId={currentUserId!}/>
         </Box>
     </>;
 };

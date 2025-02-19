@@ -1,47 +1,85 @@
-import Box from '@mui/material/Box';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import BottomNavBar from '../components/BottomNavBar';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../sso/UserContext';
-import "../styles/style.css"
-import BottomNavBar from '../components/BottomNavBar';
-import { Button } from '@mui/material';
+import "../styles/style.css";
+import { Button, Typography, Paper, Box, Dialog, DialogTitle, DialogContent, Fab, Autocomplete, TextField } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import CheckIcon from '@mui/icons-material/Check';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import { set } from 'date-fns';
 
 function FriendsPage() {
-//     const { userDetails } = useUser();
-//     const currentUserId = userDetails.email;
-
-//     const [users, setUsers] = useState<EventSyncUser[]>([]);
-//     const [friends, setFriends] = useState<EventSyncUser[]>([]);
-
-//     const refreshData = async () => {
-//         try {
-//             const [usersResponse, friendsResponse] = await Promise.all([
-//                 axios.get('http://localhost:5000/get_users/'),
-//                 axios.get('http://localhost:5000/get_friends/'),
-//             ]);
-
-//             setUsers(usersResponse.data);
-//             setFriends(friendsResponse.data);
-//         } catch (error) {
-//             console.error('Error refreshing data:', error);
-//         }
-//     };
-
-//     useEffect(() => {
-//         refreshData();
-//     }, []);
-const [isFriendsPage, setIsFriendsPage] = useState<Boolean>(true); 
-
+    const { userDetails } = useUser();
+    const [users, setUsers] = useState<EventSyncUser[]>([]);
+    const [friends, setFriends] = useState<EventSyncUser[]>([]);
+    const [requests, setRequests] = useState<EventSyncUser[]>([]);
+    const [pending, setPending] = useState<EventSyncUser[]>([]);
+    const [OpenDialog, setOpenDialog] = useState(false);
+    const [searchInput, setSearchInput] = useState('');
+    const [filteredUsers, setFilteredUsers] = useState(users);
+    const [isFriendsPage, setIsFriendsPage] = useState<Boolean>(true); 
+    const [refreshTrigger, setRefreshTrigger] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (userDetails?.email) {
+            refreshData(userDetails.email);
+        }
+    }, [userDetails]);
+
+    const refreshData = async (userId: string) => {
+        try {
+            const [usersResponse, friendsResponse, pendingResponse] = await Promise.all([
+                axios.get(`http://localhost:5000/get_unfriended_users/${userId}/`),
+                axios.get(`http://localhost:5000/get_friends/${userId}/`),
+                axios.get(`http://localhost:5000/get_pending_friends/${userId}/`),
+            ]);
+
+            setUsers(usersResponse.data || []);
+            setFriends(friendsResponse.data || []);
+            setRequests(pendingResponse.data.requests || []);
+            setPending(pendingResponse.data.pending || []);
+        } catch (error) {
+            console.error('Error refreshing data:', error);
+        }
+    };
 
     function toggleFriendsGroupPages(isFriendsPage: boolean){
         if(!isFriendsPage){
             navigate('/groupsPage');
         }
     }
+
+    const handleOpenDialog = () => {
+        setOpenDialog(true);
+    };
+
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
+        setSearchInput('');
+    };
+
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        setSearchInput(value);
+        setFilteredUsers(users.filter(user => `${user.fname} ${user.lname}`.toLowerCase().includes(value.toLowerCase())));
+    };
+
+    const handleRequestAction = () => {
+        setRefreshTrigger(!refreshTrigger);
+    };
+
     return (
-        <>
+        <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            padding={2}
+        >
             <Box display="flex" flexDirection="row">
                 <Button 
                         variant={isFriendsPage ? "contained" : "outlined"} 
@@ -58,85 +96,274 @@ const [isFriendsPage, setIsFriendsPage] = useState<Boolean>(true);
                         Groups
                     </Button>
             </Box>
-            <Box
-                display="flex"
-                flexDirection="column"
-                alignItems="center"
-                justifyContent="center"
+        
+            <Typography variant="h4" gutterBottom>Friends</Typography>
+            <FriendsList friends={friends} refreshData={() => userDetails.email && refreshData(userDetails.email)} />
+            
+            <Typography variant="h4" gutterBottom>Friend Requests</Typography>
+            <RequestsList requests={requests} refreshData={() => userDetails.email && refreshData(userDetails.email)} onRequestAction={handleRequestAction} />
+
+            <Typography variant="h4" gutterBottom>Pending Friends</Typography>
+            <PendingList pending={pending} refreshData={() => userDetails.email && refreshData(userDetails.email)}/>
+
+            <Fab 
+                color="primary" 
+                aria-label="add" 
+                style={{ position: 'fixed', bottom: '70px', right: '16px', width: '56px', height: '56px', borderRadius: '8px' }}
+                onClick={handleOpenDialog}
             >
-                <h1>Users to Friend</h1>
-                {/* <UserList users={users} refreshData={refreshData} /> */}
-                <h1>Friends of Current User</h1>
-                {/* <FriendsList friends={friends} refreshData={refreshData} /> */}
-                <BottomNavBar></BottomNavBar>
-            </Box>
-        </>
+                <AddIcon />
+            </Fab>
+            <Dialog open={OpenDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm" scroll='body'>
+                <Box
+                    alignItems="center"
+                    width="300px"
+                    height="500px"
+                    bgcolor="white"
+                >
+                    <DialogTitle>
+                        <TextField
+                            sx={{ width: '250px' }}
+                            value={searchInput}
+                            onChange={handleSearchChange}
+                            label="Search Users"
+                            variant="outlined"
+                            fullWidth
+                        />
+                        <Button
+                            aria-label="close"
+                            onClick={handleCloseDialog}
+                            style={{ position: 'absolute', right: '-12px', top: '8px' }}
+                        >
+                            <CloseIcon />
+                        </Button>
+                    </DialogTitle>
+                    <DialogContent>
+                        <UserList users={filteredUsers} refreshData={() => userDetails.email && refreshData(userDetails.email)} onAddFriend={handleCloseDialog} />
+                    </DialogContent>
+                </Box>
+            </Dialog>
+            <BottomNavBar userId={userDetails.email!} key={refreshTrigger.toString()} />
+        </Box>
     );
 }
 
-// function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refreshData: () => void }) {
-//     const removeFriend = async (friendEmail: string) => {
-//         try {
-//             await axios.delete(`http://localhost:5000/remove_friend/${friendEmail}/`);
-//             refreshData();
-//         } catch (error) {
-//             console.error('Error removing friend:', error);
-//         }
-//     };
+function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refreshData: () => void }) {
+    const { userDetails } = useUser();
 
-//     return (
-//         <ul>
-//             {friends.map((friend, index) => (
-//                 <li key={index}>
-//                     {`Friend name: ${friend.fname} ${friend.lname}   Bio: ${friend.bio}`}
-//                     <button onClick={() => removeFriend(friend.email)}>Remove Friend</button>
-//                 </li>
-//             ))}
-//         </ul>
-//     );
-// }
+    const removeFriend = async (userId: string, friendId: string) => {
+        try {
+            await axios.delete(`http://localhost:5000/remove_friend/${userId}/${friendId}/`);
+            refreshData();
+        } catch (error) {
+            console.error('Error removing friend:', error);
+        }
+    };
 
-// function UserList({ users, refreshData }: { users: EventSyncUser[]; refreshData: () => void }) {
-//     const addFriend = async (userEmail: string) => {
-//         try {
-//             await axios.get(`http://localhost:5000/add_friend/${userEmail}/`);
-//             refreshData();
-//         } catch (error) {
-//             console.error('Error adding friend:', error);
-//         }
-//     };
+    return (
+        <ul style={{ listStyleType: 'none', padding: 0 }}>
+            {Array.isArray(friends) && friends.map((friend, index) => (
+                <li key={index}>
+                    <Paper elevation={3}>
+                        <Box
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            width="300px"
+                            padding="10px"
+                            border="1px solid #ccc"
+                            borderRadius="5px"
+                            margin="5px 0"
+                            bgcolor="white"
+                        >
+                            <Button 
+                                variant="contained" 
+                                onClick={() => userDetails.email && removeFriend(userDetails.email, friend.id)}
+                            >
+                                <CloseIcon/>
+                            </Button>
+                            <Box flexGrow={1} textAlign="left" marginLeft={5}>
+                                {`${friend.fname} ${friend.lname}`}
+                            </Box>
+                        </Box>
+                    </Paper>
+                </li>
+            ))}
+        </ul>
+    );
+}
 
-//     return (
-//         <ul>
-//             {users.map((user, index) => (
-//                 <li key={index}>
-//                     {`User name: ${user.fname} ${user.lname}   Bio: ${user.bio}`}
-//                     <button onClick={() => addFriend(user.email)}>Add Friend</button>
-//                 </li>
-//             ))}
-//         </ul>
-//     );
-// }
+function UserList({ users, refreshData, onAddFriend }: { users: EventSyncUser[]; refreshData: () => void; onAddFriend: () => void }) {
+    const { userDetails } = useUser();
 
-// enum NotificationFrequency {
-//     None = "none",
-//     Low = "low",
-//     Normal = "normal",
-//     High = "high",
-// }
+    const addFriend = async (userId: string, friendId: string) => {
+        try {
+            await axios.post(`http://localhost:5000/add_friend/${userId}/${friendId}/`);
+            refreshData();
+        } catch (error) {
+            console.error('Error adding friend:', error);
+        }
+    };
 
-// type EventSyncUser = {
-//     id: string;
-//     fname: string;
-//     lname: string;
-//     isAdmin: boolean;
-//     bio: string;
-//     profilePicture: string;
-//     notificationFrequency: NotificationFrequency;
-//     isPublic: boolean;
-//     isBanned: boolean;
-//     numTimesReported: number;
-//     email: string;
-// };
+    return (
+        <ul style={{ listStyleType: 'none', padding: 0 }}>
+            {Array.isArray(users) && users.map((user, index) => (
+                <li key={index}>
+                    <Paper elevation={3}>
+                        <Box
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            width="240px"
+                            padding="10px"
+                            border="1px solid #ccc"
+                            borderRadius="5px"
+                            margin="5px 0"
+                            bgcolor="white"
+                        >
+                            {`${user.fname} ${user.lname}`}
+                            <Button 
+                                variant="contained" 
+                                onClick={() => {
+                                    userDetails.email && addFriend(userDetails.email, user.id)
+                                    onAddFriend();
+                                }}
+                            >
+                                <AddIcon/>
+                            </Button>
+                        </Box>
+                    </Paper>
+                </li>
+            ))}
+        </ul>
+    );
+}
+
+function RequestsList({ requests, refreshData, onRequestAction }: { requests: EventSyncUser[]; refreshData: () => void; onRequestAction: () => void }) {
+    const { userDetails } = useUser();
+
+    const acceptFriend = async (userId: string, friendId: string) => {
+        try {
+            await axios.post(`http://localhost:5000/accept_friend_request/${userId}/${friendId}/`);
+            refreshData();
+            onRequestAction();
+        } catch (error) {
+            console.error('Error accepting friend request:', error);
+        }
+    };
+
+    const removeRequest = async (userId: string, friendId: string) => {
+        try {
+            await axios.delete(`http://localhost:5000/reject_friend_request/${userId}/${friendId}/`);
+            refreshData();
+            onRequestAction();
+        } catch (error) {
+            console.error('Error rejecting request:', error);
+        }
+    };
+
+    return (
+        <ul style={{ listStyleType: 'none', padding: 0 }}>
+            {Array.isArray(requests) && requests.map((user, index) => (
+                <li key={index}>
+                    <Paper elevation={3}>
+                        <Box
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            width="300px"
+                            padding="10px"
+                            border="1px solid #ccc"
+                            borderRadius="5px"
+                            margin="5px 0"
+                            bgcolor="white"
+                        >
+                            <Button 
+                                variant="contained" 
+                                color="primary" 
+                                onClick={() => userDetails.email && removeRequest(userDetails.email, user.id)}
+                            >
+                                <CloseIcon/>
+                            </Button>
+                            {`${user.fname} ${user.lname}`}
+                            <Button 
+                                variant="contained" 
+                                color="primary" 
+                                onClick={() => userDetails.email && acceptFriend(userDetails.email, user.id)}
+                            >
+                                <CheckIcon/>
+                            </Button>
+                        </Box>
+                    </Paper>
+                </li>
+            ))}
+        </ul>
+    );
+}
+
+function PendingList({ pending, refreshData }: { pending: EventSyncUser[]; refreshData: () => void }) {
+    const { userDetails } = useUser();
+
+    const removeRequest = async (userId: string, friendId: string) => {
+        try {
+            await axios.delete(`http://localhost:5000/remove_friend_request/${userId}/${friendId}/`);
+            refreshData();
+        } catch (error) {
+            console.error('Error removing request:', error);
+        }
+    };
+
+    return (
+        <ul style={{ listStyleType: 'none', padding: 0 }}>
+            {Array.isArray(pending) && pending.map((user, index) => (
+                <li key={index}>
+                    <Paper elevation={3}>
+                        <Box
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            width="300px"
+                            padding="10px"
+                            border="1px solid #ccc"
+                            borderRadius="5px"
+                            margin="5px 0"
+                            bgcolor="white"
+                        >
+                            <Button 
+                                variant="contained" 
+                                color="primary" 
+                                onClick={() => userDetails.email && removeRequest(userDetails.email, user.id)}
+                            >
+                                <CloseIcon/>
+                            </Button>
+                            <Box flexGrow={1} textAlign="left" marginLeft={5}>
+                                {`${user.fname} ${user.lname}`}
+                            </Box>
+                        </Box>
+                    </Paper>
+                </li>
+            ))}
+        </ul>
+    );
+}
+
+enum NotificationFrequency {
+    None = "none",
+    Low = "low",
+    Normal = "normal",
+    High = "high",
+}
+
+type EventSyncUser = {
+    id: string;
+    fname: string;
+    lname: string;
+    isAdmin: boolean;
+    profilePicture: string;
+    notificationFrequency: NotificationFrequency;
+    isPublic: boolean;
+    isBanned: boolean;
+    numTimesReported: number;
+};
 
 export default FriendsPage;

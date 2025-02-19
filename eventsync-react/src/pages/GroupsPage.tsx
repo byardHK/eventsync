@@ -88,7 +88,7 @@ function GroupsPage(){
                     <AddIcon></AddIcon>
                 </Button>
             </Box>
-            <BottomNavBar></BottomNavBar>
+            <BottomNavBar userId={currentUserId!}/>
         </>
     );
 }   
