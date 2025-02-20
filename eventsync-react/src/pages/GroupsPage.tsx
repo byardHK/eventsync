@@ -83,10 +83,20 @@ function GroupsPage(){
                     <SplitButton group={group} key={group.id} onSave={reloadMyGroups}/>
                 )}
             </Box>
-            <Box display="flex" justifyContent="flex-end" alignItems="flex-end">
-                <Button onClick={()=>setNewGroupsModalOpen(true)}>
-                    <AddIcon></AddIcon>
-                </Button>
+            <Box
+                display="flex"
+                flexDirection="row"
+                width="100%"
+                paddingBottom={2}
+                paddingTop={2}
+                justifyContent="flex-end"
+                style={{ position: 'fixed', bottom: '40px' }}
+            >
+                <Box display="flex" justifyContent="flex-end" alignItems="flex-end">
+                    <Button onClick={()=>setNewGroupsModalOpen(true)}>
+                        <AddIcon></AddIcon>
+                    </Button>
+                </Box>
             </Box>
             <BottomNavBar userId={currentUserId!}/>
         </>
@@ -187,7 +197,7 @@ function SplitButton({group, onSave}: SplitButtonProps) {
                     <MenuItem
                       key={user.id}
                     >
-                      {user.id}
+                      {`${user.fname} ${user.lname}`}
                     </MenuItem>
                   ))}
                 </MenuList>

@@ -38,16 +38,8 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const response = await axios.get(`http://localhost:5000/get_users`);
-            setFriends(response.data);
-            
-            if(!groupId) {
-                if(group.users.findIndex(user => user.id === userDetails.email) === -1) {
-                    const updatedGroup : Group = {...group};
-                    updatedGroup.users.push({ id: userDetails.email! });
-                    setGroup({...group})
-                }
-            }
+            const friendsReponse = await axios.get(`http://localhost:5000/get_friends/${userDetails.email}`);
+            setFriends(friendsReponse.data);
           } catch (error) {
             console.error('Error fetching data:', error);
           }
@@ -135,7 +127,7 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                                 updatedGroup.users = updatedGroup.users.filter((user) => { return user.id !== friend.id; });
                             }
                             setGroup(updatedGroup);
-                        }}/>} label={friend.id} />
+                        }}/>} label={`${friend.fname} ${friend.lname}`} />
                     </Box>
                 )}
                 <Box display="flex" flexDirection="row" justifyContent="space-betweem">

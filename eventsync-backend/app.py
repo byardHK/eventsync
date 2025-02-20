@@ -1490,7 +1490,7 @@ def get_group(groupId):
 def append_users_to_group_object(group, mycursor):
     mycursor.execute(
         f"""
-        SELECT User.id
+        SELECT User.id, User.fname, User.lname
         FROM GroupOfUserToUser
         INNER JOIN User 
         ON GroupOfUserToUser.userId = User.id 
@@ -1499,7 +1499,9 @@ def append_users_to_group_object(group, mycursor):
     )
     users_response = mycursor.fetchall()
     users = [{
-        "id": tag[0]
+        "id": tag[0],
+        "fname": tag[1],
+        "lname": tag[2]
     } for tag in users_response]
     group["users"] = users
 
@@ -1581,12 +1583,20 @@ def create_group():
 
 def add_users_to_group(users, groupId, mycursor):
     # Get chat id of group in question
-    getChatId = f"SELECT chatId FROM GroupOfUser WHERE GroupOfUser.id = {groupId};"
+    getChatId = f"SELECT chatId, creatorId FROM GroupOfUser WHERE GroupOfUser.id = {groupId};"
     mycursor.execute(getChatId)
-    chatId = mycursor.fetchone()[0]
+    response = mycursor.fetchone()
+    chatId = response[0]
+    creatorId = response[1]
+
+    users_and_creator = list(users)
+    users_and_creator.append({
+        "id": creatorId
+    })
+    print(users_and_creator)
 
     # Add each selected user to created group & group chat
-    for user in users:
+    for user in users_and_creator:
         addUserToGroup = f"""
             INSERT INTO GroupOfUserToUser (groupId, userId) VALUES ({groupId}, "{user["id"]}");
         """
