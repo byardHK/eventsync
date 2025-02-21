@@ -9,6 +9,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import '../styles/chat.css'
 import dayjs, { Dayjs } from "dayjs";
+import SendIcon from '@mui/icons-material/Send';
 
 
 //Pusher
@@ -174,7 +175,9 @@ const ChatInput = (props: { channelName: String, currentUserId: String, chatId: 
             value={message} 
             onChange={(event) => setMessage(event.target.value)}  
         />
-          <button onClick={sendMessage}>Send</button>
+        <Button onClick={sendMessage}>
+            <SendIcon></SendIcon>
+        </Button>
         </div>
       </div>
     );
