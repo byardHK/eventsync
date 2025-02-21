@@ -33,18 +33,22 @@ function ViewEventPage() {
     const handleClose = () => setOpen(false);
   
     const handleRsvp = async () => {
-        try {
-            await axios.post('http://localhost:5000/rsvp', {
-                userId: currentUserId,
-                eventId: intEventId
-            });
-            setIsRsvped(true);
-            handleOpen();
-        } catch (error) {
-            console.error('Error:', error);
+    try {
+        const response = await axios.post('http://localhost:5000/rsvp', {
+            userId: currentUserId,
+            eventId: intEventId
+        });
+        setIsRsvped(true);
+        handleOpen();
+    } catch (error) {
+        console.error('Error:', error);
+        if (axios.isAxiosError(error) && error.response && error.response.data.message === "RSVP limit reached") {
+            alert('RSVP limit reached');
+        } else {
             alert('RSVP failed');
         }
-    };
+    }
+};
 
     const handleUnrsvp = async () => {
         try {
@@ -134,9 +138,9 @@ function ViewEventPage() {
                         minWidth={300}
                     >
                     <h2>RSVP List</h2>
-                    <ul>
+                    <ul style={{ listStyleType: 'none', padding: 0 }}>
                         {rsvpList.map(user => (
-                            <li key={user.userId}>{user.fname} {user.lname}</li>
+                            <li key={user.userId} style={{ marginBottom: '10px' }}>{user.fname} {user.lname}</li>
                         ))}
                     </ul>
                     <Button variant="outlined" fullWidth onClick={handleCloseRsvpList}>Close</Button>
