@@ -5,6 +5,7 @@ import { useMsal } from '@azure/msal-react';
 import { useUser } from './UserContext';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { BASE_URL } from "../components/Cosntants";
 
 export const LoadUser = () => {
     const { setUserDetails } = useUser();
@@ -39,7 +40,7 @@ export const LoadUser = () => {
                 const graphData = await callMsGraph(response.accessToken);
                 const userEmail = graphData.userPrincipalName;
 
-                const res = await axios.get(`http://localhost:5000/api/check_user/${userEmail}`);
+                const res = await axios.get(`${BASE_URL}/api/check_user/${userEmail}`);
                 const userExists = res.data.exists;
                 setIsNewUser(!userExists);
 
@@ -64,7 +65,7 @@ export const LoadUser = () => {
 
         const setExistingUserData = async (email) => {
             try {
-                const res = await axios.get(`http://localhost:5000/api/get_user/${email}`);
+                const res = await axios.get(`${BASE_URL}/api/get_user/${email}`);
                 console.log("Fetched user data from API:", res.data);
         
                 setUserDetails(prevDetails => {

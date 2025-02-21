@@ -5,6 +5,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { useUser } from '../sso/UserContext';
 import Tag from '../types/Tag';
+import { BASE_URL } from '../components/Cosntants';
 
 type TagModalProps= {
     savedTags: Tag[];
@@ -51,7 +52,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
     const handleCreateCustomTag = async (e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault();
         try {
-            const response = await fetch(`http://localhost:5000/create_custom_tag`, {
+            const response = await fetch(`${BASE_URL}/create_custom_tag`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -74,7 +75,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
 
     async function deleteCustomTag (tag: Tag) {
         try {
-            await axios.delete(`http://localhost:5000/delete_custom_tag/${tag.id}/`);
+            await axios.delete(`${BASE_URL}/delete_custom_tag/${tag.id}/`);
             setGetTagsTrigger(getTagsTrigger+1);
         } catch (error) {
             console.error('Error deleting tag:', error);
@@ -84,7 +85,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/get_tags/${userId}`);
+                const response = await axios.get(`${BASE_URL}/get_tags/${userId}`);
                 const res: Tag[] = response.data;
 
                 const defaultTags: Tag[] = [];

@@ -13,6 +13,7 @@ import { useUser } from "../sso/UserContext";
 import User from "../types/User";
 import AddIcon from '@mui/icons-material/Add';
 import GroupModal from "../components/GroupModal";
+import { BASE_URL } from "../components/Cosntants";
 
 export type Group = {
     id: number;
@@ -29,7 +30,7 @@ function GroupsPage(){
 
     async function reloadMyGroups() {
         try {
-            const response = await axios.get(`http://localhost:5000/get_my_groups/${currentUserId}`);
+            const response = await axios.get(`${BASE_URL}/get_my_groups/${currentUserId}`);
             setGroups(response.data);
             
         } catch (error) {
