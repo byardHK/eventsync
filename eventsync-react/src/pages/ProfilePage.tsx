@@ -8,6 +8,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router-dom";
 import SignOutButton from "../components/SignOutButton";
 import Tag from "../types/Tag";
+import { BASE_URL } from "../components/Cosntants";
 
 function ProfilePage() {
     const { userDetails, setUserDetails } = useUser();
@@ -37,13 +38,13 @@ function ProfilePage() {
             };
             console.log("data  sending: ", data)
             
-            const response = await axios.post('http://localhost:5000/api/update_user_profile', data);
+            const response = await axios.post(`${BASE_URL}/api/update_user_profile`, data);
             if (response.status === 200) {
                 console.log("Profile updated successfully!");
             }
 
             try {
-                const res = await axios.get(`http://localhost:5000/api/get_user/${userId}`);
+                const res = await axios.get(`${BASE_URL}/api/get_user/${userId}`);
                 console.log("Fetched user data from API:", res.data);
         
                 setUserDetails(prevDetails => {
@@ -84,12 +85,12 @@ function ProfilePage() {
             const selectedData = { selectedTags: tagsToAdd, userId };
 
             const [deleteResponse, saveResponse] = await Promise.all([
-                fetch(`http://localhost:5000/delete_user_deselected_tags/`, {
+                fetch(`${BASE_URL}/delete_user_deselected_tags/`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(deselectedData),
                 }),
-                fetch(`http://localhost:5000/save_user_selected_tags/`, {
+                fetch(`${BASE_URL}/save_user_selected_tags/`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(selectedData),
@@ -112,10 +113,10 @@ function ProfilePage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/get_user_tags/${userId}/`);
+                const response = await axios.get(`${BASE_URL}/get_user_tags/${userId}/`);
                 setUserTags(response.data);
 
-                const res = await axios.get(`http://localhost:5000/api/get_user/${userId}`);
+                const res = await axios.get(`${BASE_URL}/api/get_user/${userId}`);
                 console.log("Fetched user data from API:", res.data);
         
                 setUserDetails(prevDetails => {

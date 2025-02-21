@@ -6,6 +6,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ChatIcon from '@mui/icons-material/Chat';
 import GroupIcon from '@mui/icons-material/Group';
 import axios from 'axios';
+import { BASE_URL } from './Cosntants';
 
 function BottomNavBar({ userId }: { userId: string }) {
     const [friendRequests, setFriendRequests] = useState(0);
@@ -13,7 +14,7 @@ function BottomNavBar({ userId }: { userId: string }) {
     useEffect(() => {
         async function fetchFriendRequests() {
             try {
-                const response = await axios.get(`http://localhost:5000/get_friend_requests/${userId}/`);
+                const response = await axios.get(`${BASE_URL}/get_friend_requests/${userId}/`);
                 setFriendRequests(response.data.friendRequestsCount);
             } catch (error) {
                 console.error('Error fetching friend requests:', error);

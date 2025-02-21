@@ -10,6 +10,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { set } from 'date-fns';
+import { BASE_URL } from '../components/Cosntants';
 
 function FriendsPage() {
     const { userDetails } = useUser();
@@ -33,9 +34,9 @@ function FriendsPage() {
     const refreshData = async (userId: string) => {
         try {
             const [usersResponse, friendsResponse, pendingResponse] = await Promise.all([
-                axios.get(`http://localhost:5000/get_unfriended_users/${userId}/`),
-                axios.get(`http://localhost:5000/get_friends/${userId}/`),
-                axios.get(`http://localhost:5000/get_pending_friends/${userId}/`),
+                axios.get(`${BASE_URL}/get_unfriended_users/${userId}/`),
+                axios.get(`${BASE_URL}/get_friends/${userId}/`),
+                axios.get(`${BASE_URL}/get_pending_friends/${userId}/`),
             ]);
 
             setUsers(usersResponse.data || []);
@@ -153,7 +154,7 @@ function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refre
 
     const removeFriend = async (userId: string, friendId: string) => {
         try {
-            await axios.delete(`http://localhost:5000/remove_friend/${userId}/${friendId}/`);
+            await axios.delete(`${BASE_URL}/remove_friend/${userId}/${friendId}/`);
             refreshData();
         } catch (error) {
             console.error('Error removing friend:', error);
@@ -198,7 +199,7 @@ function UserList({ users, refreshData, onAddFriend }: { users: EventSyncUser[];
 
     const addFriend = async (userId: string, friendId: string) => {
         try {
-            await axios.post(`http://localhost:5000/add_friend/${userId}/${friendId}/`);
+            await axios.post(`${BASE_URL}/add_friend/${userId}/${friendId}/`);
             refreshData();
         } catch (error) {
             console.error('Error adding friend:', error);
@@ -244,7 +245,7 @@ function RequestsList({ requests, refreshData, onRequestAction }: { requests: Ev
 
     const acceptFriend = async (userId: string, friendId: string) => {
         try {
-            await axios.post(`http://localhost:5000/accept_friend_request/${userId}/${friendId}/`);
+            await axios.post(`${BASE_URL}/accept_friend_request/${userId}/${friendId}/`);
             refreshData();
             onRequestAction();
         } catch (error) {
@@ -254,7 +255,7 @@ function RequestsList({ requests, refreshData, onRequestAction }: { requests: Ev
 
     const removeRequest = async (userId: string, friendId: string) => {
         try {
-            await axios.delete(`http://localhost:5000/reject_friend_request/${userId}/${friendId}/`);
+            await axios.delete(`${BASE_URL}/reject_friend_request/${userId}/${friendId}/`);
             refreshData();
             onRequestAction();
         } catch (error) {
@@ -306,7 +307,7 @@ function PendingList({ pending, refreshData }: { pending: EventSyncUser[]; refre
 
     const removeRequest = async (userId: string, friendId: string) => {
         try {
-            await axios.delete(`http://localhost:5000/remove_friend_request/${userId}/${friendId}/`);
+            await axios.delete(`${BASE_URL}/remove_friend_request/${userId}/${friendId}/`);
             refreshData();
         } catch (error) {
             console.error('Error removing request:', error);

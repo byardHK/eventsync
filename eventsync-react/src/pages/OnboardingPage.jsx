@@ -4,6 +4,7 @@ import { useUser } from "../sso/UserContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/style.css";
+import { BASE_URL } from '../components/Cosntants';
 
 const OnboardingPage = () => {
     const { userDetails, setUserDetails } = useUser();
@@ -38,7 +39,7 @@ const OnboardingPage = () => {
 
         try {
             console.log(updatedUser);
-            await axios.post("http://localhost:5000/api/add_user", updatedUser);
+            await axios.post(`${BASE_URL}/api/add_user`, updatedUser);
             //setUserDetails((prev) => ({ ...prev, ...updatedUser })); // Update global user state
 
             useEffect(() => {
@@ -46,7 +47,7 @@ const OnboardingPage = () => {
             }, []);
             const fetchUserData = async () => {
                 try {
-                    const res = await axios.get(`http://localhost:5000/api/get_user/${userId}`);
+                    const res = await axios.get(`${BASE_URL}/api/get_user/${userId}`);
                     console.log("Fetched user data:", res.data);
         
                     setUserDetails(prev => ({
