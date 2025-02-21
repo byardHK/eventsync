@@ -103,11 +103,11 @@ function ChatPage() {
 
 	return(
 		<div className="chat-container">
-            
-             <div className="chat-header">
-                <Button  onClick={handleBackClick} title="go to My Events page">
+
+             <div className="chat-header"> 
+             <Button className='arrow' onClick={handleBackClick} title="go to My Events page">
                     <ArrowBackIcon style={{ color: 'white'}} />
-                </Button>
+                </Button> 
                 <h2>{chatTitle()}</h2>     
             </div>
             <ChatList messages={messages} currentUserId={currentUserId} groupChat={chat?.isGroupChat!} getName={getName}></ChatList>
@@ -116,28 +116,36 @@ function ChatPage() {
 	)
 }
 
-const ChatList = (props: { messages: Message[], currentUserId: String, groupChat: Boolean, getName: (userId: String) => String | null }) => {
+const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Message[], currentUserId: String, groupChat: Boolean, getName: (userId: String) => String | null }) => {
 
     function messageDateString(dateStr: string) {
         return dayjs(dateStr).format("h:mm A")
     }
 
     return (       
-        <div className="messages-container">
-            {props.messages.map((message, index) => (
-            <div>
-                <div
-                    // style={{alignSelf: 'flex-start'}}
-                    key={index}
-                    className={`message ${message.senderId === props.currentUserId ? "user" : "bot"}`}
-                >
-                    <p>{message.messageContent}</p>
-                    <p>{messageDateString(message.timeSent)}</p>
-                    {props.groupChat && <p>{props.getName(message.senderId)!}</p>}
-                </div>
-                <br></br>
+        <div className="chatWindow">
+            <ul className='chat' id='chatList'>
+            {messages.map((message, index) => (
+            <div key={index}>
+                {currentUserId === message.senderId ? (
+                <li className="self">
+                  <div className="msg">
+                    <div className="message"> {message.messageContent}</div>
+                    <div className='date'>{messageDateString(message.timeSent)}</div>
+                  </div>
+                </li>
+              ) : (
+                <li className="other">
+                  <div className="msg">
+                    {groupChat && <p>{getName(message.senderId)}</p>}
+                    <div className="message"> {message.messageContent}</div>
+                    <div className='date'>{messageDateString(message.timeSent)}</div>
+                  </div>
+                </li>
+              )}
             </div>
             ))}
+            </ul>
         </div>)
 };
 
@@ -145,7 +153,6 @@ const ChatInput = (props: { channelName: String, currentUserId: String, chatId: 
     const [message, setMessage] = useState<string>("");
 
     const sendMessage = () => {
-        // e.preventDefault(); // I should do this
         if (message.trim().length > 0) {
             const data = {
                 senderId: props.currentUserId,
