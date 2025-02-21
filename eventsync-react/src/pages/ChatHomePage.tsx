@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import BottomNavBar from '../components/BottomNavBar';
 import Box from '@mui/material/Box';
-import { Button, Grid2 } from '@mui/material';
+import { Grid2 } from '@mui/material';
 import axios from 'axios';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css"
@@ -40,8 +40,6 @@ function ChatList() {
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
     const [chats, setChats] = useState<Chat[]>([]); 
-    const navigate = useNavigate();
-
 
     useEffect(() => {
         const fetchData = async () => {

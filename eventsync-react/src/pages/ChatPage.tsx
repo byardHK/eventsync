@@ -1,28 +1,46 @@
 import {useEffect} from 'react';
-import { Button, TextField, Box } from "@mui/material";
+import { Button, TextField } from "@mui/material";
 import axios from "axios";
 import Message from '../types/Message';
+import Chat from '../types/Chat';
 import { useState } from 'react';
 import { useUser } from '../sso/UserContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import '../styles/chat.css'
+import dayjs, { Dayjs } from "dayjs";
+
 
 //Pusher
 import Pusher from 'pusher-js';
 
 function ChatPage() {
-    const [chats, setChats] = useState<Message[]>([]);
+    const [messages, setMessages] = useState<Message[]>([]);
     const { chatId } = useParams<{ chatId: string }>() ;
     const [msg, setMsg] = useState<Message>();
+    const [chat, setChat] = useState<Chat>();
+    const [users, setUsers] = useState(new Map<String, User>())
     const { userDetails } = useUser();
-    const userId = userDetails.email ? userDetails.email : "";
+    const currentUserId = userDetails.email ? userDetails.email : "";
     const channelName = `chat-${chatId}`;
     const navigate = useNavigate();
+    const [nonGroupOtherUser, setNonGroupOtherUser] = useState<User | null>(null);
 
 
 	//This will be called when your component is mounted
 	useEffect(() => {
+        const fetchChat = async () => {
+            try {
+                const response = await axios.get<{chat: Chat, users: User[]}>(`http://localhost:5000/get_chat/${chatId}`);
+                setChat(response.data.chat);
+                setUsers(new Map(response.data.users.map(user => [user.id, user])));
+                console.log(response.data);
+            } catch (error) {
+                console.error('Error fetching tags:', error);
+            }
+        };
+        fetchChat();
+
 		const pusher = new Pusher('d2b56055f7edd36cb4b6', {
 			cluster: 'us2'
 		})
@@ -46,19 +64,42 @@ function ChatPage() {
 
     useEffect(() => {
         if(msg) {
-            setChats([...chats,msg]);
-            console.log(chats.length);
+            setMessages([...messages,msg]);
+            console.log(messages.length);
         }
       }, [msg]);
 
+      useEffect(() => {
+        if(chat && !chat.isGroupChat && users) {
+            for (const [userId, user] of users) {
+                if (userId !== currentUserId) {
+                    setNonGroupOtherUser(user);
+                    break;
+                }
+            }
+        }
+      }, [users]);
+
     async function retrieveHistory() {
         const response = await axios.get<MessageList>(`http://localhost:5000/get_chat_hist/${chatId}`);
-        setChats(response.data.chats);
+        setMessages(response.data.chats);
     }
 
     const handleBackClick = () => {
         navigate('/chatHomePage');
     };
+
+    function chatTitle(): String {
+        if (!chat) return "";
+        if (chat.isGroupChat) return chat.name;
+        return `${nonGroupOtherUser?.fname} ${nonGroupOtherUser?.lname}`
+    }
+
+    function getName(userId: String) {
+        const user = users.get(userId);
+        if (user) return `${user.fname} ${user.lname}`;
+        return null
+    }
 
 	return(
 		<div className="chat-container">
@@ -67,15 +108,20 @@ function ChatPage() {
                 <Button  onClick={handleBackClick} title="go to My Events page">
                     <ArrowBackIcon style={{ color: 'white'}} />
                 </Button>
-                {/* <h2>{chat}</h2> */}
+                <h2>{chatTitle()}</h2>     
             </div>
-            <ChatList messages={chats} userId={userId}></ChatList>
-            <ChatInput channelName={""} userId={userId} chatId={chatId ?? "-1"}></ChatInput>
+            <ChatList messages={messages} currentUserId={currentUserId} groupChat={chat?.isGroupChat!} getName={getName}></ChatList>
+            <ChatInput channelName={""} currentUserId={currentUserId} chatId={chatId ?? "-1"}></ChatInput>
 		</div>
 	)
 }
 
-const ChatList = (props: { messages: Message[], userId: String }) => {
+const ChatList = (props: { messages: Message[], currentUserId: String, groupChat: Boolean, getName: (userId: String) => String | null }) => {
+
+    function messageDateString(dateStr: string) {
+        return dayjs(dateStr).format("h:mm A")
+    }
+
     return (       
         <div className="messages-container">
             {props.messages.map((message, index) => (
@@ -83,9 +129,11 @@ const ChatList = (props: { messages: Message[], userId: String }) => {
                 <div
                     // style={{alignSelf: 'flex-start'}}
                     key={index}
-                    className={`message ${message.senderId === props.userId ? "user" : "bot"}`}
+                    className={`message ${message.senderId === props.currentUserId ? "user" : "bot"}`}
                 >
                     <p>{message.messageContent}</p>
+                    <p>{messageDateString(message.timeSent)}</p>
+                    {props.groupChat && <p>{props.getName(message.senderId)!}</p>}
                 </div>
                 <br></br>
             </div>
@@ -93,14 +141,14 @@ const ChatList = (props: { messages: Message[], userId: String }) => {
         </div>)
 };
 
-const ChatInput = (props: { channelName: String, userId: String, chatId: string }) => {
+const ChatInput = (props: { channelName: String, currentUserId: String, chatId: string }) => {
     const [message, setMessage] = useState<string>("");
 
     const sendMessage = () => {
         // e.preventDefault(); // I should do this
         if (message.trim().length > 0) {
             const data = {
-                senderId: props.userId,
+                senderId: props.currentUserId,
                 messageContent: message,
                 id: -1, // TODO: how do I want to do this?
                 chatId: props.chatId,
@@ -132,6 +180,12 @@ function getCurDate() {
 
 type MessageList = {
     chats: Message[]
+}
+
+type User = {
+    id: String,
+    fname: String,
+    lname: String
 }
 
 export default ChatPage;

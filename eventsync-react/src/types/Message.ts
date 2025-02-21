@@ -4,6 +4,7 @@ type Message = {
     messageContent: string,
     groupId: number, 
     chatId: string,
+    timeSent: string
 };
 
 export default Message;
