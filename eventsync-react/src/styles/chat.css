@@ -1,6 +1,7 @@
 .chat-container {
     display: flex;
     flex-direction: column;
+    position: relative;
   }
   
   .chat-header {
@@ -19,14 +20,20 @@
   }
   
   .chat-input-container {
-    position: fixed;
+    /* position: fixed;
+    bottom: 0; */
+    /* display: flex; */
+    position: absolute;
     bottom: 0;
-    display: flex;
     justify-content: space-between;
     padding: 12px;
     background-color: #fff;
     border-top: 1px solid #ddd;
-    width: 90%
+    width: 90%;
+    /* flex-grow: 0;
+    flex-shrink: 0; */
+    margin-top: auto;
+    flex-shrink: 0; 
   }
   
   .chat-input-container input {
@@ -56,6 +63,7 @@
   padding: 0;
   overflow: scroll;
   scroll-behavior: smooth;
+  flex: 1 0 auto; 
 }
 .chat li {
   padding: 0.5rem;
@@ -96,5 +104,6 @@
 
 .msg .date {
   font-size: 0.7rem;
+  padding-top: 5px;
   text-align: right;
 }

@@ -10,7 +10,9 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import '../styles/chat.css'
 import dayjs, { Dayjs } from "dayjs";
 import SendIcon from '@mui/icons-material/Send';
+import isToday from 'dayjs/plugin/isToday';
 
+dayjs.extend(isToday);
 
 //Pusher
 import Pusher from 'pusher-js';
@@ -120,7 +122,15 @@ function ChatPage() {
 const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Message[], currentUserId: String, groupChat: Boolean, getName: (userId: String) => String | null }) => {
 
     function messageDateString(dateStr: string) {
-        return dayjs(dateStr).format("h:mm A")
+        const date: Dayjs = dayjs(dateStr);
+        if (date.isToday()) {
+            return dayjs(dateStr).format("h:mm A");
+        } else if(date.year() == dayjs().year()) {
+            return dayjs(dateStr).format("M/D h:mm A");
+        } else {
+            return dayjs(dateStr).format("M/D/YY h:mm A");
+        }
+        
     }
 
     return (       
