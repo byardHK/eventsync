@@ -30,8 +30,6 @@ function ChatPage() {
     const navigate = useNavigate();
     const [nonGroupOtherUser, setNonGroupOtherUser] = useState<User | null>(null);
 
-
-	//This will be called when your component is mounted
 	useEffect(() => {
         const fetchChat = async () => {
             try {
@@ -49,22 +47,16 @@ function ChatPage() {
 			cluster: 'us2'
 		})
 		const channel = pusher.subscribe(channelName);
-		// You can bind more channels here like this
-		// const channel2 = pusher.subscribe('channel_name2')
 		channel.bind('new-message', function(data: Message) {
             setMsg(data);
             console.log(data);
-		    // Code that runs when channel1 listens to a new message
 		});
         channel.bind("pusher:subscription_succeeded", retrieveHistory);
 		
 		return (() => {
 			pusher.unsubscribe(channelName)
-			// pusher.unsubscribe('channel_name2')
 		})
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
-	// [] would ensure that useEffect is executed only once
 
     useEffect(() => {
         if(msg) {
