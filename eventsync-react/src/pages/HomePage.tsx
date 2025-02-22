@@ -17,7 +17,6 @@ import StyledCard from '../StyledCard';
 import FlagIcon from '@mui/icons-material/Flag';
 import EventSyncEvent from '../types/EventSyncEvent';
 import Tag from '../types/Tag';
-import { BASE_URL } from '../components/Cosntants';
 
 function HomePage() {
     const { userDetails } = useUser();
@@ -31,7 +30,7 @@ function HomePage() {
     useEffect(() => {
         const fetchTags = async () => {
             try {
-                const response = await axios.get(`${BASE_URL}/get_tags`);
+                const response = await axios.get('http://localhost:5000/get_tags');
                 setTagOptions(response.data.map((tag: { name: string }) => tag.name));
             } catch (error) {
                 console.error('Error fetching tags:', error);
@@ -55,7 +54,7 @@ function HomePage() {
                 </Button>
             </Link>
             
-            <Link to={`/profile/${currentUserId}`}>
+            <Link to="/profile">
                 <Button variant="contained">
                     <PersonIcon/>
                 </Button>
@@ -147,7 +146,7 @@ function EventList({searchKeyword, tags}: {searchKeyword: string, tags: string[]
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const response = await axios.get(`${BASE_URL}/get_events`);
+            const response = await axios.get('http://localhost:5000/get_events');
             const res: EventSyncEvent[] = response.data;
             setEvents(res);
           } catch (error) {
@@ -161,13 +160,13 @@ function EventList({searchKeyword, tags}: {searchKeyword: string, tags: string[]
     async function deleteEvent (event: EventSyncEvent) {
         console.log(event);
         try {
-            const response = await axios.delete(`${BASE_URL}/delete_one_event/${event.id}/`);
+            const response = await axios.delete(`http://localhost:5000/delete_one_event/${event.id}/`);
             console.log(response);
         } catch (error) {
             console.error('Error fetching data:', error);
         }
         try {
-            const response = await axios.get(`${BASE_URL}/get_events`);
+            const response = await axios.get(`http://localhost:5000/get_events`);
             const res: EventSyncEvent[] = response.data;
             setEvents(res);
             } catch (error) {
@@ -188,7 +187,7 @@ function EventList({searchKeyword, tags}: {searchKeyword: string, tags: string[]
     async function viewEvent (event: EventSyncEvent) {
         console.log(event);
         try {
-            const response = await axios.post(`${BASE_URL}/addOneView/${event.id}/`);
+            const response = await axios.post(`http://localhost:5000/addOneView/${event.id}/`);
             console.log(response);
         } catch (error) {
             console.error('Error fetching data:', error);

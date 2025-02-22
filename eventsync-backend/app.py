@@ -1674,6 +1674,36 @@ def reportEvent():
         print(f"Error: {err}")
     return {}
 
+@app.route('/reportMessage', methods=['POST'])
+def reportMessage():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        messageDetails = body.get("details")
+        messageReportedBy = body.get("reportedBy")
+        messageId = body.get("reportedMessageId")
+
+        # mycursor.execute(f""" 
+        #     SELECT id FROM Chat WHERE id = {messageId};
+        # """)
+        # reportedMessageId = mycursor.fetchone()[0]
+
+        reportMessage = f"""
+            INSERT INTO Report (details, reportedBy, reportedMessageId)
+            VALUES ("{messageDetails}", "{messageReportedBy}", {messageId});
+        """
+        mycursor.execute(reportMessage)
+        
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"message": "report successful"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
 @app.route('/message/', methods=['POST'])
 def message():
     data = request.get_json()

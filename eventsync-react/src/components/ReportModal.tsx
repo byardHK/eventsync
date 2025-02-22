@@ -29,6 +29,19 @@ async function reportEvent(event: Event, currentUserId: string, reportDetails: s
     }
 };
 
+async function reportMessage(message: Message, currentUserId: string, reportDetails: string) {
+    try {
+        const response = await axios.post(`${BASE_URL}/reportMessage`, {
+            details: reportDetails,
+            reportedBy: currentUserId,
+            reportedMessageId: message.id
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        alert('report failed');
+    }
+};
+
 function ReportModal({input, open, onClose, type}: ReportModalProps){
     const [reportText, setReportText] = useState<string>("");
     const { userDetails } = useUser();
@@ -36,6 +49,9 @@ function ReportModal({input, open, onClose, type}: ReportModalProps){
     function onSubmit(){
         if(type === "event"){
             reportEvent(input as Event, userDetails.email!, reportText);
+        }
+        if(type === "message"){
+            reportMessage(input as Message, userDetails.email!, reportText);
         }
     }
 
