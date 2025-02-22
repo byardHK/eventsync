@@ -54,7 +54,7 @@ function HomePage() {
                 </Button>
             </Link>
             
-            <Link to="/profile">
+            <Link to={`/profile/${currentUserId}`}>
                 <Button variant="contained">
                     <PersonIcon/>
                 </Button>

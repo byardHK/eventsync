@@ -10,7 +10,7 @@ import Message from "../types/Message";
 import { BASE_URL } from "./Cosntants";
 
 type ReportModalProps = {
-    input: Event | Tag | User | Message;
+    input: Event | Tag | User | Message | undefined;
     open: boolean;
     onClose: () => void;
     type: "event" | "tag" | "user" | "message";
@@ -42,6 +42,20 @@ async function reportMessage(message: Message, currentUserId: string, reportDeta
     }
 };
 
+async function reportUser(user: User, currentUserId: string, reportDetails: string) {
+    console.log(user);
+    try {
+        const response = await axios.post(`${BASE_URL}/reportUser`, {
+            details: reportDetails,
+            reportedBy: currentUserId,
+            reportedUserId: user.id
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        alert('report failed');
+    }
+};
+
 function ReportModal({input, open, onClose, type}: ReportModalProps){
     const [reportText, setReportText] = useState<string>("");
     const { userDetails } = useUser();
@@ -53,6 +67,10 @@ function ReportModal({input, open, onClose, type}: ReportModalProps){
         if(type === "message"){
             reportMessage(input as Message, userDetails.email!, reportText);
         }
+        if(type === "user"){
+            reportUser(input as User, userDetails.email!, reportText);
+        }
+        onClose();
     }
 
 

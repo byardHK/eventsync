@@ -182,21 +182,8 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
 
                     </div>
                 </ListItemButton>
-                // <li className="self">
-                //   <div className="msg">
-                //     <div className="message"> {message.messageContent}</div>
-                //     <div className='date'>{messageDateString(message.timeSent)}</div>
-                //   </div>
-                // </li>
               ) : (
                 otherChat(message)
-                // <li className="other">
-                //   <div className="msg">
-                //     {groupChat && <p>{getName(message.senderId)}</p>}
-                //     <div className="message"> {message.messageContent}</div>
-                //     <div className='date'>{messp0;/ageDateString(message.timeSent)}</div>
-                //   </div>
-                // </li>
               )}
             </div>
             ))}
