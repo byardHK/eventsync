@@ -4,6 +4,7 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup'; 
 import FormControl from '@mui/material/FormControl'; 
 import EventSyncEvent from '../types/EventSyncEvent';
+import { BASE_URL } from './Cosntants';
 
 function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged: React.Dispatch<React.SetStateAction<Boolean>> }){
     const [isOpen, setOpen] = useState(false);
@@ -14,7 +15,7 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged:
     async function handleDelete(){
         console.log(`Delete ${props.event.id}, ${numToDelete}`);
         props.setEventsChanged(true);
-        const deletePath = numToDelete == "one" ? `http://localhost:5000/delete_one_event/${props.event.id}/` : `http://localhost:5000/delete_multiple_events/${props.event.id}/`;
+        const deletePath = numToDelete == "one" ? `${BASE_URL}/delete_one_event/${props.event.id}/` : `${BASE_URL}/delete_multiple_events/${props.event.id}/`;
             const response = await fetch(deletePath, {
                 method: 'DELETE',
                 headers: {

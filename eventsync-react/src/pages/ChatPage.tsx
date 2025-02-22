@@ -10,6 +10,7 @@ import '../styles/chat.css'
 
 //Pusher
 import Pusher from 'pusher-js';
+import { BASE_URL } from '../components/Cosntants';
 
 function ChatPage() {
     const [chats, setChats] = useState<Message[]>([]);
@@ -52,7 +53,7 @@ function ChatPage() {
       }, [msg]);
 
     async function retrieveHistory() {
-        const response = await axios.get<MessageList>(`http://localhost:5000/get_chat_hist/${chatId}`);
+        const response = await axios.get<MessageList>(`${BASE_URL}/get_chat_hist/${chatId}`);
         setChats(response.data.chats);
     }
 
@@ -106,7 +107,7 @@ const ChatInput = (props: { channelName: String, userId: String, chatId: string 
                 chatId: props.chatId,
                 timeSent: getCurDate()
             };
-            axios.post(`http://localhost:5000/message/`, data);
+            axios.post(`${BASE_URL}/message/`, data);
             setMessage("");
         }
     };

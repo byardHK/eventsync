@@ -8,6 +8,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate, useParams } from "react-router-dom";
 import SignOutButton from "../components/SignOutButton";
 import Tag from "../types/Tag";
+import { BASE_URL } from "../components/Cosntants";
 
 function ProfilePage() {
     const { id: profileId } = useParams();
@@ -24,49 +25,49 @@ function ProfilePage() {
         const [invitedToEvent, setInvitedToEvent] = useState<boolean>(userDetails.eventInvite || false);
         const [eventCancelled, setEventCancelled] = useState<boolean>(userDetails.eventCancelled || false);
 
-        const handleSaveChanges = async () => {
-            try {
-                const data = {
-                    userId: userId,
-                    bio: aboutMe,
-                    isPublic: !isPrivate,
-                    notificationFrequency: notificationFrequency,
-                    receiveFriendRequest: receiveFriendRequest,
-                    invitedToEvent: invitedToEvent,
-                    eventCancelled: eventCancelled
-                };
-                console.log("data  sending: ", data)
-                
-                const response = await axios.post('http://localhost:5000/api/update_user_profile', data);
-                if (response.status === 200) {
-                    console.log("Profile updated successfully!");
-                }
-
-                try {
-                    const res = await axios.get(`http://localhost:5000/api/get_user/${userId}`);
-                    console.log("Fetched user data from API:", res.data);
+    const handleSaveChanges = async () => {
+        try {
+            const data = {
+                userId: userId,
+                bio: aboutMe,
+                isPublic: !isPrivate,
+                notificationFrequency: notificationFrequency,
+                receiveFriendRequest: receiveFriendRequest,
+                invitedToEvent: invitedToEvent,
+                eventCancelled: eventCancelled
+            };
+            console.log("data  sending: ", data)
             
-                    setUserDetails(prevDetails => {
-                        const updatedDetails = {
-                            ...prevDetails,
-                            firstName: res.data[0].fname,
-                            lastName: res.data[0].lname,
-                            email: res.data[0].id,
-                            isAdmin: res.data[0].isAdmin,
-                            isBanned: res.data[0].isBanned,
-                            isPublic: res.data[0].isPublic,
-                            bio: res.data[0].bio,
-                            notificationFrequency: res.data[0].notificationFrequency,
-                            notificationId: res.data[0].notificationId,
-                            numTimesReported: res.data[0].numTimesReported,
-                            profilePicture: res.data[0].profilePicture,
-                            friendRequest: res.data[0].friendRequest,
-                            eventInvite: res.data[0].eventInvite,
-                            eventCancelled: res.data[0].eventCancelled,
-                        };
-                        console.log("Updated userDetails:", updatedDetails);
-                        return updatedDetails;
-                    });
+            const response = await axios.post(`${BASE_URL}/api/update_user_profile`, data);
+            if (response.status === 200) {
+                console.log("Profile updated successfully!");
+            }
+
+            try {
+                const res = await axios.get(`${BASE_URL}/api/get_user/${userId}`);
+                console.log("Fetched user data from API:", res.data);
+        
+                setUserDetails(prevDetails => {
+                    const updatedDetails = {
+                        ...prevDetails,
+                        firstName: res.data[0].fname,
+                        lastName: res.data[0].lname,
+                        email: res.data[0].id,
+                        isAdmin: res.data[0].isAdmin,
+                        isBanned: res.data[0].isBanned,
+                        isPublic: res.data[0].isPublic,
+                        bio: res.data[0].bio,
+                        notificationFrequency: res.data[0].notificationFrequency,
+                        notificationId: res.data[0].notificationId,
+                        numTimesReported: res.data[0].numTimesReported,
+                        profilePicture: res.data[0].profilePicture,
+                        friendRequest: res.data[0].friendRequest,
+                        eventInvite: res.data[0].eventInvite,
+                        eventCancelled: res.data[0].eventCancelled,
+                    };
+                    console.log("Updated userDetails:", updatedDetails);
+                    return updatedDetails;
+                });
 
                 } catch (error) {
                     console.error("Error fetching profile:", error);
@@ -83,18 +84,18 @@ function ProfilePage() {
                 const deselectedData = { deselectedTags: tagsToDelete, userId };
                 const selectedData = { selectedTags: tagsToAdd, userId };
 
-                const [deleteResponse, saveResponse] = await Promise.all([
-                    fetch(`http://localhost:5000/delete_user_deselected_tags/`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(deselectedData),
-                    }),
-                    fetch(`http://localhost:5000/save_user_selected_tags/`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(selectedData),
-                    }),
-                ]);
+            const [deleteResponse, saveResponse] = await Promise.all([
+                fetch(`${BASE_URL}/delete_user_deselected_tags/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(deselectedData),
+                }),
+                fetch(`${BASE_URL}/save_user_selected_tags/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(selectedData),
+                }),
+            ]);
 
                 if (deleteResponse.ok && saveResponse.ok) {
                     console.log("Tags updated successfully");
@@ -109,36 +110,36 @@ function ProfilePage() {
             setUserTagsTrigger((prev) => prev + 1);
         };
 
-        useEffect(() => {
-            const fetchData = async () => {
-                try {
-                    const response = await axios.get(`http://localhost:5000/get_user_tags/${userId}/`);
-                    setUserTags(response.data);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await axios.get(`${BASE_URL}/get_user_tags/${userId}/`);
+                setUserTags(response.data);
 
-                    const res = await axios.get(`http://localhost:5000/api/get_user/${userId}`);
-                    console.log("Fetched user data from API:", res.data);
-            
-                    setUserDetails(prevDetails => {
-                        const updatedDetails = {
-                            ...prevDetails,
-                            firstName: res.data[0].fname,
-                            lastName: res.data[0].lname,
-                            email: res.data[0].id,
-                            isAdmin: res.data[0].isAdmin,
-                            isBanned: res.data[0].isBanned,
-                            isPublic: res.data[0].isPublic,
-                            bio: res.data[0].bio,
-                            notificationFrequency: res.data[0].notificationFrequency,
-                            notificationId: res.data[0].notificationId,
-                            numTimesReported: res.data[0].numTimesReported,
-                            profilePicture: res.data[0].profilePicture,
-                            friendRequest: res.data[0].friendRequest,
-                            eventInvite: res.data[0].eventInvite,
-                            eventCancelled: res.data[0].eventCancelled,
-                        };
-                        console.log("Updated userDetails:", updatedDetails);
-                        return updatedDetails;
-                    });
+                const res = await axios.get(`${BASE_URL}/api/get_user/${userId}`);
+                console.log("Fetched user data from API:", res.data);
+        
+                setUserDetails(prevDetails => {
+                    const updatedDetails = {
+                        ...prevDetails,
+                        firstName: res.data[0].fname,
+                        lastName: res.data[0].lname,
+                        email: res.data[0].id,
+                        isAdmin: res.data[0].isAdmin,
+                        isBanned: res.data[0].isBanned,
+                        isPublic: res.data[0].isPublic,
+                        bio: res.data[0].bio,
+                        notificationFrequency: res.data[0].notificationFrequency,
+                        notificationId: res.data[0].notificationId,
+                        numTimesReported: res.data[0].numTimesReported,
+                        profilePicture: res.data[0].profilePicture,
+                        friendRequest: res.data[0].friendRequest,
+                        eventInvite: res.data[0].eventInvite,
+                        eventCancelled: res.data[0].eventCancelled,
+                    };
+                    console.log("Updated userDetails:", updatedDetails);
+                    return updatedDetails;
+                });
 
                 } catch (error) {
                     console.error("Error fetching tags:", error);
