@@ -294,10 +294,10 @@ function ProfilePage() {
         useEffect(() => {
             const fetchData = async () => {
                 try {
-                    const response = await axios.get(`http://localhost:5000/get_user_tags/${profileId}/`);
+                    const response = await axios.get(`${BASE_URL}/get_user_tags/${profileId}/`);
                     setUserTags(response.data);
     
-                    const res = await axios.get(`http://localhost:5000/api/get_user/${profileId}`);
+                    const res = await axios.get(`${BASE_URL}/api/get_user/${profileId}`);
                     console.log("Fetched user data from API:", res.data);
     
                     const details = {
