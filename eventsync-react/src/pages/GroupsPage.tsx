@@ -13,6 +13,7 @@ import { useUser } from "../sso/UserContext";
 import User from "../types/User";
 import AddIcon from '@mui/icons-material/Add';
 import GroupModal from "../components/GroupModal";
+import ReportModal from "../components/ReportModal";
 import { BASE_URL } from "../components/Cosntants";
 
 export type Group = {
@@ -139,7 +140,7 @@ function SplitButton({group, onSave}: SplitButtonProps) {
     };
 
     const navigate = useNavigate();
-
+    const [reportModalOpen, setReportModalOpen] = useState<boolean>(false);
     return (
     <>
         <GroupModal groupId={group.id} open={editing} onClose={() => setEditing(false)} onSave={onSave}/>
@@ -151,10 +152,12 @@ function SplitButton({group, onSave}: SplitButtonProps) {
             <Card sx={{padding: 3}}>
                 <h2>{group.groupName}</h2>
                 <Box display="flex" flexDirection="row">
-                    {/* TODO: Make navigate to right things */}
-                    <IconButton onClick={()=>navigate('/friendsPage')}>
-                        <FlagIcon style={{color: "red"}}></FlagIcon>
-                    </IconButton>
+                    <ReportModal input={group} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="group"/>
+                    <Box display="flex" alignItems="right" justifyContent="right">
+                        <IconButton onClick={()=>setReportModalOpen(true)}>
+                            <FlagIcon style={{ color: 'red'}}></FlagIcon>
+                        </IconButton>
+                    </Box>
                     <IconButton onClick={()=>navigate('/friendsPage')}>
                         <ChatIcon style={{color: "blue"}}></ChatIcon>
                     </IconButton>
