@@ -1674,6 +1674,36 @@ def reportEvent():
         print(f"Error: {err}")
     return {}
 
+@app.route('/reportGroup', methods=['POST'])
+def reportGroup():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        groupDetails = body.get("details")
+        groupReportedBy = body.get("reportedBy")
+        groupId = body.get("reportedGroupId")
+
+        mycursor.execute(f""" 
+            SELECT id FROM GroupOfUser WHERE id = {groupId};
+        """)
+        reportedGroupId = mycursor.fetchone()[0]
+
+        reportGroup = f"""
+            INSERT INTO Report (details, reportedBy, reportedGroupId)
+            VALUES ("{groupDetails}", "{groupReportedBy}", {reportedGroupId});
+        """
+        mycursor.execute(reportGroup)
+
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"message": "report successful"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
 @app.route('/reportMessage', methods=['POST'])
 def reportMessage():
     try:

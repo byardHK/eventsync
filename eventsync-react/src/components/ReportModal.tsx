@@ -7,13 +7,14 @@ import axios from "axios";
 import { useUser } from "../sso/UserContext";
 import User from "../types/User";
 import Message from "../types/Message";
+import { Group } from "../pages/GroupsPage";
 import { BASE_URL } from "./Cosntants";
 
 type ReportModalProps = {
-    input: Event | Tag | User | Message | undefined;
+    input: Event | Tag | User | Message | Group | undefined;
     open: boolean;
     onClose: () => void;
-    type: "event" | "tag" | "user" | "message";
+    type: "event" | "tag" | "user" | "message" | "group";
 };
 
 async function reportEvent(event: Event, currentUserId: string, reportDetails: string) {
@@ -55,6 +56,19 @@ async function reportUser(user: User, currentUserId: string, reportDetails: stri
         alert('report failed');
     }
 };
+        
+async function reportGroup(group: Group, currentUserId: string, reportDetails: string) {
+    try {
+        const response = await axios.post('http://localhost:5000/reportGroup', {
+            details: reportDetails,
+            reportedBy: currentUserId,
+            reportedGroupId: group.id
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        alert('report failed');
+    }
+};
 
 function ReportModal({input, open, onClose, type}: ReportModalProps){
     const [reportText, setReportText] = useState<string>("");
@@ -69,6 +83,9 @@ function ReportModal({input, open, onClose, type}: ReportModalProps){
         }
         if(type === "user"){
             reportUser(input as User, userDetails.email!, reportText);
+        }
+        if(type === "group"){
+            reportGroup(input as Group, userDetails.email!, reportText);
         }
         onClose();
     }
