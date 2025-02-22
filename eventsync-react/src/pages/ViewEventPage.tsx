@@ -17,6 +17,7 @@ import Tag from '../types/Tag';
 import FlagIcon from '@mui/icons-material/Flag';
 import ReportModal from '../components/ReportModal';
 import EventSyncEvent from '../types/EventSyncEvent';
+import { BASE_URL } from '../components/Cosntants';
 
 
 function ViewEventPage() {
@@ -33,22 +34,26 @@ function ViewEventPage() {
     const handleClose = () => setOpen(false);
   
     const handleRsvp = async () => {
-        try {
-            await axios.post('http://localhost:5000/rsvp', {
-                userId: currentUserId,
-                eventId: intEventId
-            });
-            setIsRsvped(true);
-            handleOpen();
-        } catch (error) {
-            console.error('Error:', error);
+    try {
+        const response = await axios.post(`${BASE_URL}/rsvp`, {
+            userId: currentUserId,
+            eventId: intEventId
+        });
+        setIsRsvped(true);
+        handleOpen();
+    } catch (error) {
+        console.error('Error:', error);
+        if (axios.isAxiosError(error) && error.response && error.response.data.message === "RSVP limit reached") {
+            alert('RSVP limit reached');
+        } else {
             alert('RSVP failed');
         }
-    };
+    }
+};
 
     const handleUnrsvp = async () => {
         try {
-            const response = await axios.post('http://localhost:5000/unrsvp', {
+            const response = await axios.post(`${BASE_URL}/unrsvp`, {
                 userId: currentUserId,
                 eventId: intEventId
             });
@@ -62,7 +67,7 @@ function ViewEventPage() {
     useEffect(() => {
         const checkRsvpStatus = async () => {
             try {
-                const response = await axios.post('http://localhost:5000/check_rsvp', {
+                const response = await axios.post(`${BASE_URL}/check_rsvp`, {
                     userId: currentUserId,
                     eventId: intEventId
                 });
@@ -112,7 +117,7 @@ function ViewEventPage() {
     
         const fetchRsvpList = async () => {
             try {
-                const response = await axios.post('http://localhost:5000/get_rsvps', {
+                const response = await axios.post(`${BASE_URL}/get_rsvps`, {
                     eventId: eventId
                 });
                 setRsvpList(response.data);
@@ -134,9 +139,9 @@ function ViewEventPage() {
                         minWidth={300}
                     >
                     <h2>RSVP List</h2>
-                    <ul>
+                    <ul style={{ listStyleType: 'none', padding: 0 }}>
                         {rsvpList.map(user => (
-                            <li key={user.userId}>{user.fname} {user.lname}</li>
+                            <li key={user.userId} style={{ marginBottom: '10px' }}>{user.fname} {user.lname}</li>
                         ))}
                     </ul>
                     <Button variant="outlined" fullWidth onClick={handleCloseRsvpList}>Close</Button>
@@ -149,7 +154,7 @@ function ViewEventPage() {
     useEffect(() => {
         const fetchEvent = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/get_event/${intEventId}/${currentUserId}`);
+                const response = await axios.get(`${BASE_URL}/get_event/${intEventId}/${currentUserId}`);
                 setEvent(response.data);
             } catch (error) {
                 console.error('Error fetching event:', error);
@@ -245,7 +250,7 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
 
     async function postItemSignedUpFor(item: Item, index: number){
         try {
-            const postPath = `http://localhost:5000/edit_user_to_item/`;
+            const postPath = `${BASE_URL}/edit_user_to_item/`;
             const data = {
                 'userId': currentUserId,
                 'eventId': event.id,

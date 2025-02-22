@@ -5,6 +5,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import User from "../types/User";
 import axios from "axios";
 import { useUser } from "../sso/UserContext";
+import { BASE_URL } from "./Cosntants";
 
 type GroupModalProps = {
     groupId?: number;
@@ -27,7 +28,7 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
         if(!groupId) { return; }
 
         try {
-            const response = await axios.get(`http://localhost:5000/get_group/${groupId}`);
+            const response = await axios.get(`${BASE_URL}/get_group/${groupId}`);
             setGroup(response.data);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -38,16 +39,8 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const response = await axios.get(`http://localhost:5000/get_users`);
-            setFriends(response.data);
-            
-            if(!groupId) {
-                if(group.users.findIndex(user => user.id === userDetails.email) === -1) {
-                    const updatedGroup : Group = {...group};
-                    updatedGroup.users.push({ id: userDetails.email! });
-                    setGroup({...group})
-                }
-            }
+            const friendsReponse = await axios.get(`${BASE_URL}/get_friends/${userDetails.email}`);
+            setFriends(friendsReponse.data);
           } catch (error) {
             console.error('Error fetching data:', error);
           }
@@ -59,7 +52,7 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
         if(groupId) {
             //Do edit group route (uses groupId, groupName, creatorId, & users)
             try {
-                await fetch(`http://localhost:5000/edit_group`, {
+                await fetch(`${BASE_URL}/edit_group`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -73,7 +66,7 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
         } else {
             //Do new group route (uses only groupName, creatorId & users)
             try {
-                await fetch(`http://localhost:5000/create_group`, {
+                await fetch(`${BASE_URL}/create_group`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -135,7 +128,7 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                                 updatedGroup.users = updatedGroup.users.filter((user) => { return user.id !== friend.id; });
                             }
                             setGroup(updatedGroup);
-                        }}/>} label={friend.id} />
+                        }}/>} label={`${friend.fname} ${friend.lname}`} />
                     </Box>
                 )}
                 <Box display="flex" flexDirection="row" justifyContent="space-betweem">

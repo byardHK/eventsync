@@ -8,6 +8,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import BottomNavBar from "../components/BottomNavBar";
+import { BASE_URL } from "../components/Cosntants";
 
 type Report = {
     id: number;
@@ -35,7 +36,7 @@ function AdminPage(){
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const response = await axios.get('http://localhost:5000/get_reports');
+            const response = await axios.get(`${BASE_URL}/get_reports`);
             const res: Report[] = response.data;
             setReports(res);
           } catch (error) {

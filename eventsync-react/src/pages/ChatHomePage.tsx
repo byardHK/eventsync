@@ -9,6 +9,7 @@ import Chat from '../types/Chat';
 import { useNavigate } from 'react-router-dom';
 import "../styles/chatHome.css";
 import { Link } from 'react-router-dom';
+import { BASE_URL } from '../components/Cosntants';
 
 
 function ChatHomePage() {
@@ -44,7 +45,7 @@ function ChatList() {
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const response = await axios.get<Chat[]>(`http://localhost:5000/get_my_chats/${currentUserId}`);
+            const response = await axios.get<Chat[]>(`${BASE_URL}/get_my_chats/${currentUserId}`);
             setChats(response.data);
             
           } catch (error) {
