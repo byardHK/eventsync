@@ -76,7 +76,7 @@ function AdminReportCard({report} : AdminReportCardProps){
       }));
     return <Box>
         <ReportCard elevation={10} square={false} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '200px'}}>
-            <h1>{ReportType(report)}Report</h1>
+            <h1>{ReportType(report)} Report</h1>
             <p>{report.details}</p>
             <Box display="flex" flexDirection="row" gap={2} >
                 <Button variant="contained">
