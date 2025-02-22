@@ -17,6 +17,7 @@ import { useUser } from "../sso/UserContext";
 import { useEffect, useState } from 'react';
 import "../styles/style.css"
 import Tag from '../types/Tag';
+import { BASE_URL } from '../components/Cosntants';
 
 function CreateEventPage() {
     const { userDetails } = useUser();
@@ -88,7 +89,7 @@ function CreateEventPage() {
                 "deselectedTags": tagsToDelete,
                 "eventInfoId": eventInfoId
             }
-            const deleteResponse = await fetch(`http://localhost:5000/delete_event_deselected_tags/`, {
+            const deleteResponse = await fetch(`${BASE_URL}/delete_event_deselected_tags/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -99,7 +100,7 @@ function CreateEventPage() {
                 "selectedTags": tagsToAdd,
                 "eventInfoId": eventInfoId
             }
-            const saveResponse = await fetch(`http://localhost:5000/save_event_selected_tags/`, {
+            const saveResponse = await fetch(`${BASE_URL}/save_event_selected_tags/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -120,7 +121,7 @@ function CreateEventPage() {
         if (eventId) {
             const fetchEvent = async () => {
                 try {
-                    const response = await axios.get(`http://localhost:5000/get_event/${eventId}/${currentUserId}`);
+                    const response = await axios.get(`${BASE_URL}/get_event/${eventId}/${currentUserId}`);
                     const event = response.data;
                     console.log("Fetched event data:", event);
                     setEventInfoId(event.eventInfoId);
@@ -149,7 +150,7 @@ function CreateEventPage() {
     const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault();
         try {
-            const postPath = eventId ? `http://localhost:5000/editEvent/${eventId}` : (checked ? 'http://localhost:5000/post_recurring_event' : 'http://localhost:5000/post_event');
+            const postPath = eventId ? `${BASE_URL}/editEvent/${eventId}` : (checked ? `${BASE_URL}/post_recurring_event` : `${BASE_URL}/post_event`);
             const data = {
                 "creatorId": currentUserId,
                 "title": titleText,

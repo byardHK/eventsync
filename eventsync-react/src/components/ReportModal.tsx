@@ -8,6 +8,7 @@ import { useUser } from "../sso/UserContext";
 import User from "../types/User";
 import Message from "../types/Message";
 import { Group } from "../pages/GroupsPage";
+import { BASE_URL } from "./Cosntants";
 
 type ReportModalProps = {
     input: Event | Tag | User | Message | Group;
@@ -18,7 +19,7 @@ type ReportModalProps = {
 
 async function reportEvent(event: Event, currentUserId: string, reportDetails: string) {
     try {
-        const response = await axios.post('http://localhost:5000/reportEvent', {
+        const response = await axios.post(`${BASE_URL}/reportEvent`, {
             details: reportDetails,
             reportedBy: currentUserId,
             reportedEventId: event.id

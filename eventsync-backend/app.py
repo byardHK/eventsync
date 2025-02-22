@@ -1334,11 +1334,30 @@ def rsvp():
         userId = body.get("userId")
         eventId = body.get("eventId")
 
+        mycursor.execute(f"""
+            SELECT EventInfo.RSVPLimit, Event.numRsvps
+            FROM Event
+            JOIN EventInfo ON Event.eventInfoId = EventInfo.id
+            WHERE Event.id = {eventId}
+        """)
+        result = mycursor.fetchone()
+        rsvpLimit = result[0]
+        numRsvps = result[1]
+
+        if rsvpLimit != 0 and numRsvps >= rsvpLimit:
+            return jsonify({"message": "RSVP limit reached"}), 400
         insertRsvp = f"""
             INSERT INTO EventToUser (userId, eventId)
             VALUES ('{userId}', {eventId});
         """
         mycursor.execute(insertRsvp)
+
+        updateNumRsvps = f"""
+            UPDATE Event
+            SET numRsvps = numRsvps + 1
+            WHERE id = {eventId};
+        """
+        mycursor.execute(updateNumRsvps)
         
         conn.commit()
         mycursor.close()

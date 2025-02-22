@@ -11,6 +11,7 @@ import { useUser } from '../sso/UserContext';
 import "../styles/style.css"
 import StyledCard from '../StyledCard';
 import EventSyncEvent from '../types/EventSyncEvent';
+import { BASE_URL } from '../components/Cosntants';
 
 // const currentUserId = "segulinWH20@gcc.edu"; // Placeholder for the current user that is logged in. TODO: get the actual current user
 
@@ -76,7 +77,7 @@ function EventLists() {
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const response = await axios.get(`http://localhost:5000/get_my_events/${currentUserId}`);
+            const response = await axios.get(`${BASE_URL}/get_my_events/${currentUserId}`);
             const res: EventSyncMyEvents = response.data;
             setAttendingEvents(res.attending);
             setHostingEvents(res.hosting);
@@ -114,7 +115,7 @@ function EventList({ events, canDeleteEvents, setEventsChanged }: { events: Even
     const navigate = useNavigate();
     async function viewEvent (event: EventSyncEvent) {
         try {
-            const response = await axios.post(`http://localhost:5000/addOneView/${event.id}/`);
+            const response = await axios.post(`${BASE_URL}/addOneView/${event.id}/`);
             console.log(response);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -128,13 +129,13 @@ function EventList({ events, canDeleteEvents, setEventsChanged }: { events: Even
 
     async function deleteEvent (event: EventSyncEvent) {
         try {
-            const response = await axios.delete(`http://localhost:5000/delete_one_event/${event.id}/`);
+            const response = await axios.delete(`${BASE_URL}/delete_one_event/${event.id}/`);
             console.log(response);
         } catch (error) {
             console.error('Error fetching data:', error);
         }
         // try {
-        //     const response = await axios.get(`http://localhost:5000/get_events`);
+        //     const response = await axios.get(`${BASE_URL}/get_events`);
         //     const res: EventSyncEventWithDate[] = response.data;
         //     setEvents(res);
         //     } catch (error) {
