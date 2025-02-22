@@ -1715,6 +1715,9 @@ def get_my_chats(user_id: str):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+        # mycursor.execute(f"""SELECT Chat.id, GroupOfUser.groupName, Chat.isGroupChat FROM Chat 
+        #                     LEFT JOIN GroupOfUser ON Chat.id = GroupOfUser.chatId
+        #                     WHERE Chat.id IN (SELECT chatId FROM ChatToUser WHERE userId = '{user_id}');""")
         mycursor.execute(f"SELECT * FROM Chat WHERE id IN (SELECT chatId FROM ChatToUser WHERE userId = '{user_id}');")
         response = mycursor.fetchall()
         headers = mycursor.description
@@ -1722,6 +1725,30 @@ def get_my_chats(user_id: str):
         mycursor.close()
         conn.close()
         return sqlResponseToJson(response, headers)
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_chat/<string:chat_id>', methods=['GET'])
+def get_chat(chat_id: str):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f"SELECT * FROM Chat WHERE id = {chat_id} LIMIT 1;")
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        chat = sqlResponseToList(response, headers)[0]
+        mycursor.execute(f"""SELECT id, fname, lname 
+                            FROM User WHERE id IN (
+                            SELECT userId FROM ChatToUser
+                            WHERE chatId = {chat_id});""")
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        users = sqlResponseToList(response, headers)
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({f"users": users, "chat": chat})
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
