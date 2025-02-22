@@ -38,17 +38,17 @@ function BottomNavBar({ userId }: { userId: string }) {
                 <HomeIcon/>
             </Button>
         </Link>
-        <Link title="Link to My Events Page" to="/myEventsPage">
+        <Link title="Link to My Events Page" to="/myEvents">
             <Button title="My EVents Page Button" variant="contained">
                 <CalendarMonthIcon/>
             </Button>
         </Link>
-        <Link to="/chatHomePage">
+        <Link to="/chatHome">
             <Button variant="contained">
                 <ChatIcon/>
             </Button>
         </Link>
-        <Link to="/friendsPage">
+        <Link to="/friends">
             <Badge badgeContent={friendRequests} color="secondary">
                 <Button variant="contained">
                     <GroupIcon />

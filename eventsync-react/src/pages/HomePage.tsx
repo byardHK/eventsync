@@ -49,13 +49,13 @@ function HomePage() {
             padding={2}
             gap={2}
         >
-            <Link to="/adminPage">
+            <Link to="/admin">
                 <Button variant="contained">
                     <FlagIcon/>
                 </Button>
             </Link>
             
-            <Link to="/profilePage">
+            <Link to={`/profile/${currentUserId}`}>
                 <Button variant="contained">
                     <PersonIcon/>
                 </Button>

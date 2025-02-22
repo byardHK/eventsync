@@ -165,29 +165,31 @@ function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refre
         <ul style={{ listStyleType: 'none', padding: 0 }}>
             {Array.isArray(friends) && friends.map((friend, index) => (
                 <li key={index}>
-                    <Paper elevation={3}>
-                        <Box
-                            display="flex"
-                            justifyContent="space-between"
-                            alignItems="center"
-                            width="300px"
-                            padding="10px"
-                            border="1px solid #ccc"
-                            borderRadius="5px"
-                            margin="5px 0"
-                            bgcolor="white"
-                        >
-                            <Button 
-                                variant="contained" 
-                                onClick={() => userDetails.email && removeFriend(userDetails.email, friend.id)}
+                    <Link to={`/profile/${friend.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Paper elevation={3}>
+                            <Box
+                                display="flex"
+                                justifyContent="space-between"
+                                alignItems="center"
+                                width="300px"
+                                padding="10px"
+                                border="1px solid #ccc"
+                                borderRadius="5px"
+                                margin="5px 0"
+                                bgcolor="white"
                             >
-                                <CloseIcon/>
-                            </Button>
-                            <Box flexGrow={1} textAlign="left" marginLeft={5}>
-                                {`${friend.fname} ${friend.lname}`}
+                                <Button 
+                                    variant="contained" 
+                                    onClick={() => userDetails.email && removeFriend(userDetails.email, friend.id)}
+                                >
+                                    <CloseIcon/>
+                                </Button>
+                                <Box flexGrow={1} textAlign="left" marginLeft={5}>
+                                        {`${friend.fname} ${friend.lname}`}
+                                </Box>
                             </Box>
-                        </Box>
-                    </Paper>
+                        </Paper>
+                    </Link>
                 </li>
             ))}
         </ul>
