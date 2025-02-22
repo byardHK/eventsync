@@ -50,7 +50,7 @@ function FriendsPage() {
 
     function toggleFriendsGroupPages(isFriendsPage: boolean){
         if(!isFriendsPage){
-            navigate('/groupsPage');
+            navigate('/groups');
         }
     }
 
