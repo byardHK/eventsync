@@ -28,14 +28,14 @@ const MainContent = () => {
                     <Route path="/" element={<HomePage/>}/>
                     <Route path="/createEvent" element={<CreateEventPage/>}/>
                     <Route path="/createEvent/:eventId" element={<CreateEventPage/>}/>
-                    <Route path="/friendsPage" element={<FriendsPage/>}/>
-                    <Route path="/myEventsPage" element={<MyEventsPage/>}/>
-                    <Route path="/profilePage" element={<ProfilePage/>}/>
+                    <Route path="/friends" element={<FriendsPage/>}/>
+                    <Route path="/myEvents" element={<MyEventsPage/>}/>
+                    <Route path="/profile/:id" element={<ProfilePage/>}/>
                     <Route path="/viewEvent/:eventId" element={<ViewEventPage/>}/>
-                    <Route path="/adminPage" element={<AdminPage/>}/>
+                    <Route path="/admin" element={<AdminPage/>}/>
                     <Route path="/viewChat/:chatId" element={<ChatPage/>}/>
-                    <Route path="/chatHomePage" element={<ChatHomePage/>}/>
-                    <Route path="/groupsPage" element={<GroupsPage/>}/>
+                    <Route path="/chatHome" element={<ChatHomePage/>}/>
+                    <Route path="/groups" element={<GroupsPage/>}/>
                 </Routes>
             </BrowserRouter>  
           </AuthenticatedTemplate>
