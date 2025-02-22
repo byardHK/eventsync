@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import BottomNavBar from '../components/BottomNavBar';
 import Box from '@mui/material/Box';
-import { Grid2, Button, TextField, InputAdornment } from '@mui/material';
+import { Grid2, Button, TextField, InputAdornment, Paper, styled } from '@mui/material';
 import axios from 'axios';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css"
@@ -26,8 +26,13 @@ function ChatHomePage() {
             alignItems="center" 
             justifyContent="center"
         >
-          <div className='chats-header'>
-              <h1>My Chats</h1>
+          <Box
+            display="flex"
+            alignItems="center" 
+            justifyContent="center"
+        >
+            <h1 className="card-title">My Chats</h1>
+        </Box>
               <TextField 
                 sx={{input: {backgroundColor: 'white'}}}
                 id="outlined-basic" 
@@ -44,17 +49,11 @@ function ChatHomePage() {
                 }}
                 variant="outlined"
             />
-          </div>
-           
-            <ChatList searchKeyword={searchKeyword}></ChatList>
-            <BottomNavBar userId={currentUserId!}></BottomNavBar>
-        </Box>
+          </Box>
+          <ChatList searchKeyword={searchKeyword}></ChatList>
+          <BottomNavBar userId={currentUserId!}></BottomNavBar>
     </>;
-
-
 };
-
-
 
 function ChatList({searchKeyword}: {searchKeyword: string}) {  
 
@@ -62,10 +61,19 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
     const currentUserId = userDetails.email;
     const [chats, setChats] = useState<Chat[]>([]); 
 
+    const navigate = useNavigate();
+
     useEffect(() => {
         const fetchData = async () => {
           try {
             const response = await axios.get<Chat[]>(`${BASE_URL}/get_my_chats/${currentUserId}`);
+            // const chats: Chat[] = response.data;
+            // for(const chat of chats){
+            //   if(!chat.isGroupChat){
+            //     chat.name = 
+            //   }
+            // }
+            // console.log(response.data);
             setChats(response.data);
             
           } catch (error) {
@@ -81,49 +89,36 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
           : true;
         });
 
-    // return (<Grid2
-    //     container spacing={3}
-    //     display="flex"
-    //     alignItems="center" 
-    //     justifyContent="center"
-    //     style={{maxHeight: '30vh', overflow: 'auto'}}
-    //     padding={2}>
-    //         {chats.map(chat => 
-    //             <Link title="Link to Home Page" to={`/viewChat/${chat.id}`}>
-    //               <ChatListItem chat={chat}></ChatListItem>
-    //             </Link>
-    //         )}  
-    // </Grid2>)
+    function viewChat (chat: Chat) {
+      navigate(`/viewChat/${chat.id}`);
+  }
 
     return (<ul>
-    {filteredChats.length === 0 ? (
-      <p>No chats found.</p>
-    ) : (
-      
-      filteredChats.map((chat, index) => (
-        <ChatListItem chat={chat}></ChatListItem>
-        
-      ))
-    )}
+      {filteredChats.map((chat, index) => (
+        <StyledCard key={index} chat={chat} viewChat={viewChat} chatName={chat.name}></StyledCard>
+      ))}
   </ul>);
 }
 
-function ChatListItem ({chat} : { chat: Chat }) {
+function StyledCard({chat, viewChat, chatName} : {chat: Chat, viewChat: (chat:Chat) => void, chatName: String}){
+  const ChatCard = styled(Paper)(({ theme }) => ({
+      width: 250,
+      height: 75,
+      padding: theme.spacing(2),
+      ...theme.typography.body2,
+      textAlign: 'center',
+      margin: '8px'
+    }));
 
-  const navigate = useNavigate();
-
-  return(
-      <Button onClick={() => navigate(`/viewChat/${chat.id}`)}>
-        <li >
-          <div>
-            <h2>{chat.name}</h2>
-            <p>Last message</p>
-            <button>Open Chat</button>
-          </div>
-        </li>
-        </Button>
-  )};
-
-
+  return (
+      <Box display="flex" justifyContent="center" alignItems="center">
+          <ChatCard elevation={10} square={false}>
+              <div onClick={() => { viewChat(chat); }} style={{cursor: "pointer"}}>
+                  <h3>{chatName}</h3>
+                </div>
+          </ChatCard>
+      </Box>
+  )
+}
 
 export default ChatHomePage;

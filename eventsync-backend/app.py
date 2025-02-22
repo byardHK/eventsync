@@ -1715,6 +1715,9 @@ def get_my_chats(user_id: str):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+        # mycursor.execute(f"""SELECT Chat.id, GroupOfUser.groupName, Chat.isGroupChat FROM Chat 
+        #                     LEFT JOIN GroupOfUser ON Chat.id = GroupOfUser.chatId
+        #                     WHERE Chat.id IN (SELECT chatId FROM ChatToUser WHERE userId = '{user_id}');""")
         mycursor.execute(f"SELECT * FROM Chat WHERE id IN (SELECT chatId FROM ChatToUser WHERE userId = '{user_id}');")
         response = mycursor.fetchall()
         headers = mycursor.description
