@@ -284,25 +284,6 @@ def get_events(id):
         print(f"Error: {err}")
     return {}
 
-@app.route('/get_users/')
-def get_users():
-    try:  
-        conn = mysql.connector.connect(**db_config)
-        mycursor = conn.cursor()
-        mycursor.execute("""
-                        SELECT * FROM User;
-                        );
-                     """)
-        response = mycursor.fetchall()
-        headers = mycursor.description
-        res = sqlResponseToJson(response, headers)
-        mycursor.close()
-        conn.close()
-        return res
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-    return {}
-
 @app.route('/get_unfriended_users/<userId>/')
 def get_unfriended_users(userId):
     try:  
