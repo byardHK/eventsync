@@ -801,8 +801,24 @@ def post_event():
                         INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency, creatorName)
                         VALUES ("{data["creatorId"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}", "{data["venmo"]}", "{data["recurFrequency"]}", "{data["creatorName"]}");
                      """
+        mycursor.execute(insertEventInfo)
+        eventInfoId = mycursor.lastrowid
+        
+        # Create chat for event
+        createChat = f"""
+            INSERT INTO Chat (name, chatType) VALUES ("{data["title"]}", 'Event');
+        """
+        mycursor.execute(createChat)
+        chatId = mycursor.lastrowid
+
+        # add relationship from chat to eventInfo
+        addEventInfoToChat = f"""
+                INSERT INTO EventInfoToChat (chatId, eventInfoId) VALUES ({chatId}, {eventInfoId});
+            """
+        mycursor.execute(addEventInfoToChat)
+
         insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views, numRsvps)
-                        VALUES (last_insert_id(), "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", 0, 0);"""
+                        VALUES ({eventInfoId}, "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", 0, 0);"""
         tags = data["tags"]
         for tag in tags:
             updateTag = f"""
@@ -811,8 +827,6 @@ def post_event():
                             WHERE name="{tag["name"]}"
                         """
             mycursor.execute(updateTag)
-        mycursor.execute(insertEventInfo)
-        eventInfoId = mycursor.lastrowid
         mycursor.execute(insertEvent)
         mycursor.execute("SET @eventId = last_insert_id();")
 
@@ -1536,17 +1550,11 @@ def edit_group():
         creatorId = body.get("creatorId")
         users = body.get("users")
 
-        # Update users in group & group chat
+        # Update users in group
         removeGroupUsers = f"""
             DELETE FROM GroupOfUserToUser WHERE groupId = {groupId}
         """
         mycursor.execute(removeGroupUsers)
-
-        removeChatUsers = f"""
-            DELETE ChatToUser FROM GroupOfUser JOIN ChatToUser ON GroupOfUser.chatId = ChatToUser.chatId
-            WHERE GroupOfUser.id = {groupId};
-        """
-        mycursor.execute(removeChatUsers)
 
         add_users_to_group(users, groupId, mycursor)
 
@@ -1578,10 +1586,16 @@ def create_group():
 
         # Create chat for group
         createChat = f"""
-            INSERT INTO Chat (name, isGroupChat) VALUES ("{groupName}", 1);
+            INSERT INTO Chat (name, chatType) VALUES ("{groupName}", 'Group');
         """
         mycursor.execute(createChat)
         chatId = mycursor.lastrowid
+
+        # add relationship from chat to group 
+        addGroupOfUserToChat = f"""
+                INSERT INTO GroupOfUserToChat (chatId, groupOfUserId) VALUES ({chatId}, {groupId});
+            """
+        mycursor.execute(addGroupOfUserToChat)
 
         # Create group
         createGroup = f"""
@@ -1620,11 +1634,6 @@ def add_users_to_group(users, groupId, mycursor):
             INSERT INTO GroupOfUserToUser (groupId, userId) VALUES ({groupId}, "{user["id"]}");
         """
         mycursor.execute(addUserToGroup)
-
-        addUserToChat = f"""
-            INSERT INTO ChatToUser (chatId, userId) VALUES ({chatId}, "{user["id"]}");
-        """
-        mycursor.execute(addUserToChat)
 
 @app.route('/get_reports/')
 def get_reports():

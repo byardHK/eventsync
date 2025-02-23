@@ -196,7 +196,7 @@ function CreateEventPage() {
                 setItems([]);
                 setEditAllEvents(true);
                 setCreatorName("");
-                navigate('/myeventspage');
+                navigate('/myEvents');
             }
            
         } catch (error) {
