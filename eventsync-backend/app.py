@@ -1,3 +1,5 @@
+import jwt
+import requests
 from flask import Flask, request, jsonify, Response
 # INSTALL THESE:
 # pip install mysql-connector-python
@@ -8,7 +10,11 @@ from dateutil.relativedelta import *
 import pusher
 import os
 
+
 app = Flask(__name__)
+app.config["DEBUG"] = True
+app.config["PROPAGATE_EXCEPTIONS"] = True  # Ensure exceptions are raised
+
 CORS(app)
 
 db_config = {
@@ -231,8 +237,18 @@ def add_user():
         return jsonify({"error": "Database insert failed"}), 500
 
 
-@app.route('/get_events/')
-def get_events():
+@app.route('/get_events/<string:id>')
+def get_events(id):
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        print(error_response)
+        return error_response, status_code   
+
+    if id.lower() != user_email.lower():
+        print("Unauthorized: userId does not match token email")
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()

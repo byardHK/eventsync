@@ -170,11 +170,19 @@ function HomePage() {
 function EventList({searchKeyword, tags, userTags, isComingSoon}: {searchKeyword: string, tags: string[], userTags: string[], isComingSoon: boolean}) {
     const [events, setEvents] = useState<EventSyncEvent[]>([]);    
     const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
+    const {userDetails} = useUser()
+    console.log("event list userDetails", userDetails);
 
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const response = await axios.get(`${BASE_URL}/get_events`);
+            const response = await axios.get(`${BASE_URL}/get_events/${userDetails.email}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                }
+            });
             const res: EventSyncEvent[] = response.data;
             const sortedEvents = res.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
             setEvents(sortedEvents);
