@@ -16,6 +16,7 @@ import { BASE_URL } from '../components/Cosntants';
 
 function HomePage() {
     const { userDetails } = useUser();
+    console.log("home page user details: ", userDetails);
     const currentUserId = userDetails.email;
     const [searchKeyword, setSearchKeyword] = useState('');
     const [tags] = useState<string[]>([]);

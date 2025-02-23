@@ -5,11 +5,11 @@ import { useMsal } from '@azure/msal-react';
 import { useUser } from './UserContext';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { FetchExistingUser } from './helper/FetchExistingUser';
+// import { FetchExistingUser } from '../helper/FetchExistingUser';
 import { BASE_URL } from "../components/Cosntants";
 
 export const LoadUser = () => {
-    const { setUserDetails } = useUser();
+    const { userDetails, setUserDetails } = useUser();
     const { instance, accounts } = useMsal();
     const navigate = useNavigate();
 
@@ -53,7 +53,8 @@ export const LoadUser = () => {
                 console.log(`🔎 User exists: ${userExists}`);
 
                 if (userExists) {
-                    await setExistingUserData(userEmail);
+                    await FetchExistingUser(userEmail, setUserDetails);
+                    console.log(userDetails);
                     console.log("i'm navigating to home");
                     navigate('/home');
                 } else {
@@ -68,8 +69,6 @@ export const LoadUser = () => {
                
             }
         };
-
-        
 
         const setNewUserData = async (graphData) => {
             console.log('🆕 Setting new user details...');
@@ -89,4 +88,36 @@ export const LoadUser = () => {
     }, [accounts]);
 
     return null;
+};
+
+
+export const FetchExistingUser = async (email, setUserDetails) => {
+    try {
+        const res = await axios.get(`http://localhost:5000/api/get_user/${email}`);
+        console.log("Fetched user data: (load user)", res.data);
+
+        setUserDetails(prevDetails => {
+            const updatedDetails = {
+                ...prevDetails,
+                firstName: res.data[0].fname,
+                lastName: res.data[0].lname,
+                email: res.data[0].id,
+                isAdmin: res.data[0].isAdmin,
+                isBanned: res.data[0].isBanned,
+                isPublic: res.data[0].isPublic,
+                bio: res.data[0].bio,
+                notificationFrequency: res.data[0].notificationFrequency,
+                notificationId: res.data[0].notificationId,
+                numTimesReported: res.data[0].numTimesReported,
+                profilePicture: res.data[0].profilePicture,
+                friendRequest: res.data[0].friendRequest,
+                eventInvite: res.data[0].eventInvite,
+                eventCancelled: res.data[0].eventCancelled,
+            };
+            return updatedDetails;
+        });
+        
+    } catch (error) {
+        console.error("Error retrieving user details from database or setting them internally:", error);
+    }
 };

@@ -17,6 +17,7 @@ function ProfilePage() {
     const { id: profileId } = useParams();
     const { userDetails, setUserDetails } = useUser();
     const userId = userDetails.email;
+    console.log("profile page user details: ", userDetails);
 
     if (profileId == userId) {
         const [userTags, setUserTags] = useState<Tag[]>([]);
@@ -68,7 +69,7 @@ function ProfilePage() {
                         eventInvite: res.data[0].eventInvite,
                         eventCancelled: res.data[0].eventCancelled,
                     };
-                    console.log("Updated userDetails:", updatedDetails);
+                    console.log("PROFILE PAGE Updated userDetails:", updatedDetails);
                     return updatedDetails;
                 });
 
