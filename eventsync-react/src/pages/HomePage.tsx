@@ -5,28 +5,23 @@ import axios from "axios";
 import { Button, Grid2, InputAdornment, TextField, Autocomplete } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PersonIcon from '@mui/icons-material/Person';
-import Card from '@mui/material/Card';
 import BottomNavBar from '../components/BottomNavBar';
-import DeleteRecurEventModal from '../components/DeleteRecurEventModal';
-import TagModal from '../components/TagModal';
 import { Link } from 'react-router-dom';
-import SignOutButton  from '../components/SignOutButton';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css"
 import StyledCard from '../StyledCard';
 import FlagIcon from '@mui/icons-material/Flag';
 import EventSyncEvent from '../types/EventSyncEvent';
-import Tag from '../types/Tag';
 import { BASE_URL } from '../components/Cosntants';
 
 function HomePage() {
     const { userDetails } = useUser();
+    console.log("home page user details: ", userDetails);
     const currentUserId = userDetails.email;
     const [searchKeyword, setSearchKeyword] = useState('');
-    const [tags, setTags] = useState<string[]>([]);
+    const [tags] = useState<string[]>([]);
     const [tagOptions, setTagOptions] = useState<string[]>([]);
     const [inputValue, setInputValue] = useState('');
-    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchTags = async () => {
@@ -49,13 +44,13 @@ function HomePage() {
             padding={2}
             gap={2}
         >
-            <Link to="/adminPage">
+            <Link to="/admin">
                 <Button variant="contained">
                     <FlagIcon/>
                 </Button>
             </Link>
             
-            <Link to="/profilePage">
+            <Link to={`/profile/${currentUserId}`}>
                 <Button variant="contained">
                     <PersonIcon/>
                 </Button>
@@ -67,7 +62,7 @@ function HomePage() {
             alignItems="center" 
             justifyContent="center"
         >
-            <h3 className="card-title">Welcome {userDetails.firstName}!</h3>
+            <h3 className="card-title">Welcome {userDetails.firstName}! 👋</h3>
         </Box>
 
         <Box
@@ -135,8 +130,9 @@ function HomePage() {
             <EventList searchKeyword={searchKeyword} tags={tags}/>
 
             
-            <BottomNavBar userId={currentUserId!}/>
+            
         </Box>
+        <BottomNavBar userId={currentUserId!}/>
     </>;
 };
 
@@ -158,30 +154,30 @@ function EventList({searchKeyword, tags}: {searchKeyword: string, tags: string[]
         fetchData();
     }, [eventsChanged]);
 
-    async function deleteEvent (event: EventSyncEvent) {
-        console.log(event);
-        try {
-            const response = await axios.delete(`${BASE_URL}/delete_one_event/${event.id}/`);
-            console.log(response);
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
-        try {
-            const response = await axios.get(`${BASE_URL}/get_events`);
-            const res: EventSyncEvent[] = response.data;
-            setEvents(res);
-            } catch (error) {
-            console.error('Error fetching data:', error);
-            }
-    }
+    // async function deleteEvent (event: EventSyncEvent) {
+    //     console.log(event);
+    //     try {
+    //         const response = await axios.delete(`${BASE_URL}/delete_one_event/${event.id}/`);
+    //         console.log(response);
+    //     } catch (error) {
+    //         console.error('Error fetching data:', error);
+    //     }
+    //     try {
+    //         const response = await axios.get(`${BASE_URL}/get_events`);
+    //         const res: EventSyncEvent[] = response.data;
+    //         setEvents(res);
+    //         } catch (error) {
+    //         console.error('Error fetching data:', error);
+    //         }
+    // }
 
-    function handleDeleteButton(event: EventSyncEvent){
-        if(!event.recurs){
-            deleteEvent(event)
-        } else {
+    // function handleDeleteButton(event: EventSyncEvent){
+    //     if(!event.recurs){
+    //         deleteEvent(event)
+    //     } else {
 
-        }
-    }
+    //     }
+    // }
 
     const navigate = useNavigate();
 
@@ -237,7 +233,7 @@ function EventList({searchKeyword, tags}: {searchKeyword: string, tags: string[]
             //     </Box>
             // </Card>
             // <Box >
-                <StyledCard key={event.id} event={event} viewEvent={viewEvent} showTags>
+                <StyledCard key={event.id} event={event} viewEvent={viewEvent} showShareIcon={false} showTags>
                     {/* <Button variant="contained" onClick={() => viewEvent(event)}>View Event</Button>
                     <Button variant="contained" onClick={() => deleteEvent(event)}>Delete Event</Button> */}
                     {/* <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}> */}

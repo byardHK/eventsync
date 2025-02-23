@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Button, Badge } from '@mui/material';
 import { Link } from 'react-router-dom';
 import HomeIcon from '@mui/icons-material/Home';
@@ -33,22 +33,22 @@ function BottomNavBar({ userId }: { userId: string }) {
         justifyContent="space-around"
         style={{ position: 'fixed', bottom: '0' }}
     >
-        <Link title="Link to Home Page" to="/">
+        <Link title="Link to Home Page" to="/home">
             <Button title="Home Page Button" variant="contained">
                 <HomeIcon/>
             </Button>
         </Link>
-        <Link title="Link to My Events Page" to="/myEventsPage">
+        <Link title="Link to My Events Page" to="/myEvents">
             <Button title="My EVents Page Button" variant="contained">
                 <CalendarMonthIcon/>
             </Button>
         </Link>
-        <Link to="/chatHomePage">
+        <Link to="/chatHome">
             <Button variant="contained">
                 <ChatIcon/>
             </Button>
         </Link>
-        <Link to="/friendsPage">
+        <Link to="/friends">
             <Badge badgeContent={friendRequests} color="secondary">
                 <Button variant="contained">
                     <GroupIcon />

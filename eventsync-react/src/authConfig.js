@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { LogLevel } from "@azure/msal-browser";
+import { LogLevel } from "@azure/msal-browser"
+import { REDIRECT_URI } from "./components/Cosntants";
 
 /**
  * Configuration object to be passed to MSAL instance on creation. 
@@ -15,7 +16,7 @@ export const msalConfig = {
     auth: {
         clientId: "ec4a19e3-6345-41ba-866a-5862a68866ea",
         authority: "https://login.microsoftonline.com/83918960-2218-4cd3-81fe-302a8e771da9",
-        redirectUri: "https://eventsync.gcc.edu:5173",
+        redirectUri: `${REDIRECT_URI}`,
     },
     cache: {
         cacheLocation: "localStorage", // This configures where your cache will be stored

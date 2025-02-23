@@ -1674,6 +1674,84 @@ def reportEvent():
         print(f"Error: {err}")
     return {}
 
+@app.route('/reportGroup', methods=['POST'])
+def reportGroup():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        groupDetails = body.get("details")
+        groupReportedBy = body.get("reportedBy")
+        groupId = body.get("reportedGroupId")
+
+        mycursor.execute(f""" 
+            SELECT id FROM GroupOfUser WHERE id = {groupId};
+        """)
+        reportedGroupId = mycursor.fetchone()[0]
+
+        reportGroup = f"""
+            INSERT INTO Report (details, reportedBy, reportedGroupId)
+            VALUES ("{groupDetails}", "{groupReportedBy}", {reportedGroupId});
+        """
+        mycursor.execute(reportGroup)
+
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"message": "report successful"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/reportMessage', methods=['POST'])
+def reportMessage():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        messageDetails = body.get("details")
+        messageReportedBy = body.get("reportedBy")
+        messageId = body.get("reportedMessageId")
+
+        reportMessage = f"""
+            INSERT INTO Report (details, reportedBy, reportedMessageId)
+            VALUES ("{messageDetails}", "{messageReportedBy}", {messageId});
+        """
+        mycursor.execute(reportMessage)
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"message": "report successful"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/reportUser', methods=['POST'])
+def reportUser():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        userDetails = body.get("details")
+        userReportedBy = body.get("reportedBy")
+        userId = body.get("reportedUserId")
+
+        reportUser = f"""
+            INSERT INTO Report (details, reportedBy, reportedUserId)
+            VALUES ("{userDetails}", "{userReportedBy}", "{userId}");
+        """
+        mycursor.execute(reportUser)
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"message": "report successful"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
 @app.route('/message/', methods=['POST'])
 def message():
     data = request.get_json()

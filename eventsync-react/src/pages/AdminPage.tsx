@@ -3,11 +3,10 @@ import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import DeleteIcon from '@mui/icons-material/Delete';
 import WarningIcon from '@mui/icons-material/Warning';
 import BlockIcon from '@mui/icons-material/Block';
-import { ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import BottomNavBar from "../components/BottomNavBar";
 import { BASE_URL } from "../components/Cosntants";
 
 type Report = {
@@ -28,7 +27,7 @@ function AdminPage(){
     const navigate = useNavigate();
 
     const handleBackClick = () => {
-        navigate('/');
+        navigate('/home');
     };
     
     const [reports, setReports] = useState<Report[]>([]);
@@ -77,7 +76,7 @@ function AdminReportCard({report} : AdminReportCardProps){
       }));
     return <Box>
         <ReportCard elevation={10} square={false} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '200px'}}>
-            <h1>{ReportType(report)}Report</h1>
+            <h1>{ReportType(report)} Report</h1>
             <p>{report.details}</p>
             <Box display="flex" flexDirection="row" gap={2} >
                 <Button variant="contained">

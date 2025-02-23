@@ -16,7 +16,6 @@ import dayjs from 'dayjs';
 import Tag from '../types/Tag';
 import FlagIcon from '@mui/icons-material/Flag';
 import ReportModal from '../components/ReportModal';
-import EventSyncEvent from '../types/EventSyncEvent';
 import { BASE_URL } from '../components/Cosntants';
 
 
@@ -39,6 +38,7 @@ function ViewEventPage() {
             userId: currentUserId,
             eventId: intEventId
         });
+        console.log("removing unused  error: ", response);
         setIsRsvped(true);
         handleOpen();
     } catch (error) {
@@ -57,6 +57,7 @@ function ViewEventPage() {
                 userId: currentUserId,
                 eventId: intEventId
             });
+            console.log("removing unused  error: ", response);
             setIsRsvped(false);
         } catch (error) {
             console.error('Error:', error);
@@ -163,7 +164,7 @@ function ViewEventPage() {
         fetchEvent();
     }, [eventId, isRsvped]);
 
-    const handleChange = (panel: string) => (SyntheticEvent: React.SyntheticEvent, isExpanded: boolean) => {
+    const handleChange = (panel: string) => (_SyntheticEvent: React.SyntheticEvent, isExpanded: boolean) => {
         setExpanded(isExpanded ? panel : false);
     };
 

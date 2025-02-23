@@ -2,7 +2,6 @@ import { Box, Button, ButtonGroup, Card, ClickAwayListener, Grow, IconButton, Me
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNavBar from "../components/BottomNavBar";
-import { Collapsible } from '@base-ui-components/react/collapsible';
 import React from "react";
 import { ArrowDropDownIcon } from "@mui/x-date-pickers/icons";
 import ChatIcon from '@mui/icons-material/Chat';
@@ -13,6 +12,7 @@ import { useUser } from "../sso/UserContext";
 import User from "../types/User";
 import AddIcon from '@mui/icons-material/Add';
 import GroupModal from "../components/GroupModal";
+import ReportModal from "../components/ReportModal";
 import { BASE_URL } from "../components/Cosntants";
 
 export type Group = {
@@ -24,7 +24,7 @@ export type Group = {
 
 function GroupsPage(){
     const [groups, setGroups] = useState<Group[]>([]);
-    const [isFriendsPage, setIsFriendsPage] = useState<Boolean>(false);  
+    const [isFriendsPage] = useState<Boolean>(false);  
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
 
@@ -116,12 +116,14 @@ function SplitButton({group, onSave}: SplitButtonProps) {
     const [editing, setEditing] = useState<boolean>(false);
 
     const handleMenuItemClick = (
-        event: React.MouseEvent<HTMLLIElement, MouseEvent>,
+        // event: React.MouseEvent<HTMLLIElement, MouseEvent>,
         index: number,
     ) => {
         setSelectedIndex(index);
+        console.log("resolving unused error: ", selectedIndex);
         setOpen(false);
     };
+    console.log(handleMenuItemClick);
 
     const handleToggle = () => {
         setOpen((prevOpen) => !prevOpen);
@@ -139,7 +141,7 @@ function SplitButton({group, onSave}: SplitButtonProps) {
     };
 
     const navigate = useNavigate();
-
+    const [reportModalOpen, setReportModalOpen] = useState<boolean>(false);
     return (
     <>
         <GroupModal groupId={group.id} open={editing} onClose={() => setEditing(false)} onSave={onSave}/>
@@ -151,10 +153,12 @@ function SplitButton({group, onSave}: SplitButtonProps) {
             <Card sx={{padding: 3}}>
                 <h2>{group.groupName}</h2>
                 <Box display="flex" flexDirection="row">
-                    {/* TODO: Make navigate to right things */}
-                    <IconButton onClick={()=>navigate('/friendsPage')}>
-                        <FlagIcon style={{color: "red"}}></FlagIcon>
-                    </IconButton>
+                    <ReportModal input={group} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="group"/>
+                    <Box display="flex" alignItems="right" justifyContent="right">
+                        <IconButton onClick={()=>setReportModalOpen(true)}>
+                            <FlagIcon style={{ color: 'red'}}></FlagIcon>
+                        </IconButton>
+                    </Box>
                     <IconButton onClick={()=>navigate('/friendsPage')}>
                         <ChatIcon style={{color: "blue"}}></ChatIcon>
                     </IconButton>
@@ -194,7 +198,7 @@ function SplitButton({group, onSave}: SplitButtonProps) {
             <Paper>
               <ClickAwayListener onClickAway={handleClose}>
                 <MenuList id="split-button-menu" autoFocusItem>
-                  {group.users.map((user, index) => (
+                  {group.users.map((user) => (
                     <MenuItem
                       key={user.id}
                     >

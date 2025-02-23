@@ -4,12 +4,10 @@ import BottomNavBar from '../components/BottomNavBar';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css";
-import { Button, Typography, Paper, Box, Dialog, DialogTitle, DialogContent, Fab, Autocomplete, TextField } from '@mui/material';
+import { Button, Typography, Paper, Box, Dialog, DialogTitle, DialogContent, Fab, TextField } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
 import AddIcon from '@mui/icons-material/Add';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import { set } from 'date-fns';
 import { BASE_URL } from '../components/Cosntants';
 
 function FriendsPage() {
@@ -21,7 +19,7 @@ function FriendsPage() {
     const [OpenDialog, setOpenDialog] = useState(false);
     const [searchInput, setSearchInput] = useState('');
     const [filteredUsers, setFilteredUsers] = useState(users);
-    const [isFriendsPage, setIsFriendsPage] = useState<Boolean>(true); 
+    const [isFriendsPage ] = useState<Boolean>(true); 
     const [refreshTrigger, setRefreshTrigger] = useState(false);
     const navigate = useNavigate();
 
@@ -50,7 +48,7 @@ function FriendsPage() {
 
     function toggleFriendsGroupPages(isFriendsPage: boolean){
         if(!isFriendsPage){
-            navigate('/groupsPage');
+            navigate('/groups');
         }
     }
 
@@ -165,29 +163,31 @@ function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refre
         <ul style={{ listStyleType: 'none', padding: 0 }}>
             {Array.isArray(friends) && friends.map((friend, index) => (
                 <li key={index}>
-                    <Paper elevation={3}>
-                        <Box
-                            display="flex"
-                            justifyContent="space-between"
-                            alignItems="center"
-                            width="300px"
-                            padding="10px"
-                            border="1px solid #ccc"
-                            borderRadius="5px"
-                            margin="5px 0"
-                            bgcolor="white"
-                        >
-                            <Button 
-                                variant="contained" 
-                                onClick={() => userDetails.email && removeFriend(userDetails.email, friend.id)}
+                    <Link to={`/profile/${friend.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Paper elevation={3}>
+                            <Box
+                                display="flex"
+                                justifyContent="space-between"
+                                alignItems="center"
+                                width="300px"
+                                padding="10px"
+                                border="1px solid #ccc"
+                                borderRadius="5px"
+                                margin="5px 0"
+                                bgcolor="white"
                             >
-                                <CloseIcon/>
-                            </Button>
-                            <Box flexGrow={1} textAlign="left" marginLeft={5}>
-                                {`${friend.fname} ${friend.lname}`}
+                                <Button 
+                                    variant="contained" 
+                                    onClick={() => userDetails.email && removeFriend(userDetails.email, friend.id)}
+                                >
+                                    <CloseIcon/>
+                                </Button>
+                                <Box flexGrow={1} textAlign="left" marginLeft={5}>
+                                        {`${friend.fname} ${friend.lname}`}
+                                </Box>
                             </Box>
-                        </Box>
-                    </Paper>
+                        </Paper>
+                    </Link>
                 </li>
             ))}
         </ul>

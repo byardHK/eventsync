@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 type NotificationFrequency = "None" | "Low" | "Normal" | "High";
 
-interface UserDetails {
+export interface UserDetails {
   isOnboardingComplete: boolean | null;
   email: string | null;
   firstName: string | null;
