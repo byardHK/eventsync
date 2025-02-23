@@ -62,7 +62,7 @@ function HomePage() {
             alignItems="center" 
             justifyContent="center"
         >
-            <h3 className="card-title">Welcome {userDetails.firstName}!</h3>
+            <h3 className="card-title">Welcome {userDetails.firstName}! 👋</h3>
         </Box>
 
         <Box

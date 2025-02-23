@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/style.css";
 import { BASE_URL } from '../components/Cosntants';
+import {FetchExistingUser} from '../sso/LoadUser';
 
 const OnboardingPage = () => {
     const { userDetails, setUserDetails } = useUser();
@@ -41,50 +42,18 @@ const OnboardingPage = () => {
 
         try {
             console.log(updatedUser);
-            await axios.post("http://localhost:5000/api/add_user", updatedUser);
+            await axios.post(`${BASE_URL}/api/add_user`, updatedUser);
         }
         catch(error){
             console.error("Error submitting onboarding data:", error);
         }
 
     }
-    
-    const fetchUserData = async (email) => {
-        try {
-            const res = await axios.get(`${BASE_URL}/api/get_user/${email}`);
-            console.log("Fetched user data from API:", res.data);
-    
-            setUserDetails(prevDetails => {
-                const updatedDetails = {
-                    ...prevDetails,
-                    firstName: res.data[0].fname,
-                    lastName: res.data[0].lname,
-                    email: res.data[0].id,
-                    isAdmin: res.data[0].isAdmin,
-                    isBanned: res.data[0].isBanned,
-                    isPublic: res.data[0].isPublic,
-                    bio: res.data[0].bio,
-                    notificationFrequency: res.data[0].notificationFrequency,
-                    notificationId: res.data[0].notificationId,
-                    numTimesReported: res.data[0].numTimesReported,
-                    profilePicture: res.data[0].profilePicture,
-                    friendRequest: res.data[0].friendRequest,
-                    eventInvite: res.data[0].eventInvite,
-                    eventCancelled: res.data[0].eventCancelled,
-                };
-                console.log("ONBOARDING PAGE Updated userDetails:", updatedDetails);
-                return updatedDetails;
-            });
-
-            } catch (error) {
-                console.error("Error fetching profile:", error);
-            }
-    }
 
     const handleSubmit = async () => {
         try {
             await addNewUser();     
-            await fetchUserData(userId);   
+            await FetchExistingUser(userId, setUserDetails);   
             navigate("/home");      
         } catch (error) {
             console.error("Error submitting new user:", error);

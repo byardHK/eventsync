@@ -5,7 +5,6 @@ import { useMsal } from '@azure/msal-react';
 import { useUser } from './UserContext';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-// import { FetchExistingUser } from '../helper/FetchExistingUser';
 import { BASE_URL } from "../components/Cosntants";
 
 export const LoadUser = () => {
@@ -93,7 +92,7 @@ export const LoadUser = () => {
 
 export const FetchExistingUser = async (email, setUserDetails) => {
     try {
-        const res = await axios.get(`http://localhost:5000/api/get_user/${email}`);
+        const res = await axios.get(`${BASE_URL}/api/get_user/${email}`);
         console.log("Fetched user data: (load user)", res.data);
 
         setUserDetails(prevDetails => {
