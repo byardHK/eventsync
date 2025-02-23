@@ -1,4 +1,4 @@
-import { Card, Box, Button, Chip, TextField, Switch, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import { Card, Box, Button, Chip, TextField, Switch, Select, MenuItem, FormControl, InputLabel, IconButton } from "@mui/material";
 import TagModal from "../components/TagModal";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -9,6 +9,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import SignOutButton from "../components/SignOutButton";
 import Tag from "../types/Tag";
 import { BASE_URL } from "../components/Cosntants";
+import FlagIcon from '@mui/icons-material/Flag';
+import ReportModal from "../components/ReportModal";
+import User from "../types/User";
 
 function ProfilePage() {
     const { id: profileId } = useParams();
@@ -290,6 +293,7 @@ function ProfilePage() {
     } else {
         const [userTags, setUserTags] = useState<Tag[]>([]);
         const [profileDetails, setProfileDetails] = useState<any>({});
+        const [user, setUser] = useState<User>();
     
         useEffect(() => {
             const fetchData = async () => {
@@ -315,17 +319,36 @@ function ProfilePage() {
             };
             fetchData();
         }, [profileId]);
+
+        useEffect(() => {
+            const fetchData = async () => {
+                try {
+                    const response = await axios.get(`${BASE_URL}/api/get_user/${profileId}`);
+                    setUser(response.data[0]);
+                } catch (error) {
+                    console.error("Error fetching user:", error);
+                }
+            };
+            fetchData();
+        }, []);
     
         const navigate = useNavigate();
         const handleBackClick = () => navigate("/");
+
+
     
+        const [reportModalOpen, setReportModalOpen] = useState<boolean>(false);
         return (
             <Box display="flex" flexDirection="column" alignItems="center" width="85%" maxWidth="350px" margin="auto">
                 {/* Back Button */}
-                <Box display="flex" justifyContent="space-between" width="100%">
+                <ReportModal input={user} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="user"/>
+                <Box display="flex" flexDirection="row" justifyContent="space-between" width="100%">
                     <Button onClick={handleBackClick}>
                         <ArrowBackIcon />
                     </Button>
+                    <IconButton onClick={()=>setReportModalOpen(true)}>
+                        <FlagIcon style={{ color: 'red'}}></FlagIcon>
+                    </IconButton>
                 </Box>
     
                 {/* Profile Card */}

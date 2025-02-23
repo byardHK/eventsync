@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import { Button, TextField } from "@mui/material";
+import { Box, Button, Dialog, IconButton, ListItemButton, ListItemText, TextField } from "@mui/material";
 import axios from "axios";
 import Message from '../types/Message';
 import Chat from '../types/Chat';
@@ -11,12 +11,14 @@ import '../styles/chat.css'
 import dayjs, { Dayjs } from "dayjs";
 import SendIcon from '@mui/icons-material/Send';
 import isToday from 'dayjs/plugin/isToday';
+import FlagIcon from '@mui/icons-material/Flag';
 
 dayjs.extend(isToday);
 
 //Pusher
 import Pusher from 'pusher-js';
 import { BASE_URL } from '../components/Cosntants';
+import ReportModal from '../components/ReportModal';
 
 function ChatPage() {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -82,7 +84,7 @@ function ChatPage() {
     }
 
     const handleBackClick = () => {
-        navigate('/chatHomePage');
+        navigate('/chatHome');
     };
 
     function chatTitle(): String {
@@ -113,6 +115,10 @@ function ChatPage() {
 }
 
 const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Message[], currentUserId: String, groupChat: Boolean, getName: (userId: String) => String | null }) => {
+    const [flagVisible, setFlagVisible] = useState<boolean>(false);
+    const [open, setOpen] = useState(false);
+    const handleClose = () => setOpen(false);
+    const [reportModalOpen, setReportModalOpen] = useState<boolean>(false);
 
     function messageDateString(dateStr: string) {
         const date: Dayjs = dayjs(dateStr);
@@ -126,32 +132,65 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
         
     }
 
+    // function handleClick(){
+    //     return <Dialog 
+    //         onClose={handleClose} 
+    //         open={open} 
+    //     >
+    //         <IconButton onClick={()=>setReportModalOpen(true)}>
+    //             <FlagIcon style={{ color: 'red'}}></FlagIcon>
+    //         </IconButton>
+    //     </Dialog>
+    // }
+
+    function otherChat(message : Message){
+        return <ListItemButton onClick={() => setFlagVisible(!flagVisible)} className="other">
+                <div className="msg">
+                    <ReportModal input={message} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="message"/>
+                    {groupChat && <p>{getName(message.senderId)}</p>}
+                    {flagVisible ? (
+                        <div>
+                            <Box display="flex" justifyContent="flex-end">
+                                <IconButton onClick={()=>setReportModalOpen(true)}>
+                                    <FlagIcon style={{ color: 'red'}}></FlagIcon>
+                                </IconButton>
+                            </Box>
+                            <ListItemText className="message">{message.messageContent}</ListItemText>
+                            <ListItemText className="date">{messageDateString(message.timeSent)}</ListItemText>
+                        </div>
+                    ) : (
+                        <div>
+                            <ListItemText className="message">{message.messageContent}</ListItemText>
+                            <ListItemText className="date">{messageDateString(message.timeSent)}</ListItemText>
+                        </div>
+                    )}
+            
+                </div>
+            </ListItemButton>
+    }
+
     return (       
         <div className="chatWindow">
             <ul className='chat' id='chatList'>
             {messages.map((message, index) => (
             <div key={index}>
                 {currentUserId === message.senderId ? (
-                <li className="self">
-                  <div className="msg">
-                    <div className="message"> {message.messageContent}</div>
-                    <div className='date'>{messageDateString(message.timeSent)}</div>
-                  </div>
-                </li>
+                <ListItemButton className="self">
+                    <div className="msg">
+                        <ListItemText className="message">{message.messageContent}</ListItemText>
+                        <ListItemText className="date">{messageDateString(message.timeSent)}</ListItemText>
+
+                    </div>
+                </ListItemButton>
               ) : (
-                <li className="other">
-                  <div className="msg">
-                    {groupChat && <p>{getName(message.senderId)}</p>}
-                    <div className="message"> {message.messageContent}</div>
-                    <div className='date'>{messageDateString(message.timeSent)}</div>
-                  </div>
-                </li>
+                otherChat(message)
               )}
             </div>
             ))}
             </ul>
         </div>)
 };
+
 
 const ChatInput = (props: { channelName: String, currentUserId: String, chatId: string }) => {
     const [message, setMessage] = useState<string>("");

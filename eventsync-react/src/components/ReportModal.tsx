@@ -11,7 +11,7 @@ import { Group } from "../pages/GroupsPage";
 import { BASE_URL } from "./Cosntants";
 
 type ReportModalProps = {
-    input: Event | Tag | User | Message | Group;
+    input: Event | Tag | User | Message | Group | undefined;
     open: boolean;
     onClose: () => void;
     type: "event" | "tag" | "user" | "message" | "group";
@@ -30,6 +30,33 @@ async function reportEvent(event: Event, currentUserId: string, reportDetails: s
     }
 };
 
+async function reportMessage(message: Message, currentUserId: string, reportDetails: string) {
+    try {
+        const response = await axios.post(`${BASE_URL}/reportMessage`, {
+            details: reportDetails,
+            reportedBy: currentUserId,
+            reportedMessageId: message.id
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        alert('report failed');
+    }
+};
+
+async function reportUser(user: User, currentUserId: string, reportDetails: string) {
+    console.log(user);
+    try {
+        const response = await axios.post(`${BASE_URL}/reportUser`, {
+            details: reportDetails,
+            reportedBy: currentUserId,
+            reportedUserId: user.id
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        alert('report failed');
+    }
+};
+        
 async function reportGroup(group: Group, currentUserId: string, reportDetails: string) {
     try {
         const response = await axios.post('http://localhost:5000/reportGroup', {
@@ -50,6 +77,12 @@ function ReportModal({input, open, onClose, type}: ReportModalProps){
     function onSubmit(){
         if(type === "event"){
             reportEvent(input as Event, userDetails.email!, reportText);
+        }
+        if(type === "message"){
+            reportMessage(input as Message, userDetails.email!, reportText);
+        }
+        if(type === "user"){
+            reportUser(input as User, userDetails.email!, reportText);
         }
         if(type === "group"){
             reportGroup(input as Group, userDetails.email!, reportText);
