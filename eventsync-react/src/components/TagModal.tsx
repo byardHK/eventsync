@@ -15,6 +15,7 @@ type TagModalProps= {
 function TagModal({savedTags, handleSave}: TagModalProps){
     const { userDetails } = useUser();
     const userId = userDetails.email;
+    const token = userDetails.token;
 
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
@@ -55,6 +56,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
             const response = await fetch(`${BASE_URL}/create_custom_tag`, {
                 method: 'POST',
                 headers: {
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
@@ -63,7 +65,8 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                 }),
             });
             if(response.ok){
-                console.log('Data sent successfully:', response.json());
+                const data = await response.json();
+                console.log('Data sent successfully:', data);
                 setCreateCustomTagText("");
                 setGetTagsTrigger(getTagsTrigger+1);
             }

@@ -31,20 +31,42 @@ export const LoadUser = () => {
                 }
             }
 
-            const graphData = await callMsGraph(response.accessToken);
-            const userEmail = graphData.userPrincipalName;
-            const res = await axios.get(`${BASE_URL}/api/check_user/${userEmail}`);
+                const graphData = await callMsGraph(response.accessToken);
+                console.log('📊 Graph Data:', graphData);
 
-            if (res.data.exists) {
-                await FetchExistingUser(userEmail, setUserDetails);
-            } else {
-                await setNewUserData(graphData);
-                navigate('/onboardingPage');
+                const userEmail = graphData.userPrincipalName;
+                console.log(`📧 Checking if user exists: ${userEmail}`);
+
+                console.log("TOKEN", response.accessToken);
+                setUserDetails({token: response.accessToken});
+
+                const res = await axios.get(`${BASE_URL}/api/check_user/${userEmail}`,{
+                    headers: {
+                        'Authorization': `Bearer ${response.accessToken}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+                const userExists = res.data.exists;
+                console.log("does user EXIST: ", userExists);
+                
+              
+                if (userExists) {
+                    await FetchExistingUser(userEmail, setUserDetails, response.accessToken);
+                    console.log(userDetails);
+                    console.log("i'm navigating to home");
+                    navigate('/home');
+                } else {
+                    await setNewUserData(graphData);
+                    console.log("i'm navigating to onboarding")
+                    navigate('/onboardingPage');
+                }
+
+             
+            } catch (error) {
+                console.error("❌ Error during user data request:", error);
+               
             }
-        } catch (error) {
-            console.error("❌ Error during user data request:", error);
-        }
-    }, [accounts, instance, navigate, setUserDetails]);
+        });
 
     const setNewUserData = async (graphData) => {
         setUserDetails({
@@ -65,10 +87,16 @@ export const LoadUser = () => {
     return null;
 };
 
-export const FetchExistingUser = async (email, setUserDetails) => {
+
+export const FetchExistingUser = async (email, setUserDetails, accessToken) => {
     try {
-        const res = await axios.get(`${BASE_URL}/api/get_user/${email}`);
-        console.log("Fetched user data:", res.data);
+        const res = await axios.get(`${BASE_URL}/api/get_user/${email}`,{
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        console.log("Fetched user data: (load user)", res.data);
 
         setUserDetails(prevDetails => ({
             ...prevDetails,

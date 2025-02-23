@@ -19,6 +19,36 @@ db_config = {
     'database': 'event_sync'
 }
 
+GRAPH_API_URL = "https://graph.microsoft.com/v1.0/me"
+
+def get_authenticated_user():
+    """Fetches the authenticated user's email from Microsoft Graph API."""
+    
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
+        print("ERROR: Missing Authorization header")
+        return None, jsonify({"error": "Invalid or missing Authorization header"}), 403
+
+    headers = {
+        "Authorization": auth_header,
+        "Accept": "application/json"
+    }
+
+    response = requests.get(GRAPH_API_URL, headers=headers)
+    if response.status_code != 200:
+        return None, jsonify({"error": "Failed to fetch user profile", "details": response.text}), 403
+
+    data = response.json()
+    user_email = data.get("mail")  # Extract user email
+
+    if not user_email:
+        return None, jsonify({"error": "Email not found in token response"}), 403
+
+    return user_email, None, None  # No error, return email
+
+
+
+
 pusher_client = pusher.Pusher(
   app_id='1939690',
   key='d2b56055f7edd36cb4b6',
@@ -29,8 +59,23 @@ pusher_client = pusher.Pusher(
 
 @app.route('/api/update_user_profile', methods=['POST'])
 def update_user_profile():
+     ###### validating email #####
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "userId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+    
+    print("body", body["userId"].lower())
+    print("token",  user_email.lower())
+
+    if body["userId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    ######   end validation  #####
+
     try:
-        # Extract the data sent in the request
         data = request.json
         email = data.get('userId')
         bio = data.get('bio')
@@ -78,6 +123,14 @@ def update_user_profile():
 
 @app.route('/api/get_user/<string:id>', methods=['GET'])
 def get_user(id):
+    
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if id.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+   
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor(dictionary=True)  
@@ -97,6 +150,16 @@ def get_user(id):
 
 @app.route('/api/check_user/<string:id>', methods=['GET'])
 def check_user(id):
+       
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        print(error_response)
+        return error_response, status_code   
+
+    if id.lower() != user_email.lower():
+        print("Unauthorized: userId does not match token email")
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+   
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -252,20 +315,34 @@ def get_unfriended_users(userId):
 
 @app.post('/create_custom_tag/')
 def add_custom_tag():
+    
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
     body = request.json
-    try:  
+    if not body or "userId" not in body or "name" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["userId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+   
+    
+    try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        query = f"""
-                INSERT INTO Tag (name, numTimesUsed, userId) VALUES ("{body["name"]}", 0, "{body["userId"]}");
-                """
-        mycursor.execute(query)
+        query = "INSERT INTO Tag (name, numTimesUsed, userId) VALUES (%s, %s, %s)"
+        mycursor.execute(query, (body["name"], 0, body["userId"]))
         conn.commit()
+    except mysql.connector.Error as err:
+        return jsonify({"error": "Database error", "details": str(err)}), 500
+    finally:
         mycursor.close()
         conn.close()
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-    return {}
+
+    return jsonify({"message": "Tag created successfully"}), 201
+
+   
 
 @app.route('/delete_custom_tag/<int:tagId>/', methods=['DELETE'])
 def delete_custom_tag(tagId):
@@ -295,7 +372,7 @@ def save_user_selected_tags():
     userId = body["userId"]
     values: str = ""
 
-    selectedTags = body["selectedTags"];
+    selectedTags = body["selectedTags"]
     if len(selectedTags) == 0:
         return {}
 

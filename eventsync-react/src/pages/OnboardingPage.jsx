@@ -53,7 +53,7 @@ const OnboardingPage = () => {
     const handleSubmit = async () => {
         try {
             await addNewUser();     
-            await FetchExistingUser(userId, setUserDetails);   
+            await FetchExistingUser(userId, setUserDetails, userDetails.token);   
             navigate("/home");      
         } catch (error) {
             console.error("Error submitting new user:", error);
