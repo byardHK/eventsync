@@ -158,7 +158,7 @@ function EventList({ events, canDeleteEvents, setEventsChanged }: { events: Even
         padding={2}
     >
         {events.map(event =>  
-            <StyledCard key={event.id} event={event} viewEvent={viewEvent} showViews>
+            <StyledCard key={event.id} event={event} viewEvent={viewEvent} showShareIcon={true} showViews>
                 {canDeleteEvents && (
                     <Box display="flex" flexDirection="row" gap={2}>
                         <Button fullWidth variant="contained" onClick={() => editEvent(event)}>Edit</Button>
