@@ -129,8 +129,9 @@ function HomePage() {
             <EventList searchKeyword={searchKeyword} tags={tags}/>
 
             
-            <BottomNavBar userId={currentUserId!}/>
+            
         </Box>
+        <BottomNavBar userId={currentUserId!}/>
     </>;
 };
 
@@ -231,7 +232,7 @@ function EventList({searchKeyword, tags}: {searchKeyword: string, tags: string[]
             //     </Box>
             // </Card>
             // <Box >
-                <StyledCard key={event.id} event={event} viewEvent={viewEvent} showTags>
+                <StyledCard key={event.id} event={event} viewEvent={viewEvent} showShareIcon={false} showTags>
                     {/* <Button variant="contained" onClick={() => viewEvent(event)}>View Event</Button>
                     <Button variant="contained" onClick={() => deleteEvent(event)}>Delete Event</Button> */}
                     {/* <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}> */}

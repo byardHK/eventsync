@@ -11,10 +11,11 @@ export type StyledCardProps = {
     event: EventSyncEvent;
     showTags?: boolean;
     showViews?: boolean;
+    showShareIcon?: boolean;
     viewEvent: (event : EventSyncEvent) => Promise<void>;
 };
 
-function StyledCard({ children, event, showTags, showViews, viewEvent }: StyledCardProps) {
+function StyledCard({ children, event, showTags, showViews, showShareIcon, viewEvent }: StyledCardProps) {
     const [shareOpen, setShareOpen] = useState(false);
     console.log(shareOpen);
     const eventUrl = `${window.location.origin}/viewEvent/${event.id}`;
@@ -70,21 +71,25 @@ function StyledCard({ children, event, showTags, showViews, viewEvent }: StyledC
                 </div>
 
                 {/* Share Button */}
-                <Button
-                    onClick={handleShare}
-                    startIcon={<IosShareIcon sx={{ color: "black" }} />} // Make icon black
-                    sx={{
-                        backgroundColor: "white", 
-                        color: "black", 
-                        padding: "8px 8px", 
-                        minWidth: "60px", 
-                        "&:hover": {
+                {showShareIcon && (
+                    <Button
+                        onClick={handleShare}
+                        startIcon={<IosShareIcon sx={{ color: "black" }} />} // Make icon black
+                        sx={{
                             backgroundColor: "white", 
                             color: "black", 
-                        },
-                    }}
-                >
-                </Button>
+                            padding: "8px 8px", 
+                            minWidth: "60px", 
+                            "&:hover": {
+                                backgroundColor: "white", 
+                                color: "black", 
+                            },
+                        }}
+                    >
+                    </Button>
+                )}
+                
+              
 
                 
                 {children}
