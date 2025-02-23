@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import BottomNavBar from '../components/BottomNavBar';
 import Box from '@mui/material/Box';
-import { Grid2, Button, TextField, InputAdornment, Paper, styled } from '@mui/material';
+import {InputAdornment, Paper, styled, TextField } from '@mui/material';
 import axios from 'axios';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css"
 import Chat from '../types/Chat';
 import "../styles/chatHome.css";
-import { Link } from 'react-router-dom';
 import { BASE_URL } from '../components/Cosntants';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
@@ -60,8 +59,9 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
     const [chats, setChats] = useState<Chat[]>([]); 
-
+    
     const navigate = useNavigate();
+
 
     useEffect(() => {
         const fetchData = async () => {

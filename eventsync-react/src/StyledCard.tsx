@@ -1,8 +1,6 @@
-import { Box, Chip, IconButton, Paper, styled } from "@mui/material"
-import React, { ReactNode, useEffect, useState } from "react";
+import { Box, Chip, Paper, styled } from "@mui/material"
+import { ReactNode } from "react";
 import dayjs, { Dayjs } from "dayjs";
-import axios from "axios";
-import { useUser } from "./sso/UserContext";
 import EventSyncEvent from "./types/EventSyncEvent";
 
 export type StyledCardProps = {
@@ -22,9 +20,6 @@ function StyledCard({children, event, showTags, showViews, viewEvent} : StyledCa
         textAlign: 'center',
       }));
     
-    const { userDetails } = useUser();
-    const currentUserId = userDetails.email;
-
     const start = dayjs(event.startTime);
     const end = dayjs(event.endTime);
 
