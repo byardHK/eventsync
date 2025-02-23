@@ -1,8 +1,9 @@
 import { Card, Box, Button, Chip, TextField, Switch, Select, MenuItem, FormControl, InputLabel, IconButton } from "@mui/material";
 import TagModal from "../components/TagModal";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import axios from "axios";
 import { useUser } from "../sso/UserContext";
+import {UserDetails} from "../sso/UserContext";
 import "../styles/style.css";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate, useParams } from "react-router-dom";
@@ -13,10 +14,43 @@ import FlagIcon from '@mui/icons-material/Flag';
 import ReportModal from "../components/ReportModal";
 import User from "../types/User";
 
+
+export const FetchExistingUserTS = async (email: string, setUserDetails: Dispatch<SetStateAction<UserDetails>>) => {
+    try {
+        const res = await axios.get(`${BASE_URL}/api/get_user/${email}`);
+        console.log("PROFILE PAGE TSX FUNCTION", res.data);
+
+        setUserDetails((prevDetails: any) => {
+            const updatedDetails = {
+                ...prevDetails,
+                firstName: res.data[0].fname,
+                lastName: res.data[0].lname,
+                email: res.data[0].id,
+                isAdmin: res.data[0].isAdmin,
+                isBanned: res.data[0].isBanned,
+                isPublic: res.data[0].isPublic,
+                bio: res.data[0].bio,
+                notificationFrequency: res.data[0].notificationFrequency,
+                notificationId: res.data[0].notificationId,
+                numTimesReported: res.data[0].numTimesReported,
+                profilePicture: res.data[0].profilePicture,
+                friendRequest: res.data[0].friendRequest,
+                eventInvite: res.data[0].eventInvite,
+                eventCancelled: res.data[0].eventCancelled,
+            };
+            return updatedDetails;
+        });
+        
+    } catch (error) {
+        console.error("Error retrieving user details from database or setting them internally:", error);
+    }
+  };
+
 function ProfilePage() {
     const { id: profileId } = useParams();
     const { userDetails, setUserDetails } = useUser();
     const userId = userDetails.email;
+    console.log("profile page user details: ", userDetails);
 
     if (profileId == userId) {
         const [userTags, setUserTags] = useState<Tag[]>([]);
@@ -47,34 +81,12 @@ function ProfilePage() {
             }
 
             try {
-                const res = await axios.get(`${BASE_URL}/api/get_user/${userId}`);
-                console.log("Fetched user data from API:", res.data);
-        
-                setUserDetails(prevDetails => {
-                    const updatedDetails = {
-                        ...prevDetails,
-                        firstName: res.data[0].fname,
-                        lastName: res.data[0].lname,
-                        email: res.data[0].id,
-                        isAdmin: res.data[0].isAdmin,
-                        isBanned: res.data[0].isBanned,
-                        isPublic: res.data[0].isPublic,
-                        bio: res.data[0].bio,
-                        notificationFrequency: res.data[0].notificationFrequency,
-                        notificationId: res.data[0].notificationId,
-                        numTimesReported: res.data[0].numTimesReported,
-                        profilePicture: res.data[0].profilePicture,
-                        friendRequest: res.data[0].friendRequest,
-                        eventInvite: res.data[0].eventInvite,
-                        eventCancelled: res.data[0].eventCancelled,
-                    };
-                    console.log("Updated userDetails:", updatedDetails);
-                    return updatedDetails;
-                });
-
-                } catch (error) {
-                    console.error("Error fetching profile:", error);
-                }
+                await FetchExistingUserTS(userId, setUserDetails);  
+                console.log("PROFILE PAGE Updated userDetails:");
+                console.log(userDetails);
+            } catch (error) {
+                console.error("Error fetching profile:", error);
+            }
 
 
             } catch (error) {
@@ -119,40 +131,17 @@ function ProfilePage() {
                 const response = await axios.get(`${BASE_URL}/get_user_tags/${userId}/`);
                 setUserTags(response.data);
 
-                const res = await axios.get(`${BASE_URL}/api/get_user/${userId}`);
-                console.log("Fetched user data from API:", res.data);
-        
-                setUserDetails(prevDetails => {
-                    const updatedDetails = {
-                        ...prevDetails,
-                        firstName: res.data[0].fname,
-                        lastName: res.data[0].lname,
-                        email: res.data[0].id,
-                        isAdmin: res.data[0].isAdmin,
-                        isBanned: res.data[0].isBanned,
-                        isPublic: res.data[0].isPublic,
-                        bio: res.data[0].bio,
-                        notificationFrequency: res.data[0].notificationFrequency,
-                        notificationId: res.data[0].notificationId,
-                        numTimesReported: res.data[0].numTimesReported,
-                        profilePicture: res.data[0].profilePicture,
-                        friendRequest: res.data[0].friendRequest,
-                        eventInvite: res.data[0].eventInvite,
-                        eventCancelled: res.data[0].eventCancelled,
-                    };
-                    console.log("Updated userDetails:", updatedDetails);
-                    return updatedDetails;
-                });
+                await FetchExistingUserTS(userId, setUserDetails);  
 
-                } catch (error) {
-                    console.error("Error fetching tags:", error);
-                }
+            } catch (error) {
+                console.error("Error fetching tags:", error);
+            }
             };
             fetchData();
         }, [userTagsTrigger]);
 
-        const navigate = useNavigate();
-        const handleBackClick = () => navigate("/");
+    const navigate = useNavigate();
+    const handleBackClick = () => navigate("/home");
 
         return (
             <Box display="flex" flexDirection="column" alignItems="center" width="85%" maxWidth="350px" margin="auto">
@@ -333,7 +322,7 @@ function ProfilePage() {
         }, []);
     
         const navigate = useNavigate();
-        const handleBackClick = () => navigate("/");
+        const handleBackClick = () => navigate("/home");
 
 
     

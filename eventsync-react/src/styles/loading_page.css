@@ -1,0 +1,22 @@
+/* Loading Page Styles */
+.loading-container {
+    display: flex;
+    flex-direction: column; 
+    align-items: center;      /* Horizontal Center */
+    justify-content: center;  /* Vertical Center */
+    height: 100vh;            /* Full viewport height */
+    background-color: #f0f0f0; /* Light gray background */
+    margin: 0;                /* Remove any default margin */
+}
+
+.logo {
+    max-width: 200px; /* Adjust size as needed */
+    height: auto;     /* Keep aspect ratio */
+    margin-bottom: 20px; /* Space between logo and text */
+}
+
+.loading-text {
+    font-size: 24px;
+    color: #555; /* Dark gray text for better readability */
+    font-weight: 500;
+}

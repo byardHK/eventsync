@@ -16,6 +16,7 @@ import { BASE_URL } from '../components/Cosntants';
 
 function HomePage() {
     const { userDetails } = useUser();
+    console.log("home page user details: ", userDetails);
     const currentUserId = userDetails.email;
     const [searchKeyword, setSearchKeyword] = useState('');
     const [tags] = useState<string[]>([]);
@@ -61,7 +62,7 @@ function HomePage() {
             alignItems="center" 
             justifyContent="center"
         >
-            <h3 className="card-title">Welcome {userDetails.firstName}!</h3>
+            <h3 className="card-title">Welcome {userDetails.firstName}! 👋</h3>
         </Box>
 
         <Box

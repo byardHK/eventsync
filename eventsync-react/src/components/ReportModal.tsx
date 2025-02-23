@@ -61,7 +61,7 @@ async function reportUser(user: User, currentUserId: string, reportDetails: stri
         
 async function reportGroup(group: Group, currentUserId: string, reportDetails: string) {
     try {
-        const response = await axios.post('http://localhost:5000/reportGroup', {
+        const response = await axios.post(`${BASE_URL}/reportGroup`, {
             details: reportDetails,
             reportedBy: currentUserId,
             reportedGroupId: group.id

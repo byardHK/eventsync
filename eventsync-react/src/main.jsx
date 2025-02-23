@@ -7,6 +7,7 @@ import { msalConfig } from "./authConfig";
 import { UserProvider } from "./sso/UserContext";
 import { BrowserRouter } from "react-router-dom"
 import "./styles/main.css";
+import LoadingPage from "./pages/LoadingPage";
 
 const msalInstance = new PublicClientApplication(msalConfig);
 
@@ -23,7 +24,7 @@ const Main = () => {
   }, []);
 
   if (!isMsalInitialized) {
-    return <div>Loading MSAL...</div>;  // Prevent errors by not rendering before MSAL is ready
+    return <LoadingPage></LoadingPage>;  // Prevent errors by not rendering before MSAL is ready
   }
 
   return (

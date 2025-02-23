@@ -33,7 +33,7 @@ function BottomNavBar({ userId }: { userId: string }) {
         justifyContent="space-around"
         style={{ position: 'fixed', bottom: '0' }}
     >
-        <Link title="Link to Home Page" to="/">
+        <Link title="Link to Home Page" to="/home">
             <Button title="Home Page Button" variant="contained">
                 <HomeIcon/>
             </Button>

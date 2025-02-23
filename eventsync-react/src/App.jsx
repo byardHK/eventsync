@@ -14,18 +14,19 @@ import OnboardingPage from "./pages/OnboardingPage";
 import ChatPage from "./pages/ChatPage"
 import ChatHomePage from "./pages/ChatHomePage"
 
+import LoadingPage from "./pages/LoadingPage";
+
 
 const MainContent = () => {
   return (
       <div className="App">
           <AuthenticatedTemplate>
-
-            
-
             <BrowserRouter>
             <LoadUser></LoadUser>
                 <Routes>
-                    <Route path="/" element={<HomePage/>}/>
+                    <Route path="/" element={<LoadingPage/>}/>
+                    <Route path="/home" element={<HomePage/>}/>
+                    <Route path="/onboardingPage" element={<OnboardingPage/>}/>
                     <Route path="/createEvent" element={<CreateEventPage/>}/>
                     <Route path="/createEvent/:eventId" element={<CreateEventPage/>}/>
                     <Route path="/friends" element={<FriendsPage/>}/>
