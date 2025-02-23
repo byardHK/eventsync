@@ -1715,10 +1715,25 @@ def get_my_chats(user_id: str):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        # mycursor.execute(f"""SELECT Chat.id, GroupOfUser.groupName, Chat.isGroupChat FROM Chat 
-        #                     LEFT JOIN GroupOfUser ON Chat.id = GroupOfUser.chatId
-        #                     WHERE Chat.id IN (SELECT chatId FROM ChatToUser WHERE userId = '{user_id}');""")
-        mycursor.execute(f"SELECT * FROM Chat WHERE id IN (SELECT chatId FROM ChatToUser WHERE userId = '{user_id}');")
+        mycursor.execute(f"""(SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType FROM Chat
+                            JOIN (SELECT GroupOfUser.chatId, GroupOfUser.groupName FROM GroupOfUserToChat
+                            JOIN GroupOfUserToUser ON GroupOfUserToChat.groupOfUserId = GroupOfUserToUser.groupId
+                            JOIN GroupOfUser ON GroupOfUserToChat.groupOfUserId = GroupOfUser.id
+                            WHERE GroupOfUserToUser.userId = '{user_id}') AS groupStuff
+                            ON Chat.id = groupStuff.chatId)
+                            UNION 
+                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
+                            JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
+                            JOIN Event ON Event.eventInfoId = EventInfoToChat.eventInfoId
+                            JOIN EventToUser ON EventToUser.eventId = Event.id
+                            JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
+                            WHERE EventToUser.userId = "{user_id}")
+                            UNION
+                            (SELECT Chat.id, Chat.chatType, otherUser.userId AS name FROM Chat 
+                            JOIN ChatToUser ON Chat.id = ChatToUser.chatId
+                            JOIN (SELECT * FROM ChatToUser WHERE ChatToUser.userId != '{user_id}') AS otherUser
+                            ON ChatToUser.chatId = otherUser.chatId
+                            WHERE ChatToUser.userId = '{user_id}')""")
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
@@ -1738,10 +1753,21 @@ def get_chat(chat_id: str):
         response = mycursor.fetchall()
         headers = mycursor.description
         chat = sqlResponseToList(response, headers)[0]
-        mycursor.execute(f"""SELECT id, fname, lname 
-                            FROM User WHERE id IN (
-                            SELECT userId FROM ChatToUser
-                            WHERE chatId = {chat_id});""")
+        mycursor.execute(f"""(SELECT id, fname, lname FROM User
+                                JOIN GroupOfUserToUser ON User.id = GroupOfUserToUser.userId
+                                JOIN GroupOfUserToChat ON GroupOfUserToUser.groupId = GroupOfUserToChat.groupOfUserId
+                                WHERE GroupOfUserToChat.chatId = {chat_id})
+                            UNION
+                            (SELECT User.id, fname, lname FROM User
+                                JOIN EventToUser ON User.id = EventToUser.userId
+                                JOIN Event ON EventToUser.eventId = Event.id
+                                JOIN EventInfoToChat ON EventInfoToChat.eventInfoId = Event.eventInfoId
+                                WHERE EventInfoToChat.chatId = {chat_id})
+                            UNION
+                            (SELECT id, fname, lname 
+                                FROM User WHERE id IN (
+                                SELECT userId FROM ChatToUser
+                                WHERE chatId = {chat_id}))""")
         response = mycursor.fetchall()
         headers = mycursor.description
         users = sqlResponseToList(response, headers)
