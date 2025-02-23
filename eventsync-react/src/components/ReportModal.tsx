@@ -1,6 +1,5 @@
 import { Box, Button, Dialog, TextField } from "@mui/material";
 import { useState } from "react";
-import AddIcon from '@mui/icons-material/Add';
 import { Event } from "../pages/ViewEventPage";
 import Tag from "../types/Tag";
 import axios from "axios";
@@ -24,6 +23,7 @@ async function reportEvent(event: Event, currentUserId: string, reportDetails: s
             reportedBy: currentUserId,
             reportedEventId: event.id
         });
+        console.log("reported event response: ", response);
     } catch (error) {
         console.error('Error:', error);
         alert('report failed');
@@ -37,6 +37,7 @@ async function reportMessage(message: Message, currentUserId: string, reportDeta
             reportedBy: currentUserId,
             reportedMessageId: message.id
         });
+        console.log(response);
     } catch (error) {
         console.error('Error:', error);
         alert('report failed');
@@ -51,6 +52,7 @@ async function reportUser(user: User, currentUserId: string, reportDetails: stri
             reportedBy: currentUserId,
             reportedUserId: user.id
         });
+        console.log(response);
     } catch (error) {
         console.error('Error:', error);
         alert('report failed');
@@ -64,6 +66,7 @@ async function reportGroup(group: Group, currentUserId: string, reportDetails: s
             reportedBy: currentUserId,
             reportedGroupId: group.id
         });
+        console.log(response);
     } catch (error) {
         console.error('Error:', error);
         alert('report failed');

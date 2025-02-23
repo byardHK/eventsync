@@ -2,7 +2,6 @@ import { Box, Button, ButtonGroup, Card, ClickAwayListener, Grow, IconButton, Me
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNavBar from "../components/BottomNavBar";
-import { Collapsible } from '@base-ui-components/react/collapsible';
 import React from "react";
 import { ArrowDropDownIcon } from "@mui/x-date-pickers/icons";
 import ChatIcon from '@mui/icons-material/Chat';
@@ -25,7 +24,7 @@ export type Group = {
 
 function GroupsPage(){
     const [groups, setGroups] = useState<Group[]>([]);
-    const [isFriendsPage, setIsFriendsPage] = useState<Boolean>(false);  
+    const [isFriendsPage] = useState<Boolean>(false);  
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
 
@@ -117,12 +116,14 @@ function SplitButton({group, onSave}: SplitButtonProps) {
     const [editing, setEditing] = useState<boolean>(false);
 
     const handleMenuItemClick = (
-        event: React.MouseEvent<HTMLLIElement, MouseEvent>,
+        // event: React.MouseEvent<HTMLLIElement, MouseEvent>,
         index: number,
     ) => {
         setSelectedIndex(index);
+        console.log("resolving unused error: ", selectedIndex);
         setOpen(false);
     };
+    console.log(handleMenuItemClick);
 
     const handleToggle = () => {
         setOpen((prevOpen) => !prevOpen);
@@ -197,7 +198,7 @@ function SplitButton({group, onSave}: SplitButtonProps) {
             <Paper>
               <ClickAwayListener onClickAway={handleClose}>
                 <MenuList id="split-button-menu" autoFocusItem>
-                  {group.users.map((user, index) => (
+                  {group.users.map((user) => (
                     <MenuItem
                       key={user.id}
                     >

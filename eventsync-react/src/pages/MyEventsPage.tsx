@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import BottomNavBar from '../components/BottomNavBar';
 import Box from '@mui/material/Box';
-import { Button, Card, Grid2 } from '@mui/material';
+import { Button, Grid2 } from '@mui/material';
 import axios from 'axios';
 import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
-import { format } from "date-fns";
-import DeleteRecurEventModal from '../components/DeleteRecurEventModal';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css"
 import StyledCard from '../StyledCard';
@@ -20,7 +18,6 @@ function MyEventsPage() {
     // console.log("my events page: ")
     // console.log(currentUserId);
 
-    const [isListView, setIsListView] = useState<Boolean>(true);
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
 

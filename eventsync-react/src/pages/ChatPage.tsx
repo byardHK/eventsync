@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import { Box, Button, Dialog, IconButton, ListItemButton, ListItemText, TextField } from "@mui/material";
+import { Box, Button, IconButton, ListItemButton, ListItemText, TextField } from "@mui/material";
 import axios from "axios";
 import Message from '../types/Message';
 import Chat from '../types/Chat';
@@ -118,6 +118,8 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
     const [flagVisible, setFlagVisible] = useState<boolean>(false);
     const [open, setOpen] = useState(false);
     const handleClose = () => setOpen(false);
+    console.log(open);
+    console.log(handleClose);
     const [reportModalOpen, setReportModalOpen] = useState<boolean>(false);
 
     function messageDateString(dateStr: string) {

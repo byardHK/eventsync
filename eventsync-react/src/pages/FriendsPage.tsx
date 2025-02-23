@@ -4,12 +4,10 @@ import BottomNavBar from '../components/BottomNavBar';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css";
-import { Button, Typography, Paper, Box, Dialog, DialogTitle, DialogContent, Fab, Autocomplete, TextField } from '@mui/material';
+import { Button, Typography, Paper, Box, Dialog, DialogTitle, DialogContent, Fab, TextField } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
 import AddIcon from '@mui/icons-material/Add';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import { set } from 'date-fns';
 import { BASE_URL } from '../components/Cosntants';
 
 function FriendsPage() {
@@ -21,7 +19,7 @@ function FriendsPage() {
     const [OpenDialog, setOpenDialog] = useState(false);
     const [searchInput, setSearchInput] = useState('');
     const [filteredUsers, setFilteredUsers] = useState(users);
-    const [isFriendsPage, setIsFriendsPage] = useState<Boolean>(true); 
+    const [isFriendsPage ] = useState<Boolean>(true); 
     const [refreshTrigger, setRefreshTrigger] = useState(false);
     const navigate = useNavigate();
 
