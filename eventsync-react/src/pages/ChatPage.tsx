@@ -19,7 +19,7 @@ dayjs.extend(isToday);
 
 //Pusher
 import Pusher from 'pusher-js';
-import { BASE_URL } from '../components/Cosntants';
+import { BASE_URL } from '../components/Constants';
 import ReportModal from '../components/ReportModal';
 
 function ChatPage() {

@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { BASE_URL } from "../components/Cosntants";
+import { BASE_URL } from "../components/Constants";
 
 type Report = {
     id: number;

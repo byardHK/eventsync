@@ -7,7 +7,7 @@ import { useUser } from "../sso/UserContext";
 import User from "../types/User";
 import Message from "../types/Message";
 import { Group } from "../pages/GroupsPage";
-import { BASE_URL } from "./Cosntants";
+import { BASE_URL } from "./Constants";
 
 type ReportModalProps = {
     input: Event | Tag | User | Message | Group | undefined;
