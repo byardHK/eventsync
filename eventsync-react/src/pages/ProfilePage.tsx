@@ -9,10 +9,11 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate, useParams } from "react-router-dom";
 import SignOutButton from "../components/SignOutButton";
 import Tag from "../types/Tag";
-import { BASE_URL } from "../components/Cosntants";
+import { BASE_URL } from "../components/Constants";
 import FlagIcon from '@mui/icons-material/Flag';
 import ReportModal from "../components/ReportModal";
 import User from "../types/User";
+import logo from '../images/logo.png'; 
 
 
 export const FetchExistingUserTS = async (email: string, setUserDetails: Dispatch<SetStateAction<UserDetails>>) => {
@@ -49,6 +50,12 @@ export const FetchExistingUserTS = async (email: string, setUserDetails: Dispatc
 function ProfilePage() {
     const { id: profileId } = useParams();
     const { userDetails, setUserDetails } = useUser();
+    if (!userDetails || !userDetails.email) {
+        return <div className="loading-container">
+        <img src={logo} alt="EventSync Logo" className="logo" />
+        <p className="loading-text">Loading...</p>
+        </div>;
+    }
     const userId = userDetails.email;
     console.log("profile page user details: ", userDetails);
 

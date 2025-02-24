@@ -5,7 +5,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { useUser } from '../sso/UserContext';
 import Tag from '../types/Tag';
-import { BASE_URL } from '../components/Cosntants';
+import { BASE_URL } from './Constants';
 
 type TagModalProps= {
     savedTags: Tag[];

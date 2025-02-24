@@ -12,10 +12,17 @@ import "../styles/style.css"
 import StyledCard from '../StyledCard';
 import FlagIcon from '@mui/icons-material/Flag';
 import EventSyncEvent from '../types/EventSyncEvent';
-import { BASE_URL } from '../components/Cosntants';
+import { BASE_URL } from '../components/Constants';
+import logo from '../images/logo.png'; 
 
 function HomePage() {
     const { userDetails } = useUser();
+    if (!userDetails || !userDetails.email) {
+        return <div className="loading-container">
+        <img src={logo} alt="EventSync Logo" className="logo" />
+        <p className="loading-text">Loading...</p>
+        </div>;
+    }
     console.log("home page user details: ", userDetails);
     const currentUserId = userDetails.email;
     const [searchKeyword, setSearchKeyword] = useState('');

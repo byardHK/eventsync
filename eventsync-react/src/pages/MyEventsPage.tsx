@@ -9,7 +9,8 @@ import { useUser } from '../sso/UserContext';
 import "../styles/style.css"
 import StyledCard from '../StyledCard';
 import EventSyncEvent from '../types/EventSyncEvent';
-import { BASE_URL } from '../components/Cosntants';
+import { BASE_URL } from '../components/Constants';
+import logo from '../images/logo.png'; 
 
 // const currentUserId = "segulinWH20@gcc.edu"; // Placeholder for the current user that is logged in. TODO: get the actual current user
 
@@ -19,6 +20,13 @@ function MyEventsPage() {
     // console.log(currentUserId);
 
     const { userDetails } = useUser();
+    if (!userDetails || !userDetails.email) {
+        return <div className="loading-container">
+        <img src={logo} alt="EventSync Logo" className="logo" />
+        <p className="loading-text">Loading...</p>
+        </div>;
+    }
+
     const currentUserId = userDetails.email;
 
     return <>
