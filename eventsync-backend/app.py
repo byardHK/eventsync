@@ -1655,6 +1655,39 @@ def remove_user_from_group():
         print(f"Error: {err}")
     return {}
 
+@app.post('/delete_group')
+def delete_group():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        groupId = body.get("groupId")
+
+        removeGroupChatToUsers = f"""
+            DELETE ChatToUser FROM GroupOfUser JOIN ChatToUser ON GroupOfUser.chatId = ChatToUser.chatId
+            WHERE GroupOfUser.id = {groupId};
+        """
+        mycursor.execute(removeGroupChatToUsers)
+
+        removeGroupUsers = f"""
+            DELETE FROM GroupOfUserToUser WHERE groupId = {groupId};
+        """
+        mycursor.execute(removeGroupUsers)
+
+        removeGroup = f"""
+            DELETE FROM GroupOfUser WHERE id = {groupId};
+        """
+        mycursor.execute(removeGroup)
+        
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"message": "creation successful"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
 @app.route('/get_reports/')
 def get_reports():
     try:  

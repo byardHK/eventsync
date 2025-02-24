@@ -117,16 +117,19 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
     const [selectedIndex, setSelectedIndex] = React.useState(1);
     const [editing, setEditing] = useState<boolean>(false);
     const [leavingGroupModalOpen, setLeavingGroupModalOpen] = useState<boolean>(false); 
+    const [deleteGroupModalOpen, setDeleteGroupModalOpen] = useState<boolean>(false); 
 
     function LeaveGroupModal(){
         return <Dialog
             onClose={()=> {setLeavingGroupModalOpen(false)}}
             open={leavingGroupModalOpen}
         >
-            <h2>Leave group?</h2>
-            <Box display="flex" flexDirection="row" justifyContent="space-between">
-                <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setLeavingGroupModalOpen(false)}}>Cancel</Button>
-                <Button fullWidth sx={{marginTop: "auto"}} onClick={leaveGroup}>Yes</Button>
+            <Box sx={{padding : 3}}>
+                <h2>Leave group?</h2>
+                <Box display="flex" flexDirection="row" justifyContent="space-between">
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setLeavingGroupModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={leaveGroup}>Yes</Button>
+                </Box>
             </Box>
         </Dialog>
     }
@@ -143,6 +146,34 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
         setLeavingGroupModalOpen(false);
         onSave();
     }
+
+    function DeleteGroupModal(){
+        return <Dialog
+            onClose={()=> {setDeleteGroupModalOpen(false)}}
+            open={deleteGroupModalOpen}
+        >
+            <Box sx={{padding : 3}}>
+                <h2>Delete group?</h2>
+                <Box display="flex" flexDirection="row" justifyContent="space-between">
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setDeleteGroupModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={deleteGroup}>Yes</Button>
+                </Box>
+            </Box>
+        </Dialog>
+    }
+
+    async function deleteGroup(){
+        try {
+            await axios.post(`${BASE_URL}/delete_group`, {
+                groupId: group.id
+            });
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+        setDeleteGroupModalOpen(false);
+        onSave();
+    }
+
 
     const handleMenuItemClick = (
         // event: React.MouseEvent<HTMLLIElement, MouseEvent>,
@@ -174,6 +205,7 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
     return (
     <>
         <LeaveGroupModal></LeaveGroupModal>
+        <DeleteGroupModal></DeleteGroupModal>
         <GroupModal groupId={group.id} open={editing} onClose={() => setEditing(false)} onSave={onSave}/>
         <ButtonGroup
             variant="contained"
@@ -196,7 +228,7 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
                         <EditIcon style={{color: "blue"}}></EditIcon>
                     </IconButton>
                     {currentUserId === group.creatorId ? (
-                        <IconButton onClick={() => setEditing(true)}>
+                        <IconButton onClick={() => setDeleteGroupModalOpen(true)}>
                             <DeleteIcon style={{color: "red"}}></DeleteIcon>
                         </IconButton>
                     ) :
