@@ -585,6 +585,24 @@ def accept_friend_request(userId, friendId):
                 WHERE user1Id = %s AND user2Id = %s;
                 """
         mycursor.execute(query, (friendId, userId))
+
+        # Create chat for friend
+        createChat = f"""
+            INSERT INTO Chat (name, chatType) VALUES ("", 'Event');
+        """
+        mycursor.execute(createChat)
+        chatId = mycursor.lastrowid
+
+        # add relationships in ChatToUser
+        chatToUser = f"""
+                INSERT INTO ChatToUser (chatId, userId) VALUES ({chatId}, '{friendId}');
+            """
+        mycursor.execute(chatToUser)
+        chatToUser = f"""
+            INSERT INTO ChatToUser (chatId, userId) VALUES ({chatId}, '{userId}');
+            """
+        mycursor.execute(chatToUser)
+
         conn.commit()
         mycursor.close()
         conn.close()
@@ -801,8 +819,24 @@ def post_event():
                         INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency, creatorName)
                         VALUES ("{data["creatorId"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}", "{data["venmo"]}", "{data["recurFrequency"]}", "{data["creatorName"]}");
                      """
+        mycursor.execute(insertEventInfo)
+        eventInfoId = mycursor.lastrowid
+        
+        # Create chat for event
+        createChat = f"""
+            INSERT INTO Chat (name, chatType) VALUES ("{data["title"]}", 'Event');
+        """
+        mycursor.execute(createChat)
+        chatId = mycursor.lastrowid
+
+        # add relationship from chat to eventInfo
+        addEventInfoToChat = f"""
+                INSERT INTO EventInfoToChat (chatId, eventInfoId) VALUES ({chatId}, {eventInfoId});
+            """
+        mycursor.execute(addEventInfoToChat)
+
         insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views, numRsvps)
-                        VALUES (last_insert_id(), "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", 0, 0);"""
+                        VALUES ({eventInfoId}, "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", 0, 0);"""
         tags = data["tags"]
         for tag in tags:
             updateTag = f"""
@@ -811,8 +845,6 @@ def post_event():
                             WHERE name="{tag["name"]}"
                         """
             mycursor.execute(updateTag)
-        mycursor.execute(insertEventInfo)
-        eventInfoId = mycursor.lastrowid
         mycursor.execute(insertEvent)
         mycursor.execute("SET @eventId = last_insert_id();")
 
@@ -892,6 +924,21 @@ def post_recurring_event():
         mycursor.execute(insertEventInfo)
         eventInfoId = mycursor.lastrowid
         mycursor.execute("SET @eventInfoId = last_insert_id();")
+
+        # Create chat for event
+        createChat = f"""
+            INSERT INTO Chat (name, chatType) VALUES ("{data["title"]}", 'Event');
+        """
+        mycursor.execute(createChat)
+        chatId = mycursor.lastrowid
+
+        # add relationship from chat to eventInfo
+        addEventInfoToChat = f"""
+                INSERT INTO EventInfoToChat (chatId, eventInfoId) VALUES ({chatId}, {eventInfoId});
+            """
+        mycursor.execute(addEventInfoToChat)
+
+        
         tags = data["tags"]
         for tag in tags:
             updateTag = f"""
@@ -1536,17 +1583,11 @@ def edit_group():
         creatorId = body.get("creatorId")
         users = body.get("users")
 
-        # Update users in group & group chat
+        # Update users in group
         removeGroupUsers = f"""
             DELETE FROM GroupOfUserToUser WHERE groupId = {groupId}
         """
         mycursor.execute(removeGroupUsers)
-
-        removeChatUsers = f"""
-            DELETE ChatToUser FROM GroupOfUser JOIN ChatToUser ON GroupOfUser.chatId = ChatToUser.chatId
-            WHERE GroupOfUser.id = {groupId};
-        """
-        mycursor.execute(removeChatUsers)
 
         add_users_to_group(users, groupId, mycursor)
 
@@ -1578,10 +1619,16 @@ def create_group():
 
         # Create chat for group
         createChat = f"""
-            INSERT INTO Chat (name, isGroupChat) VALUES ("{groupName}", 1);
+            INSERT INTO Chat (name, chatType) VALUES ("{groupName}", 'Group');
         """
         mycursor.execute(createChat)
         chatId = mycursor.lastrowid
+
+        # add relationship from chat to group 
+        addGroupOfUserToChat = f"""
+                INSERT INTO GroupOfUserToChat (chatId, groupOfUserId) VALUES ({chatId}, {groupId});
+            """
+        mycursor.execute(addGroupOfUserToChat)
 
         # Create group
         createGroup = f"""
@@ -1855,10 +1902,30 @@ def get_my_chats(user_id: str):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        # mycursor.execute(f"""SELECT Chat.id, GroupOfUser.groupName, Chat.isGroupChat FROM Chat 
-        #                     LEFT JOIN GroupOfUser ON Chat.id = GroupOfUser.chatId
-        #                     WHERE Chat.id IN (SELECT chatId FROM ChatToUser WHERE userId = '{user_id}');""")
-        mycursor.execute(f"SELECT * FROM Chat WHERE id IN (SELECT chatId FROM ChatToUser WHERE userId = '{user_id}');")
+        mycursor.execute(f"""(SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType FROM Chat
+                            JOIN (SELECT GroupOfUser.chatId, GroupOfUser.groupName FROM GroupOfUserToChat
+                            JOIN GroupOfUserToUser ON GroupOfUserToChat.groupOfUserId = GroupOfUserToUser.groupId
+                            JOIN GroupOfUser ON GroupOfUserToChat.groupOfUserId = GroupOfUser.id
+                            WHERE GroupOfUserToUser.userId = '{user_id}') AS groupStuff
+                            ON Chat.id = groupStuff.chatId)
+                            UNION 
+                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
+                            JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
+                            JOIN Event ON Event.eventInfoId = EventInfoToChat.eventInfoId
+                            JOIN EventToUser ON EventToUser.eventId = Event.id
+                            JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
+                            WHERE EventToUser.userId = "{user_id}")
+                            UNION
+                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
+                            JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
+                            JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
+                            WHERE EventInfo.creatorId = "harnlyam20@gcc.edu")
+                            UNION
+                            (SELECT Chat.id, Chat.chatType, otherUser.userId AS name FROM Chat 
+                            JOIN ChatToUser ON Chat.id = ChatToUser.chatId
+                            JOIN (SELECT * FROM ChatToUser WHERE ChatToUser.userId != '{user_id}') AS otherUser
+                            ON ChatToUser.chatId = otherUser.chatId
+                            WHERE ChatToUser.userId = '{user_id}')""")
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
@@ -1878,10 +1945,21 @@ def get_chat(chat_id: str):
         response = mycursor.fetchall()
         headers = mycursor.description
         chat = sqlResponseToList(response, headers)[0]
-        mycursor.execute(f"""SELECT id, fname, lname 
-                            FROM User WHERE id IN (
-                            SELECT userId FROM ChatToUser
-                            WHERE chatId = {chat_id});""")
+        mycursor.execute(f"""(SELECT id, fname, lname FROM User
+                                JOIN GroupOfUserToUser ON User.id = GroupOfUserToUser.userId
+                                JOIN GroupOfUserToChat ON GroupOfUserToUser.groupId = GroupOfUserToChat.groupOfUserId
+                                WHERE GroupOfUserToChat.chatId = {chat_id})
+                            UNION
+                            (SELECT User.id, fname, lname FROM User
+                                JOIN EventToUser ON User.id = EventToUser.userId
+                                JOIN Event ON EventToUser.eventId = Event.id
+                                JOIN EventInfoToChat ON EventInfoToChat.eventInfoId = Event.eventInfoId
+                                WHERE EventInfoToChat.chatId = {chat_id})
+                            UNION
+                            (SELECT id, fname, lname 
+                                FROM User WHERE id IN (
+                                SELECT userId FROM ChatToUser
+                                WHERE chatId = {chat_id}))""")
         response = mycursor.fetchall()
         headers = mycursor.description
         users = sqlResponseToList(response, headers)
@@ -1889,6 +1967,45 @@ def get_chat(chat_id: str):
         mycursor.close()
         conn.close()
         return jsonify({f"users": users, "chat": chat})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_individual_chat_id/<string:curr_user_id>/<string:other_user_id>', methods=['GET'])
+def get_individual_chat_id(curr_user_id: str, other_user_id: str):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f"""SELECT ChatToUser.chatId FROM ChatToUser 
+                            JOIN (SELECT * FROM ChatToUser WHERE userId = '{other_user_id}') AS otherUserTable
+                            ON ChatToUser.chatId = otherUserTable.chatId
+                            WHERE ChatToUser.userId = '{curr_user_id}'
+                            LIMIT 1;""")
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return sqlResponseToJson(response, headers)
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_event_chat_id/<int:event_id>/', methods=['GET'])
+def get_event_chat_id(event_id: int):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f"""SELECT chatId FROM Event
+                                JOIN EventInfoToChat ON Event.eventInfoId = EventInfoToChat.eventInfoId
+                                WHERE Event.id = {event_id}
+                                LIMIT 1""")
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return sqlResponseToJson(response, headers)
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}

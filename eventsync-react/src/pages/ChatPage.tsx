@@ -12,6 +12,8 @@ import dayjs, { Dayjs } from "dayjs";
 import SendIcon from '@mui/icons-material/Send';
 import isToday from 'dayjs/plugin/isToday';
 import FlagIcon from '@mui/icons-material/Flag';
+import chatType from '../types/chatType';
+import { Link } from 'react-router-dom';
 
 dayjs.extend(isToday);
 
@@ -35,8 +37,12 @@ function ChatPage() {
 	useEffect(() => {
         const fetchChat = async () => {
             try {
-                const response = await axios.get<{chat: Chat, users: User[]}>(`${BASE_URL}/get_chat/${chatId}`);
-                setChat(response.data.chat);
+                const response = await axios.get<{chat: chatResponse, users: User[]}>(`http://localhost:5000/get_chat/${chatId}`);
+                setChat({
+                    id: response.data.chat.id,
+                    name: response.data.chat.name,
+                    chatType: stringToEnum(response.data.chat.chatType)
+                });
                 setUsers(new Map(response.data.users.map(user => [user.id, user])));
                 console.log(response.data);
             } catch (error) {
@@ -60,6 +66,16 @@ function ChatPage() {
 		})
 	}, []);
 
+    function stringToEnum(value: String): chatType {
+        if (value === "Individual") {
+            return chatType.INDIVIDUAL;
+        } else if (value === "Group") {
+            return chatType.GROUP
+        } else {
+            return chatType.EVENT;
+        }
+    }
+
     useEffect(() => {
         if(msg) {
             setMessages([...messages,msg]);
@@ -68,7 +84,7 @@ function ChatPage() {
       }, [msg]);
 
       useEffect(() => {
-        if(chat && !chat.isGroupChat && users) {
+        if(chat && chat.chatType == chatType.INDIVIDUAL && users) {
             for (const [userId, user] of users) {
                 if (userId !== currentUserId) {
                     setNonGroupOtherUser(user);
@@ -87,28 +103,35 @@ function ChatPage() {
         navigate('/chatHome');
     };
 
-    function chatTitle(): String {
-        if (!chat) return "";
-        if (chat.isGroupChat) return chat.name;
-        return `${nonGroupOtherUser?.fname} ${nonGroupOtherUser?.lname}`
+    function chatTitle() {
+        if (!chat) return <div></div>;
+        if (chat.chatType == chatType.INDIVIDUAL && nonGroupOtherUser) {
+            return (
+                <h2>
+                <Link to={`/profile/${nonGroupOtherUser.id}`}>
+                    {getName(nonGroupOtherUser.id)}
+                </Link>
+                </h2>
+            )
+        }
+        return <h2>{chat.name}</h2>;
     }
 
     function getName(userId: String) {
         const user = users.get(userId);
         if (user) return `${user.fname} ${user.lname}`;
-        return null
+        return ""
     }
 
 	return(
 		<div className="chat-container">
-
              <div className="chat-header"> 
              <Button className='arrow' onClick={handleBackClick} title="go to My Events page">
                     <ArrowBackIcon style={{ color: 'white'}} />
                 </Button> 
-                <h2>{chatTitle()}</h2>     
+                {chatTitle()}    
             </div>
-            <ChatList messages={messages} currentUserId={currentUserId} groupChat={chat?.isGroupChat!} getName={getName}></ChatList>
+            <ChatList messages={messages} currentUserId={currentUserId} groupChat={!(chat?.chatType == chatType.INDIVIDUAL)!} getName={getName}></ChatList>
             <ChatInput channelName={""} currentUserId={currentUserId} chatId={chatId ?? "-1"}></ChatInput>
 		</div>
 	)
@@ -240,6 +263,12 @@ type User = {
     id: String,
     fname: String,
     lname: String
+}
+
+type chatResponse = {
+    id: Number,
+    name: String,
+    chatType: String,
 }
 
 export default ChatPage;

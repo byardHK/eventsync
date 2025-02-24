@@ -20,7 +20,8 @@ import LogoutIcon from '@mui/icons-material/Logout';
 export type Group = {
     id: number;
     groupName: string;
-    creatorId: string;
+    creatorId: number;
+    chatId: number;
     users: User[];
 }
 
@@ -210,7 +211,7 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
                             <FlagIcon style={{ color: 'red'}}></FlagIcon>
                         </IconButton>
                     </Box>
-                    <IconButton onClick={()=>navigate('/friends')}>
+                    <IconButton onClick={()=>navigate(`/viewChat/${group.chatId}`)}>
                         <ChatIcon style={{color: "blue"}}></ChatIcon>
                     </IconButton>
                     <IconButton onClick={() => setEditing(true)}>
