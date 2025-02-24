@@ -6,7 +6,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ChatIcon from '@mui/icons-material/Chat';
 import GroupIcon from '@mui/icons-material/Group';
 import axios from 'axios';
-import { BASE_URL } from './Cosntants';
+import { BASE_URL } from './Constants';
 import { useUser } from '../sso/UserContext';
 
 function BottomNavBar({ userId }: { userId: string }) {
