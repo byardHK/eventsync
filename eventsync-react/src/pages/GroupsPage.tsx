@@ -121,6 +121,8 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
     const [open, setOpen] = React.useState(false);
     const anchorRef = React.useRef<HTMLDivElement>(null);
     const [selectedIndex, setSelectedIndex] = React.useState(1);
+    console.log(selectedIndex);
+    console.log(setSelectedIndex);
     const [editing, setEditing] = useState<boolean>(false);
     const [leavingGroupModalOpen, setLeavingGroupModalOpen] = useState<boolean>(false); 
     const [deleteGroupModalOpen, setDeleteGroupModalOpen] = useState<boolean>(false); 
@@ -222,7 +224,8 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
                     <IconButton onClick={() => setEditing(true)}>
                         <EditIcon style={{color: "blue"}}></EditIcon>
                     </IconButton>
-                    {currentUserId === group.creatorId ? (
+                    {/* {currentUserId === group.creatorId ? ( */}
+                    {true ? (
                         <IconButton onClick={() => setDeleteGroupModalOpen(true)}>
                             <DeleteIcon style={{color: "red"}}></DeleteIcon>
                         </IconButton>
