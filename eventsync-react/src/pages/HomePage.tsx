@@ -26,12 +26,14 @@ function HomePage() {
     console.log("home page user details: ", userDetails);
     const currentUserId = userDetails.email;
     const [searchKeyword, setSearchKeyword] = useState('');
-    const [tags] = useState<string[]>([]);
+    const [tags, setTags] = useState<string[]>([]);
+    const [userTags, setUserTags] = useState<string[]>([]);
     const [tagOptions, setTagOptions] = useState<string[]>([]);
     const [inputValue, setInputValue] = useState('');
+    const [isComingSoon, setIsComingSoon] = useState<boolean>(true); 
 
     useEffect(() => {
-        const fetchTags = async () => {
+        const fetchTagOptions = async () => {
             try {
                 const response = await axios.get(`${BASE_URL}/get_tags`);
                 setTagOptions(response.data.map((tag: { name: string }) => tag.name));
@@ -39,10 +41,18 @@ function HomePage() {
                 console.error('Error fetching tags:', error);
             }
         };
-        fetchTags();
+        fetchTagOptions();
+        const fetchUserTags = async () => {
+            try {
+                const response = await axios.get(`${BASE_URL}/get_user_tags/${currentUserId}`);
+                setUserTags(response.data.map((tag: { name: string }) => tag.name));
+            } catch (error) {
+                console.error('Error fetching user tags:', error);
+            }
+        };
+        fetchUserTags();
     }, []);
     
-    const [isComingSoon, setIsComingSoon] = useState<Boolean>(true); 
     return <>
         <Box
             display="flex"
@@ -66,12 +76,60 @@ function HomePage() {
         </Box>
         <Box
             display="flex"
+            flexDirection="column"
             alignItems="center" 
             justifyContent="center"
+            gap={2}
         >
-            <h3 className="card-title">Welcome {userDetails.firstName}! 👋</h3>
+            {/* <h3 className="card-title">Welcome {userDetails.firstName}!</h3> */}
+            <TextField 
+                sx={{input: {backgroundColor: 'white'}}}
+                id="outlined-basic" 
+                label="Search" 
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                slotProps={{
+                    input: {
+                        startAdornment: (
+                        <InputAdornment position="start">
+                            <SearchIcon/>
+                        </InputAdornment>
+                        ),
+                    },
+                }}
+                variant="outlined"
+            />
+            <Autocomplete
+                multiple
+                id="multiple-limit-tags"
+                options={tagOptions}
+                value={tags}
+                getOptionLabel={(option) => option}
+                renderInput={(params) => (
+                    <TextField 
+                        {...params} 
+                        label="Tags" 
+                        type="text" 
+                        InputProps={{
+                            ...params.InputProps,
+                            endAdornment: (
+                                <div style={{ display: 'none' }}>
+                                    {params.InputProps.endAdornment}
+                                </div>
+                            ),
+                        }}
+                    />
+                )}
+                sx={{ width: '255px' }}
+                inputValue={inputValue}
+                onInputChange={(_, newInputValue) => {
+                    setInputValue(newInputValue);
+                }}
+                onChange={(_, newValue) => {
+                    setTags(newValue);
+                }}
+                open={inputValue !== ''}
+            />
         </Box>
-
         <Box
             display="flex"
             flexDirection="row"
@@ -102,48 +160,14 @@ function HomePage() {
             justifyContent="center"
             gap={2}
         >
-            <TextField 
-                sx={{input: {backgroundColor: 'white'}}}
-                id="outlined-basic" 
-                label="Search" 
-                onChange={(e) => setSearchKeyword(e.target.value)}
-                slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <SearchIcon/>
-                        </InputAdornment>
-                      ),
-                    },
-                }}
-                variant="outlined"
-            />
-            <Autocomplete
-                multiple
-                id="multiple-limit-tags"
-                options={tagOptions}
-                value={tags}
-                getOptionLabel={(option) => option}
-                renderInput={(params) => (
-                    <TextField {...params} label="Tags" type="text" />
-                )}
-                sx={{ width: '255px' }}
-                inputValue={inputValue}
-                onInputChange={(_, newInputValue) => {
-                    setInputValue(newInputValue);
-                }}
-                open={inputValue !== ''}
-            />
-            <EventList searchKeyword={searchKeyword} tags={tags}/>
-
-            
-            
+            <EventList searchKeyword={searchKeyword} tags={tags} userTags={userTags} isComingSoon={isComingSoon}/>         
+            <BottomNavBar userId={currentUserId!}/>
         </Box>
         <BottomNavBar userId={currentUserId!}/>
     </>;
 };
 
-function EventList({searchKeyword, tags}: {searchKeyword: string, tags: string[]}) {
+function EventList({searchKeyword, tags, userTags, isComingSoon}: {searchKeyword: string, tags: string[], userTags: string[], isComingSoon: boolean}) {
     const [events, setEvents] = useState<EventSyncEvent[]>([]);    
     const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
 
@@ -152,7 +176,8 @@ function EventList({searchKeyword, tags}: {searchKeyword: string, tags: string[]
           try {
             const response = await axios.get(`${BASE_URL}/get_events`);
             const res: EventSyncEvent[] = response.data;
-            setEvents(res);
+            const sortedEvents = res.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+            setEvents(sortedEvents);
           } catch (error) {
             console.error('Error fetching data:', error);
           }
@@ -160,31 +185,6 @@ function EventList({searchKeyword, tags}: {searchKeyword: string, tags: string[]
         setEventsChanged(false);
         fetchData();
     }, [eventsChanged]);
-
-    // async function deleteEvent (event: EventSyncEvent) {
-    //     console.log(event);
-    //     try {
-    //         const response = await axios.delete(`${BASE_URL}/delete_one_event/${event.id}/`);
-    //         console.log(response);
-    //     } catch (error) {
-    //         console.error('Error fetching data:', error);
-    //     }
-    //     try {
-    //         const response = await axios.get(`${BASE_URL}/get_events`);
-    //         const res: EventSyncEvent[] = response.data;
-    //         setEvents(res);
-    //         } catch (error) {
-    //         console.error('Error fetching data:', error);
-    //         }
-    // }
-
-    // function handleDeleteButton(event: EventSyncEvent){
-    //     if(!event.recurs){
-    //         deleteEvent(event)
-    //     } else {
-
-    //     }
-    // }
 
     const navigate = useNavigate();
 
@@ -209,6 +209,16 @@ function EventList({searchKeyword, tags}: {searchKeyword: string, tags: string[]
         return matchesKeyword && matchesTags;
     });
 
+    const sortedFilteredEvents = filteredEvents.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+
+    const eventRecommended = filteredEvents
+        .filter(event => event.tags && event.tags.some(tag => userTags.includes(tag.name)))
+        .sort((a, b) => {
+            const aTagMatches = a.tags ? a.tags.filter(tag => userTags.includes(tag.name)).length : 0;
+            const bTagMatches = b.tags ? b.tags.filter(tag => userTags.includes(tag.name)).length : 0;
+            return bTagMatches - aTagMatches;
+    });
+
     return <Grid2
         container spacing={3}
         display="flex"
@@ -217,36 +227,10 @@ function EventList({searchKeyword, tags}: {searchKeyword: string, tags: string[]
         style={{maxHeight: '58vh', overflow: 'auto'}}
         padding={2}
     >
-        {filteredEvents.map(event =>
-        //TODO: Replace
-            // <Card variant ="outlined" key={event.id}>
-            //     <Box 
-            //         display="flex"
-            //         flexDirection="column"
-            //         alignItems="center" 
-            //         justifyContent="center"
-            //         minHeight={250}
-            //         minWidth={250}
-            //         gap={1}
-            //     >
-            //         <p>{`Name: ${event.eventName}`}</p>
-            //         <p>{`Start Date: ${event.startTime}`}</p>
-            //         <p>{`End Date: ${event.endTime}`}</p>
-            //         <p>{`${event.views} Views`}</p>
-            //         <Button variant="contained" onClick={() => viewEvent(event)}>View Event</Button>
-            //         <Button variant="contained" onClick={() => deleteEvent(event)}>Delete Event</Button>
-            //         <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}>
-            //         </DeleteRecurEventModal>
-            //     </Box>
-            // </Card>
-            // <Box >
-                <StyledCard key={event.id} event={event} viewEvent={viewEvent} showShareIcon={false} showTags>
-                    {/* <Button variant="contained" onClick={() => viewEvent(event)}>View Event</Button>
-                    <Button variant="contained" onClick={() => deleteEvent(event)}>Delete Event</Button> */}
-                    {/* <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}> */}
-                    {/* </DeleteRecurEventModal> */}
-                </StyledCard>
-            // </Box>
+        {isComingSoon ? sortedFilteredEvents.map(event =>
+            <StyledCard key={event.id} event={event} viewEvent={viewEvent} showTags/>
+        ) : eventRecommended.map(event =>
+            <StyledCard key={event.id} event={event} viewEvent={viewEvent} showTags/>
         )}
     </Grid2>;
 };

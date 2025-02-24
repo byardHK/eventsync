@@ -1,6 +1,6 @@
 type Tag = {
     id: number;
-    name: String;
+    name: string;
     userId: number;
 };
 
