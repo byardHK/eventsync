@@ -2394,7 +2394,19 @@ def get_chat(chat_id: str):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"SELECT * FROM Chat WHERE id = {chat_id} LIMIT 1;")
+        mycursor.execute(f"""(SELECT Chat.id, GroupOfUser.groupName AS name, Chat.chatType FROM Chat
+                            JOIN GroupOfUser ON GroupOfUser.chatId = Chat.id 
+                            WHERE Chat.id = {chat_id})
+                            UNION 
+                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
+                            JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
+                            JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
+                            WHERE Chat.id = {chat_id})
+                            UNION
+                            (SELECT Chat.id, Chat.chatType, "" AS name FROM Chat 
+                            JOIN ChatToUser ON Chat.id = ChatToUser.chatId
+                            WHERE Chat.id = {chat_id})
+                            LIMIT 1""")
         response = mycursor.fetchall()
         headers = mycursor.description
         chat = sqlResponseToList(response, headers)[0]
