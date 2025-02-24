@@ -8,6 +8,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { BASE_URL } from "../components/Constants";
+import { useUser } from "../sso/UserContext";
 
 type Report = {
     id: number;
@@ -31,11 +32,17 @@ function AdminPage(){
     };
     
     const [reports, setReports] = useState<Report[]>([]);
+    const {userDetails} = useUser();
 
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const response = await axios.get(`${BASE_URL}/get_reports`);
+            const response = await axios.get(`${BASE_URL}/get_reports/${userDetails.email}`,{
+                headers: { 
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                }
+            });
             const res: Report[] = response.data;
             setReports(res);
           } catch (error) {

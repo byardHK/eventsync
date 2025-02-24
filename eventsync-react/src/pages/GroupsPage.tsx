@@ -33,7 +33,12 @@ function GroupsPage(){
 
     async function reloadMyGroups() {
         try {
-            const response = await axios.get(`${BASE_URL}/get_my_groups/${currentUserId}`);
+            const response = await axios.get(`${BASE_URL}/get_my_groups/${currentUserId}`,{
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
             setGroups(response.data);
             
         } catch (error) {

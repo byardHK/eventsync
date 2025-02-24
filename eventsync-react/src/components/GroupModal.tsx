@@ -28,7 +28,12 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
         if(!groupId) { return; }
 
         try {
-            const response = await axios.get(`${BASE_URL}/get_group/${groupId}`);
+            const response = await axios.get(`${BASE_URL}/get_group/${groupId}`, {
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
             setGroup(response.data);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -39,7 +44,12 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const friendsReponse = await axios.get(`${BASE_URL}/get_friends/${userDetails.email}`);
+            const friendsReponse = await axios.get(`${BASE_URL}/get_friends/${userDetails.email}`,{
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
             setFriends(friendsReponse.data);
           } catch (error) {
             console.error('Error fetching data:', error);
@@ -50,11 +60,12 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
 
     async function handleSave() {
         if(groupId) {
-            //Do edit group route (uses groupId, groupName, creatorId, & users)
+            // Do edit group route (uses groupId, groupName, creatorId, & users)
             try {
                 await fetch(`${BASE_URL}/edit_group`, {
                     method: 'POST',
                     headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(group),
@@ -69,6 +80,7 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                 await fetch(`${BASE_URL}/create_group`, {
                     method: 'POST',
                     headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({...group, creatorId: userDetails.email}),

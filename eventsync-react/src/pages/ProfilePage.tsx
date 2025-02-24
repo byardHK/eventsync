@@ -17,8 +17,13 @@ import logo from '../images/logo.png';
 
 
 export const FetchExistingUserTS = async (email: string, setUserDetails: Dispatch<SetStateAction<UserDetails>>) => {
+    const { userDetails } = useUser();
     try {
-        const res = await axios.get(`${BASE_URL}/api/get_user/${email}`);
+        const res = await axios.get(`${BASE_URL}/get_user_tags/${email}/`,{
+            headers: { 'Authorization': `Bearer ${userDetails.token}`, 
+            "Content-Type": "application/json",   
+            }
+         });
         console.log("PROFILE PAGE TSX FUNCTION", res.data);
 
         setUserDetails((prevDetails: any) => {
@@ -82,7 +87,13 @@ function ProfilePage() {
             };
             console.log("data  sending: ", data)
             
-            const response = await axios.post(`${BASE_URL}/api/update_user_profile`, data);
+            const response = await axios.post(`${BASE_URL}/api/update_user_profile`, data,{
+                headers: {'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+
+
             if (response.status === 200) {
                 console.log("Profile updated successfully!");
             }
@@ -109,12 +120,18 @@ function ProfilePage() {
             const [deleteResponse, saveResponse] = await Promise.all([
                 fetch(`${BASE_URL}/delete_user_deselected_tags/`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { 
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        "Content-Type": "application/json" 
+                    },
                     body: JSON.stringify(deselectedData),
                 }),
                 fetch(`${BASE_URL}/save_user_selected_tags/`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { 
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        "Content-Type": "application/json" 
+                    },
                     body: JSON.stringify(selectedData),
                 }),
             ]);
@@ -135,7 +152,10 @@ function ProfilePage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`${BASE_URL}/get_user_tags/${userId}/`);
+                const response = await axios.get(`${BASE_URL}/get_user_tags/${userId}/`,{
+                    headers: { 'Authorization': `Bearer ${userDetails.token}`, "Content-Type": "application/json", 
+                    },
+                 });
                 setUserTags(response.data);
 
                 await FetchExistingUserTS(userId, setUserDetails);  
@@ -296,10 +316,20 @@ function ProfilePage() {
         useEffect(() => {
             const fetchData = async () => {
                 try {
-                    const response = await axios.get(`${BASE_URL}/get_user_tags/${profileId}/`);
+                    const response = await axios.get(`${BASE_URL}/get_user_tags/${profileId}/`,{
+                        headers: { 
+                            'Authorization': `Bearer ${userDetails.token}`,
+                            "Content-Type": "application/json", 
+                        },
+                     });
                     setUserTags(response.data);
     
-                    const res = await axios.get(`${BASE_URL}/api/get_user/${profileId}`);
+                    const res = await axios.get(`${BASE_URL}/api/get_user/${profileId}`,{
+                        headers: { 
+                            'Authorization': `Bearer ${userDetails.token}`,
+                            "Content-Type": "application/json"                             
+                        },
+                     });
                     console.log("Fetched user data from API:", res.data);
     
                     const details = {

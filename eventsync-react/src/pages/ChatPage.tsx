@@ -37,7 +37,12 @@ function ChatPage() {
 	useEffect(() => {
         const fetchChat = async () => {
             try {
-                const response = await axios.get<{chat: chatResponse, users: User[]}>(`http://localhost:5000/get_chat/${chatId}`);
+                const response = await axios.get<{chat: chatResponse, users: User[]}>(`http://localhost:5000/get_chat/${chatId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
                 setChat({
                     id: response.data.chat.id,
                     name: response.data.chat.name,
@@ -95,7 +100,12 @@ function ChatPage() {
       }, [users]);
 
     async function retrieveHistory() {
-        const response = await axios.get<MessageList>(`${BASE_URL}/get_chat_hist/${chatId}`);
+        const response = await axios.get<MessageList>(`${BASE_URL}/get_chat_hist/${chatId}`, {
+            headers: {
+                'Authorization': `Bearer ${userDetails.token}`,
+                'Content-Type': 'application/json'
+            }
+        });
         setMessages(response.data.chats);
     }
 
@@ -219,6 +229,7 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
 
 const ChatInput = (props: { channelName: String, currentUserId: String, chatId: string }) => {
     const [message, setMessage] = useState<string>("");
+    const {userDetails} = useUser();
 
     const sendMessage = () => {
         if (message.trim().length > 0) {
@@ -229,7 +240,12 @@ const ChatInput = (props: { channelName: String, currentUserId: String, chatId: 
                 chatId: props.chatId,
                 timeSent: getCurDate()
             };
-            axios.post(`${BASE_URL}/message/`, data);
+            axios.post(`${BASE_URL}/message/`, data, {
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
             setMessage("");
         }
     };

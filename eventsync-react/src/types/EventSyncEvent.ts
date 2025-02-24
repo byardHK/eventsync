@@ -9,6 +9,7 @@ type EventSyncEvent = {
     id: number;
     recurs: Boolean;
     tags: Tag[];
+    creatorId: string;
 };
 
 export default EventSyncEvent;

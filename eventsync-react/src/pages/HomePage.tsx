@@ -35,7 +35,12 @@ function HomePage() {
     useEffect(() => {
         const fetchTagOptions = async () => {
             try {
-                const response = await axios.get(`${BASE_URL}/get_tags`);
+                const response = await axios.get(`${BASE_URL}/get_tags`,{
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
                 setTagOptions(response.data.map((tag: { name: string }) => tag.name));
             } catch (error) {
                 console.error('Error fetching tags:', error);
@@ -44,7 +49,11 @@ function HomePage() {
         fetchTagOptions();
         const fetchUserTags = async () => {
             try {
-                const response = await axios.get(`${BASE_URL}/get_user_tags/${currentUserId}`);
+                const response = await axios.get(`${BASE_URL}/get_user_tags/${currentUserId}`,{
+                    headers: { 'Authorization': `Bearer ${userDetails.token}`, 
+                    "Content-Type": "application/json",   
+                    }
+                 });
                 setUserTags(response.data.map((tag: { name: string }) => tag.name));
             } catch (error) {
                 console.error('Error fetching user tags:', error);
@@ -163,18 +172,25 @@ function HomePage() {
             <EventList searchKeyword={searchKeyword} tags={tags} userTags={userTags} isComingSoon={isComingSoon}/>         
             <BottomNavBar userId={currentUserId!}/>
         </Box>
-        <BottomNavBar userId={currentUserId!}/>
     </>;
 };
 
 function EventList({searchKeyword, tags, userTags, isComingSoon}: {searchKeyword: string, tags: string[], userTags: string[], isComingSoon: boolean}) {
     const [events, setEvents] = useState<EventSyncEvent[]>([]);    
     const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
+    const {userDetails} = useUser()
+    console.log("event list userDetails", userDetails);
 
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const response = await axios.get(`${BASE_URL}/get_events`);
+            const response = await axios.get(`${BASE_URL}/get_events/${userDetails.email}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                }
+            });
             const res: EventSyncEvent[] = response.data;
             const sortedEvents = res.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
             setEvents(sortedEvents);
@@ -191,8 +207,12 @@ function EventList({searchKeyword, tags, userTags, isComingSoon}: {searchKeyword
     async function viewEvent (event: EventSyncEvent) {
         console.log(event);
         try {
-            const response = await axios.post(`${BASE_URL}/addOneView/${event.id}/`);
-            console.log(response);
+            await axios.post(`${BASE_URL}/addOneView/${event.id}/`, {userId: userDetails.email}, {
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                }
+            });
         } catch (error) {
             console.error('Error fetching data:', error);
         }

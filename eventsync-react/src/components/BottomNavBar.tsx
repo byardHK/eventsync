@@ -7,14 +7,21 @@ import ChatIcon from '@mui/icons-material/Chat';
 import GroupIcon from '@mui/icons-material/Group';
 import axios from 'axios';
 import { BASE_URL } from './Constants';
+import { useUser } from '../sso/UserContext';
 
 function BottomNavBar({ userId }: { userId: string }) {
     const [friendRequests, setFriendRequests] = useState(0);
-
+    const { userDetails } = useUser();
+    
     useEffect(() => {
         async function fetchFriendRequests() {
             try {
-                const response = await axios.get(`${BASE_URL}/get_friend_requests/${userId}/`);
+                const response = await axios.get(`${BASE_URL}/get_friend_requests/${userId}/`,{
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
                 setFriendRequests(response.data.friendRequestsCount);
             } catch (error) {
                 console.error('Error fetching friend requests:', error);

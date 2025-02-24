@@ -11,6 +11,7 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged:
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
     const [numToDelete, setNumToDelete] = useState<String>("one");
+    const {userDetails} = userUser();
 
     async function handleDelete(){
         console.log(`Delete ${props.event.id}, ${numToDelete}`);
@@ -19,6 +20,7 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged:
             const response = await fetch(deletePath, {
                 method: 'DELETE',
                 headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
                     'Content-Type': 'application/json',
                 },
             });
@@ -72,3 +74,7 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged:
 }
 
 export default DeleteRecurEventModal
+
+function userUser(): { userDetails: any; } {
+    throw new Error('Function not implemented.');
+}
