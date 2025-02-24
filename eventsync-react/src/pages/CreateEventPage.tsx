@@ -18,7 +18,6 @@ import { useEffect, useState } from 'react';
 import "../styles/style.css"
 import Tag from '../types/Tag';
 import { BASE_URL } from '../components/Constants';
-import { BASE_URL } from '../components/Constants';
 
 function CreateEventPage() {
     const { userDetails } = useUser();
