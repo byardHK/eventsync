@@ -13,7 +13,7 @@ import User from "../types/User";
 import AddIcon from '@mui/icons-material/Add';
 import GroupModal from "../components/GroupModal";
 import ReportModal from "../components/ReportModal";
-import { BASE_URL } from "../components/Cosntants";
+import { BASE_URL } from "../components/Constants";
 
 export type Group = {
     id: number;

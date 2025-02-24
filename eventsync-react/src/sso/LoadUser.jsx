@@ -5,7 +5,7 @@ import { useMsal } from '@azure/msal-react';
 import { useUser } from './UserContext';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { BASE_URL } from "../components/Cosntants";
+import { BASE_URL } from "../components/Constants";
 
 export const LoadUser = () => {
     const { setUserDetails } = useUser();

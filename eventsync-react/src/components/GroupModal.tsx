@@ -5,7 +5,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import User from "../types/User";
 import axios from "axios";
 import { useUser } from "../sso/UserContext";
-import { BASE_URL } from "./Cosntants";
+import { BASE_URL } from "./Constants";
 
 type GroupModalProps = {
     groupId?: number;

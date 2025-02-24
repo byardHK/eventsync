@@ -4,7 +4,7 @@ import { useUser } from "../sso/UserContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/style.css";
-import { BASE_URL } from '../components/Cosntants';
+import { BASE_URL } from '../components/Constants';
 
 const OnboardingPage = () => {
     const { userDetails, setUserDetails } = useUser();

@@ -8,7 +8,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate, useParams } from "react-router-dom";
 import SignOutButton from "../components/SignOutButton";
 import Tag from "../types/Tag";
-import { BASE_URL } from "../components/Cosntants";
+import { BASE_URL } from "../components/Constants";
 import FlagIcon from '@mui/icons-material/Flag';
 import ReportModal from "../components/ReportModal";
 import User from "../types/User";
