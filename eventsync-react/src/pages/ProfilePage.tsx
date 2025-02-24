@@ -283,6 +283,8 @@ function ProfilePage() {
         const [userTags, setUserTags] = useState<Tag[]>([]);
         const [profileDetails, setProfileDetails] = useState<any>({});
         const [user, setUser] = useState<User>();
+        const { userDetails } = useUser();
+        const currUserId = userDetails.email;
     
         useEffect(() => {
             const fetchData = async () => {
@@ -324,7 +326,16 @@ function ProfilePage() {
         const navigate = useNavigate();
         const handleBackClick = () => navigate("/home");
 
-
+        async function goToMessages() {
+            if(user){
+                try {
+                    const response = await axios.get(`${BASE_URL}/get_individual_chat_id/${user.id}/${currUserId}`);
+                    navigate(`/viewChat/${response.data[0].chatId}`);      
+                    } catch (error) {
+                        console.error("Error redirecting to chat:", error);
+                    }
+            }
+        }
     
         const [reportModalOpen, setReportModalOpen] = useState<boolean>(false);
         return (
@@ -392,8 +403,17 @@ function ProfilePage() {
                         </Box>
                         <br />
                     </Box>
+
+                    <Box width="100%" mt={2} textAlign='center'>
+                        <Button variant="contained" onClick={goToMessages}>
+                            Message
+                        </Button>
+                    </Box>  
+
                 </Card>
             </Box>
+
+
         );
     }
 }

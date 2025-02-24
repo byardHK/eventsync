@@ -585,6 +585,24 @@ def accept_friend_request(userId, friendId):
                 WHERE user1Id = %s AND user2Id = %s;
                 """
         mycursor.execute(query, (friendId, userId))
+
+        # Create chat for friend
+        createChat = f"""
+            INSERT INTO Chat (name, chatType) VALUES ("", 'Event');
+        """
+        mycursor.execute(createChat)
+        chatId = mycursor.lastrowid
+
+        # add relationships in ChatToUser
+        chatToUser = f"""
+                INSERT INTO ChatToUser (chatId, userId) VALUES ({chatId}, '{friendId}');
+            """
+        mycursor.execute(chatToUser)
+        chatToUser = f"""
+            INSERT INTO ChatToUser (chatId, userId) VALUES ({chatId}, '{userId}');
+            """
+        mycursor.execute(chatToUser)
+
         conn.commit()
         mycursor.close()
         conn.close()
@@ -1882,6 +1900,26 @@ def get_chat(chat_id: str):
         mycursor.close()
         conn.close()
         return jsonify({f"users": users, "chat": chat})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_individual_chat_id/<string:curr_user_id>/<string:other_user_id>', methods=['GET'])
+def get_individual_chat_id(curr_user_id: str, other_user_id: str):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f"""SELECT ChatToUser.chatId FROM ChatToUser 
+                            JOIN (SELECT * FROM ChatToUser WHERE userId = '{other_user_id}') AS otherUserTable
+                            ON ChatToUser.chatId = otherUserTable.chatId
+                            WHERE ChatToUser.userId = '{curr_user_id}'
+                            LIMIT 1;""")
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return sqlResponseToJson(response, headers)
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
