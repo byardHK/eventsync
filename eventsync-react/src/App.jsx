@@ -13,19 +13,24 @@ import { AuthenticatedTemplate, UnauthenticatedTemplate } from '@azure/msal-reac
 import OnboardingPage from "./pages/OnboardingPage";
 import ChatPage from "./pages/ChatPage"
 import ChatHomePage from "./pages/ChatHomePage"
+import { useUser } from "./sso/UserContext";
+import LoadingPage from "./pages/LoadingPage";
+import { Navigate } from 'react-router-dom';
+
 
 
 const MainContent = () => {
+  const { userDetails } = useUser();
   return (
       <div className="App">
           <AuthenticatedTemplate>
-
-            
-
             <BrowserRouter>
             <LoadUser></LoadUser>
+           
                 <Routes>
-                    <Route path="/" element={<HomePage/>}/>
+                    <Route path="/" element={!userDetails.isOnboardingComplete ? <LoadingPage /> : <Navigate to="/home" />}/>
+                    <Route path="/home" element={<HomePage/>}/>
+                    <Route path="/onboardingPage" element={<OnboardingPage/>}/>
                     <Route path="/createEvent" element={<CreateEventPage/>}/>
                     <Route path="/createEvent/:eventId" element={<CreateEventPage/>}/>
                     <Route path="/friends" element={<FriendsPage/>}/>

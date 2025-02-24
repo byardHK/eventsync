@@ -35,7 +35,7 @@ function ChatPage() {
 	useEffect(() => {
         const fetchChat = async () => {
             try {
-                const response = await axios.get<{chat: Chat, users: User[]}>(`http://localhost:5000/get_chat/${chatId}`);
+                const response = await axios.get<{chat: Chat, users: User[]}>(`${BASE_URL}/get_chat/${chatId}`);
                 setChat(response.data.chat);
                 setUsers(new Map(response.data.users.map(user => [user.id, user])));
                 console.log(response.data);

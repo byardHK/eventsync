@@ -13,9 +13,17 @@ import StyledCard from '../StyledCard';
 import FlagIcon from '@mui/icons-material/Flag';
 import EventSyncEvent from '../types/EventSyncEvent';
 import { BASE_URL } from '../components/Constants';
+import logo from '../images/logo.png'; 
 
 function HomePage() {
     const { userDetails } = useUser();
+    if (!userDetails || !userDetails.email) {
+        return <div className="loading-container">
+        <img src={logo} alt="EventSync Logo" className="logo" />
+        <p className="loading-text">Loading...</p>
+        </div>;
+    }
+    console.log("home page user details: ", userDetails);
     const currentUserId = userDetails.email;
     const [searchKeyword, setSearchKeyword] = useState('');
     const [tags, setTags] = useState<string[]>([]);
@@ -155,6 +163,7 @@ function HomePage() {
             <EventList searchKeyword={searchKeyword} tags={tags} userTags={userTags} isComingSoon={isComingSoon}/>         
             <BottomNavBar userId={currentUserId!}/>
         </Box>
+        <BottomNavBar userId={currentUserId!}/>
     </>;
 };
 
