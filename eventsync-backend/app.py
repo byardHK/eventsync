@@ -1923,3 +1923,22 @@ def get_individual_chat_id(curr_user_id: str, other_user_id: str):
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
+
+@app.route('/get_event_chat_id/<int:event_id>/', methods=['GET'])
+def get_event_chat_id(event_id: int):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f"""SELECT chatId FROM Event
+                                JOIN EventInfoToChat ON Event.eventInfoId = EventInfoToChat.eventInfoId
+                                WHERE Event.id = {event_id}
+                                LIMIT 1""")
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return sqlResponseToJson(response, headers)
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}

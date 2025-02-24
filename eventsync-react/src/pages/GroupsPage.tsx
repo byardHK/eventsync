@@ -19,6 +19,7 @@ export type Group = {
     id: number;
     groupName: string;
     creatorId: number;
+    chatId: number;
     users: User[];
 }
 
@@ -159,7 +160,7 @@ function SplitButton({group, onSave}: SplitButtonProps) {
                             <FlagIcon style={{ color: 'red'}}></FlagIcon>
                         </IconButton>
                     </Box>
-                    <IconButton onClick={()=>navigate('/friendsPage')}>
+                    <IconButton onClick={()=>navigate(`/viewChat/${group.chatId}`)}>
                         <ChatIcon style={{color: "blue"}}></ChatIcon>
                     </IconButton>
                     <IconButton onClick={() => setEditing(true)}>
