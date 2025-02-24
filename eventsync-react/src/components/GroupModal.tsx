@@ -119,7 +119,7 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                     variant="outlined"
                 />
                 {friends.filter((friend) => friend.id.toLowerCase().includes(searchKeyword.toLowerCase())).map((friend) =>
-                    <Box>
+                    <Box key={friend.id}>
                         <FormControlLabel control={<Checkbox disabled={friend.id === userDetails.email} checked={!!group.users.find((user) => { return user.id === friend.id; })} onChange={(event) => {
                             const updatedGroup : Group = {...group};
                             if(event.target.checked){

@@ -42,13 +42,13 @@ function GroupsPage(){
 
     useEffect(() => {
         reloadMyGroups();
-    }, []);
+    }, [currentUserId]);
 
     const navigate = useNavigate();
 
     function toggleFriendsGroupPages(isFriendsPage: boolean){
         if(isFriendsPage){
-            navigate('/friendsPage');
+            navigate('/friends');
         }
     }
 
@@ -174,17 +174,6 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
         onSave();
     }
 
-
-    const handleMenuItemClick = (
-        // event: React.MouseEvent<HTMLLIElement, MouseEvent>,
-        index: number,
-    ) => {
-        setSelectedIndex(index);
-        console.log("resolving unused error: ", selectedIndex);
-        setOpen(false);
-    };
-    console.log(handleMenuItemClick);
-
     const handleToggle = () => {
         setOpen((prevOpen) => !prevOpen);
     };
@@ -221,7 +210,7 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
                             <FlagIcon style={{ color: 'red'}}></FlagIcon>
                         </IconButton>
                     </Box>
-                    <IconButton onClick={()=>navigate('/friendsPage')}>
+                    <IconButton onClick={()=>navigate('/friends')}>
                         <ChatIcon style={{color: "blue"}}></ChatIcon>
                     </IconButton>
                     <IconButton onClick={() => setEditing(true)}>
