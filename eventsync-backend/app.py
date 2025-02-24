@@ -906,6 +906,21 @@ def post_recurring_event():
         mycursor.execute(insertEventInfo)
         eventInfoId = mycursor.lastrowid
         mycursor.execute("SET @eventInfoId = last_insert_id();")
+
+        # Create chat for event
+        createChat = f"""
+            INSERT INTO Chat (name, chatType) VALUES ("{data["title"]}", 'Event');
+        """
+        mycursor.execute(createChat)
+        chatId = mycursor.lastrowid
+
+        # add relationship from chat to eventInfo
+        addEventInfoToChat = f"""
+                INSERT INTO EventInfoToChat (chatId, eventInfoId) VALUES ({chatId}, {eventInfoId});
+            """
+        mycursor.execute(addEventInfoToChat)
+
+        
         tags = data["tags"]
         for tag in tags:
             updateTag = f"""
@@ -1815,6 +1830,11 @@ def get_my_chats(user_id: str):
                             JOIN EventToUser ON EventToUser.eventId = Event.id
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
                             WHERE EventToUser.userId = "{user_id}")
+                            UNION
+                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
+                            JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
+                            JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
+                            WHERE EventInfo.creatorId = "harnlyam20@gcc.edu")
                             UNION
                             (SELECT Chat.id, Chat.chatType, otherUser.userId AS name FROM Chat 
                             JOIN ChatToUser ON Chat.id = ChatToUser.chatId
