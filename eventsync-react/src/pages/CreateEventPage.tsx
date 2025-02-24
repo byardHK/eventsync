@@ -87,22 +87,26 @@ function CreateEventPage() {
         try {
             const deselectedData = {
                 "deselectedTags": tagsToDelete,
-                "eventInfoId": eventInfoId
+                "eventInfoId": eventInfoId,
+                "userId": currentUserId
             }
             const deleteResponse = await fetch(`${BASE_URL}/delete_event_deselected_tags/`, {
                 method: 'POST',
                 headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(deselectedData),
             });
             const selectedData = {
                 "selectedTags": tagsToAdd,
-                "eventInfoId": eventInfoId
+                "eventInfoId": eventInfoId,
+                "userId": currentUserId
             }
             const saveResponse = await fetch(`${BASE_URL}/save_event_selected_tags/`, {
                 method: 'POST',
                 headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(selectedData),

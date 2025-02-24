@@ -35,7 +35,12 @@ function HomePage() {
     useEffect(() => {
         const fetchTagOptions = async () => {
             try {
-                const response = await axios.get(`${BASE_URL}/get_tags`);
+                const response = await axios.get(`${BASE_URL}/get_tags`,{
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
                 setTagOptions(response.data.map((tag: { name: string }) => tag.name));
             } catch (error) {
                 console.error('Error fetching tags:', error);

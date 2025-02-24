@@ -120,12 +120,18 @@ function ProfilePage() {
             const [deleteResponse, saveResponse] = await Promise.all([
                 fetch(`${BASE_URL}/delete_user_deselected_tags/`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { 
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        "Content-Type": "application/json" 
+                    },
                     body: JSON.stringify(deselectedData),
                 }),
                 fetch(`${BASE_URL}/save_user_selected_tags/`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { 
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        "Content-Type": "application/json" 
+                    },
                     body: JSON.stringify(selectedData),
                 }),
             ]);
@@ -311,7 +317,11 @@ function ProfilePage() {
         useEffect(() => {
             const fetchData = async () => {
                 try {
-                    const response = await axios.get(`${BASE_URL}/get_user_tags/${profileId}/`);
+                    const response = await axios.get(`${BASE_URL}/get_user_tags/${profileId}/`,{
+                        headers: { "Content-Type": "application/json", 
+                            'Authorization': `Bearer ${userDetails.token}` 
+                        },
+                     });
                     setUserTags(response.data);
     
                     const res = await axios.get(`${BASE_URL}/api/get_user/${profileId}`,{

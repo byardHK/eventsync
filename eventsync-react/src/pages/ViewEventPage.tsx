@@ -288,6 +288,7 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
             const response = await fetch(postPath, {
                 method: 'PUT',
                 headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(data),

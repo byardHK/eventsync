@@ -310,6 +310,12 @@ def get_events(id):
 
 @app.route('/get_unfriended_users/<userId>/')
 def get_unfriended_users(userId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -388,7 +394,18 @@ def delete_custom_tag(tagId):
 
 @app.post('/save_user_selected_tags/')
 def save_user_selected_tags():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
     body = request.json
+    if not body or "userId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["userId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
+    
     userId = body["userId"]
     values: str = ""
 
@@ -419,7 +436,18 @@ def save_user_selected_tags():
 
 @app.post('/delete_user_deselected_tags/')
 def delete_user_deselected_tags():
+    
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
     body = request.json
+    if not body or "userId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["userId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
     userId = body["userId"]
     deselectedTags = body["deselectedTags"]
 
@@ -454,7 +482,23 @@ def delete_user_deselected_tags():
 # Here
 @app.post('/save_event_selected_tags/')
 def save_event_selected_tags():
+   
+    # READ THIS: UNTESTED VALIDATION CODE
+    # user_email, error_response, status_code = get_authenticated_user()
+    # if error_response:
+    #     return error_response, status_code  
+
     # body = request.json
+    # if not body or "userId" not in body:
+    #     return jsonify({"error": "Missing required fields in request body"}), 400
+
+    # if body["userId"].lower() != user_email.lower():
+    #     return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
+
+
+    #### UNESTED ^^^
+
     # eventInfoId = body["eventInfoId"]
     # values: str = ""
 
@@ -485,7 +529,21 @@ def save_event_selected_tags():
 
 @app.post('/delete_event_deselected_tags/')
 def delete_event_deselected_tags():
+     # READ THIS: UNTESTED VALIDATION CODE BELOW
+    # user_email, error_response, status_code = get_authenticated_user()
+    # if error_response:
+    #     return error_response, status_code  
+
     # body = request.json
+    # if not body or "userId" not in body:
+    #     return jsonify({"error": "Missing required fields in request body"}), 400
+
+    # if body["userId"].lower() != user_email.lower():
+    #     return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
+    #### UNESTED ^^^
+
+
     # eventInfoId = body["eventInfoId"]
     # deselectedTags = body["deselectedTags"]
 
@@ -517,6 +575,17 @@ def delete_event_deselected_tags():
 @app.route('/get_tags/', defaults={'userId': None})
 @app.route('/get_tags/<string:userId>/')
 def get_tags(userId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId:
+        if userId.lower() != user_email.lower():
+            return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    else:
+        if not user_email:
+            return jsonify({"error": "Unauthorized: Missing valid authenticated user"}), 403
+
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -542,6 +611,14 @@ def get_tags(userId):
 
 @app.route('/get_user_tags/<string:userId>/')
 def get_user_tags(userId):
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -563,6 +640,13 @@ def get_user_tags(userId):
 
 @app.route('/get_event_tags/<int:eventInfoId>/')
 def get_event_tags(eventInfoId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if not user_email:
+        return jsonify({"error": "Unauthorized: Missing valid authenticated user"}), 403
+    
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -616,6 +700,13 @@ def get_friends(userId):
 
 @app.route('/get_pending_friends/<userId>/')
 def get_pending_friends(userId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor(dictionary=True)
@@ -651,6 +742,12 @@ def get_pending_friends(userId):
 
 @app.route('/get_friend_requests/<userId>/')
 def get_friend_requests(userId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -673,6 +770,13 @@ def get_friend_requests(userId):
 
 @app.route('/accept_friend_request/<string:userId>/<string:friendId>/', methods=['POST'])
 def accept_friend_request(userId, friendId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -709,6 +813,15 @@ def accept_friend_request(userId, friendId):
 
 @app.route('/reject_friend_request/<string:userId>/<string:friendId>/', methods=['DELETE'])
 def reject_friend_request(userId, friendId):
+    
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
+
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -726,6 +839,13 @@ def reject_friend_request(userId, friendId):
 
 @app.route('/remove_friend_request/<string:userId>/<string:friendId>/', methods=['DELETE'])
 def remove_friend_request(userId, friendId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -743,6 +863,13 @@ def remove_friend_request(userId, friendId):
 
 @app.route('/add_friend/<string:userId>/<string:friendId>/', methods=['POST'])
 def add_friend(userId, friendId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -760,6 +887,13 @@ def add_friend(userId, friendId):
 
 @app.route('/remove_friend/<string:userId>/<string:friendId>/', methods=['DELETE'])
 def remove_friend(userId, friendId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -782,6 +916,7 @@ def remove_friend(userId, friendId):
 
 @app.route('/delete_one_event/<int:eventId>/', methods=['DELETE'])
 def delete_one_event(eventId):
+
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -1213,6 +1348,16 @@ def get_event(event_id: int, user_id: str):
 
 @app.route('/editEvent/<int:eventId>', methods=['PUT'])
 def edit_event(eventId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "creatorId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["creatorId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -1468,6 +1613,16 @@ def edit_event(eventId):
 
 @app.route('/edit_user_to_item/', methods=['PUT'])
 def edit_user_to_item():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "userId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["userId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:
         data = request.json
         conn = mysql.connector.connect(**db_config)

@@ -39,7 +39,12 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const friendsReponse = await axios.get(`${BASE_URL}/get_friends/${userDetails.email}`);
+            const friendsReponse = await axios.get(`${BASE_URL}/get_friends/${userDetails.email}`,{
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
             setFriends(friendsReponse.data);
           } catch (error) {
             console.error('Error fetching data:', error);

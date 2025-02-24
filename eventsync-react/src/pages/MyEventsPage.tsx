@@ -84,6 +84,7 @@ function EventLists() {
           try {
             const response = await axios.get(`${BASE_URL}/get_my_events/${currentUserId}`);
             const res: EventSyncMyEvents = response.data;
+            console.log(res);
             setAttendingEvents(res.attending);
             setHostingEvents(res.hosting);
             
