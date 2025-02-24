@@ -131,7 +131,7 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                         }}/>} label={`${friend.fname} ${friend.lname}`} />
                     </Box>
                 )}
-                <Box display="flex" flexDirection="row" justifyContent="space-betweem">
+                <Box display="flex" flexDirection="row" justifyContent="space-between">
                     <Button fullWidth sx={{marginTop: "auto"}} onClick={handleSave}>Save</Button>
                     <Button fullWidth sx={{marginTop: "auto"}} onClick={onClose}>Cancel</Button>
                 </Box>
