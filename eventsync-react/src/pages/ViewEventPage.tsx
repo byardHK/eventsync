@@ -16,7 +16,7 @@ import dayjs from 'dayjs';
 import Tag from '../types/Tag';
 import FlagIcon from '@mui/icons-material/Flag';
 import ReportModal from '../components/ReportModal';
-import { BASE_URL } from '../components/Cosntants';
+import { BASE_URL } from '../components/Constants';
 import { useNavigate } from "react-router-dom";
 
 
@@ -86,6 +86,11 @@ function ViewEventPage() {
                 const response = await axios.post(`${BASE_URL}/check_rsvp`, {
                     userId: currentUserId,
                     eventId: intEventId
+                }, {
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json',
+                    },
                 });
                 setIsRsvped(response.data.rsvp);
             } catch (error) {
@@ -135,6 +140,11 @@ function ViewEventPage() {
             try {
                 const response = await axios.post(`${BASE_URL}/get_rsvps`, {
                     eventId: eventId
+                }, {
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json',
+                    },
                 });
                 setRsvpList(response.data);
             } catch (error) {
@@ -170,7 +180,12 @@ function ViewEventPage() {
     useEffect(() => {
         const fetchEvent = async () => {
             try {
-                const response = await axios.get(`${BASE_URL}/get_event/${intEventId}/${currentUserId}`);
+                const response = await axios.get(`${BASE_URL}/get_event/${intEventId}/${currentUserId}`,{
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
                 setEvent(response.data);
             } catch (error) {
                 console.error('Error fetching event:', error);
@@ -186,7 +201,12 @@ function ViewEventPage() {
     async function navigateToChat() {
         try {
             if(event) {
-                const response = await axios.get(`${BASE_URL}/get_event_chat_id/${event.id}/`);
+                const response = await axios.get(`${BASE_URL}/get_event_chat_id/${event.id}/`,{
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
                 navigate(`/viewChat/${response.data[0].chatId}`);
             }
         } catch (error) {

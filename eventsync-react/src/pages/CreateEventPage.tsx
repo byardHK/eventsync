@@ -125,7 +125,12 @@ function CreateEventPage() {
         if (eventId) {
             const fetchEvent = async () => {
                 try {
-                    const response = await axios.get(`${BASE_URL}/get_event/${eventId}/${currentUserId}`);
+                    const response = await axios.get(`${BASE_URL}/get_event/${eventId}/${currentUserId}`,{
+                        headers: {
+                            'Authorization': `Bearer ${userDetails.token}`,
+                            'Content-Type': 'application/json',
+                        },
+                    });
                     const event = response.data;
                     console.log("Fetched event data:", event);
                     setEventInfoId(event.eventInfoId);

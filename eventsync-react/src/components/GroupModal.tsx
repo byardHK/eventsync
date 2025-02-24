@@ -28,7 +28,12 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
         if(!groupId) { return; }
 
         try {
-            const response = await axios.get(`${BASE_URL}/get_group/${groupId}`);
+            const response = await axios.get(`${BASE_URL}/get_group/${groupId}`, {
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
             setGroup(response.data);
         } catch (error) {
             console.error('Error fetching data:', error);

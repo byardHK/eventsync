@@ -20,9 +20,9 @@ export const FetchExistingUserTS = async (email: string, setUserDetails: Dispatc
     const { userDetails } = useUser();
     try {
         const res = await axios.get(`${BASE_URL}/get_user_tags/${email}/`,{
-            headers: { "Content-Type": "application/json", 
-                'Authorization': `Bearer ${userDetails.token}` 
-            },
+            headers: { 'Authorization': `Bearer ${userDetails.token}`, 
+            "Content-Type": "application/json",   
+            }
          });
         console.log("PROFILE PAGE TSX FUNCTION", res.data);
 
@@ -153,8 +153,7 @@ function ProfilePage() {
         const fetchData = async () => {
             try {
                 const response = await axios.get(`${BASE_URL}/get_user_tags/${userId}/`,{
-                    headers: { "Content-Type": "application/json", 
-                        'Authorization': `Bearer ${userDetails.token}` 
+                    headers: { 'Authorization': `Bearer ${userDetails.token}`, "Content-Type": "application/json", 
                     },
                  });
                 setUserTags(response.data);
@@ -318,8 +317,9 @@ function ProfilePage() {
             const fetchData = async () => {
                 try {
                     const response = await axios.get(`${BASE_URL}/get_user_tags/${profileId}/`,{
-                        headers: { "Content-Type": "application/json", 
-                            'Authorization': `Bearer ${userDetails.token}` 
+                        headers: { 
+                            'Authorization': `Bearer ${userDetails.token}`,
+                            "Content-Type": "application/json", 
                         },
                      });
                     setUserTags(response.data);
