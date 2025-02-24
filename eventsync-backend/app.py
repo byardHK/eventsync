@@ -195,6 +195,18 @@ def add_user():
     if body.get("email").lower() != user_email.lower():
         return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
 
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  # Handle authentication errors
+
+    body = request.get_json()
+    if not body or "email" not in body:
+        return jsonify({"error": "Missing required 'email' field in request body"}), 400
+
+    if body.get("email").lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     try:
         data = request.get_json()
         print(data)
