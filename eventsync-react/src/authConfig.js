@@ -4,7 +4,7 @@
  */
 
 import { LogLevel } from "@azure/msal-browser"
-import { REDIRECT_URI } from "./components/Cosntants";
+import { REDIRECT_URI } from "./components/Constants";
 
 /**
  * Configuration object to be passed to MSAL instance on creation. 

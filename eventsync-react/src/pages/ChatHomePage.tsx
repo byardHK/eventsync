@@ -7,7 +7,7 @@ import { useUser } from '../sso/UserContext';
 import "../styles/style.css"
 import Chat from '../types/Chat';
 import "../styles/chatHome.css";
-import { BASE_URL } from '../components/Cosntants';
+import { BASE_URL } from '../components/Constants';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 

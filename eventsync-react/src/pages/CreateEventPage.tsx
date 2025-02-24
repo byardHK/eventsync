@@ -17,7 +17,7 @@ import { useUser } from "../sso/UserContext";
 import { useEffect, useState } from 'react';
 import "../styles/style.css"
 import Tag from '../types/Tag';
-import { BASE_URL } from '../components/Cosntants';
+import { BASE_URL } from '../components/Constants';
 
 function CreateEventPage() {
     const { userDetails } = useUser();
@@ -196,7 +196,7 @@ function CreateEventPage() {
                 setItems([]);
                 setEditAllEvents(true);
                 setCreatorName("");
-                navigate('/myeventspage');
+                navigate('/myEvents');
             }
            
         } catch (error) {
@@ -212,7 +212,7 @@ function CreateEventPage() {
     const navigate = useNavigate();
 
     const handleBackClick = () => {
-        navigate('/myeventspage');
+        navigate('/myEvents');
     };
 
     return <>
