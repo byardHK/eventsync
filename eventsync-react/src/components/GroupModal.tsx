@@ -50,11 +50,12 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
 
     async function handleSave() {
         if(groupId) {
-            //Do edit group route (uses groupId, groupName, creatorId, & users)
+            // Do edit group route (uses groupId, groupName, creatorId, & users)
             try {
                 await fetch(`${BASE_URL}/edit_group`, {
                     method: 'POST',
                     headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(group),
@@ -69,6 +70,7 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                 await fetch(`${BASE_URL}/create_group`, {
                     method: 'POST',
                     headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({...group, creatorId: userDetails.email}),

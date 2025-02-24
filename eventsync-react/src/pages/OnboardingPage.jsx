@@ -12,6 +12,8 @@ const OnboardingPage = () => {
     const navigate = useNavigate();
     console.log(userDetails);
     const userId = userDetails.email;
+    const token = userDetails.token;
+    console.log("onboarding page  tkn ", token);
 
     // Initialize form state with userDetails
     const [firstName, setFirstName] = useState(userDetails.firstName);
@@ -42,7 +44,15 @@ const OnboardingPage = () => {
 
         try {
             console.log(updatedUser);
-            await axios.post(`${BASE_URL}/api/add_user`, updatedUser);
+            await axios.post(`${BASE_URL}/api/add_user`, updatedUser,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    }
+                }
+            );
+            
         }
         catch(error){
             console.error("Error submitting onboarding data:", error);

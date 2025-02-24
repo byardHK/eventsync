@@ -183,6 +183,18 @@ def check_user(id):
     
 @app.route('/api/add_user/', methods=['POST'])
 def add_user():
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  # Handle authentication errors
+
+    body = request.get_json()
+    if not body or "email" not in body:
+        return jsonify({"error": "Missing required 'email' field in request body"}), 400
+
+    if body.get("email").lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     try:
         data = request.get_json()
         print(data)
@@ -312,7 +324,6 @@ def get_unfriended_users(userId):
 
 @app.post('/create_custom_tag/')
 def add_custom_tag():
-    
     user_email, error_response, status_code = get_authenticated_user()
     if error_response:
         return error_response, status_code  
@@ -877,6 +888,18 @@ def basic_authentication():
 
 @app.post('/post_event/')
 def post_event():
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "creatorId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["creatorId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     data = request.json
     try:  
         conn = mysql.connector.connect(**db_config)
@@ -985,6 +1008,16 @@ def get_my_events(user_id: str):
 
 @app.post('/post_recurring_event')
 def post_recurring_event():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "creatorId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+    
+    if body["creatorId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     data = request.json
     try:  
         conn = mysql.connector.connect(**db_config)
@@ -1447,6 +1480,16 @@ def edit_user_to_item():
 
 @app.route('/rsvp', methods=['POST'])
 def rsvp():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "userId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["userId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -1647,6 +1690,16 @@ def append_users_to_group_object(group, mycursor):
 
 @app.post('/edit_group')
 def edit_group():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "creatorId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["creatorId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -1682,6 +1735,16 @@ def edit_group():
 
 @app.post('/create_group')
 def create_group():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "creatorId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["creatorId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()

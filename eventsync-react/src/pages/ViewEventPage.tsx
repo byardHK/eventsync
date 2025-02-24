@@ -37,9 +37,15 @@ function ViewEventPage() {
   
     const handleRsvp = async () => {
     try {
-        const response = await axios.post(`${BASE_URL}/rsvp`, {
+        const rsvpInfo = {
             userId: currentUserId,
             eventId: intEventId
+        }
+        const response = await axios.post(`${BASE_URL}/rsvp`, rsvpInfo,{
+          headers: {
+            'Authorization': `Bearer ${userDetails.token}`,
+            'Content-Type': 'application/json',
+            }
         });
         console.log("removing unused  error: ", response);
         setIsRsvped(true);
@@ -55,10 +61,16 @@ function ViewEventPage() {
 };
 
     const handleUnrsvp = async () => {
+        const unrsvpInfo = {
+            userId: currentUserId,
+            eventId: intEventId
+        }
         try {
-            const response = await axios.post(`${BASE_URL}/unrsvp`, {
-                userId: currentUserId,
-                eventId: intEventId
+            const response = await axios.post(`${BASE_URL}/unrsvp`,unrsvpInfo,{
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                }
             });
             console.log("removing unused  error: ", response);
             setIsRsvped(false);

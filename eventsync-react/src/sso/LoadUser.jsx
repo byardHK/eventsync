@@ -56,7 +56,7 @@ export const LoadUser = () => {
                     console.log("i'm navigating to home");
                     navigate('/home');
                 } else {
-                    await setNewUserData(graphData);
+                    await setNewUserData(graphData, response.accessToken);
                     console.log("i'm navigating to onboarding")
                     navigate('/onboardingPage');
                 }
@@ -68,15 +68,17 @@ export const LoadUser = () => {
             }
         });
 
-    const setNewUserData = async (graphData) => {
-        setUserDetails({
-            isOnboardingComplete: false,
-            firstName: graphData.givenName,
-            lastName: graphData.surname,
-            email: graphData.userPrincipalName,
-            microsoftId: graphData.id,
-        });
-    };
+        const setNewUserData = async (graphData, accessToken) => {
+            console.log('🆕 Setting new user details...');
+            setUserDetails({
+                isOnboardingComplete: false,
+                firstName: graphData.givenName,
+                lastName: graphData.surname,
+                email: graphData.userPrincipalName,
+                microsoftId: graphData.id,
+                token: accessToken
+            });
+        };
 
     useEffect(() => {
         requestUserData();
@@ -98,24 +100,28 @@ export const FetchExistingUser = async (email, setUserDetails, accessToken) => {
         });
         console.log("Fetched user data: (load user)", res.data);
 
-        setUserDetails(prevDetails => ({
-            ...prevDetails,
-            isOnboardingComplete: true,
-            firstName: res.data[0].fname,
-            lastName: res.data[0].lname,
-            email: res.data[0].id,
-            isAdmin: res.data[0].isAdmin,
-            isBanned: res.data[0].isBanned,
-            isPublic: res.data[0].isPublic,
-            bio: res.data[0].bio,
-            notificationFrequency: res.data[0].notificationFrequency,
-            notificationId: res.data[0].notificationId,
-            numTimesReported: res.data[0].numTimesReported,
-            profilePicture: res.data[0].profilePicture,
-            friendRequest: res.data[0].friendRequest,
-            eventInvite: res.data[0].eventInvite,
-            eventCancelled: res.data[0].eventCancelled,
-        }));
+        setUserDetails(prevDetails => {
+            const updatedDetails = {
+                ...prevDetails,
+                firstName: res.data[0].fname,
+                lastName: res.data[0].lname,
+                email: res.data[0].id,
+                isAdmin: res.data[0].isAdmin,
+                isBanned: res.data[0].isBanned,
+                isPublic: res.data[0].isPublic,
+                bio: res.data[0].bio,
+                notificationFrequency: res.data[0].notificationFrequency,
+                notificationId: res.data[0].notificationId,
+                numTimesReported: res.data[0].numTimesReported,
+                profilePicture: res.data[0].profilePicture,
+                friendRequest: res.data[0].friendRequest,
+                eventInvite: res.data[0].eventInvite,
+                eventCancelled: res.data[0].eventCancelled,
+                token: accessToken
+            };
+            return updatedDetails;
+        });
+        
     } catch (error) {
         console.error("Error retrieving user details:", error);
     }

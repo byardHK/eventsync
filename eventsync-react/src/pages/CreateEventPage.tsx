@@ -173,6 +173,7 @@ function CreateEventPage() {
             const response = await fetch(postPath, {
                 method: eventId ? 'PUT' : 'POST',
                 headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(data),
