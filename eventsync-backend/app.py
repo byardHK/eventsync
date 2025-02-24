@@ -1980,18 +1980,18 @@ def create_group():
         mycursor.execute(createChat)
         chatId = mycursor.lastrowid
 
-        # add relationship from chat to group 
-        addGroupOfUserToChat = f"""
-                INSERT INTO GroupOfUserToChat (chatId, groupOfUserId) VALUES ({chatId}, {groupId});
-            """
-        mycursor.execute(addGroupOfUserToChat)
-
         # Create group
         createGroup = f"""
            INSERT INTO GroupOfUser (groupName, creatorId, chatId, numTimesReported) VALUES ("{groupName}", "{creatorId}", {chatId}, 0);
         """
         mycursor.execute(createGroup)
         groupId = mycursor.lastrowid
+
+        # add relationship from chat to group 
+        addGroupOfUserToChat = f"""
+                INSERT INTO GroupOfUserToChat (chatId, groupOfUserId) VALUES ({chatId}, {groupId});
+            """
+        mycursor.execute(addGroupOfUserToChat)
 
         add_users_to_group(users, groupId, mycursor)
         
