@@ -16,7 +16,7 @@ import dayjs from 'dayjs';
 import Tag from '../types/Tag';
 import FlagIcon from '@mui/icons-material/Flag';
 import ReportModal from '../components/ReportModal';
-import { BASE_URL } from '../components/Cosntants';
+import { BASE_URL } from '../components/Constants';
 
 
 function ViewEventPage() {

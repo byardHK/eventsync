@@ -8,7 +8,7 @@ import { Button, Typography, Paper, Box, Dialog, DialogTitle, DialogContent, Fab
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
 import AddIcon from '@mui/icons-material/Add';
-import { BASE_URL } from '../components/Cosntants';
+import { BASE_URL } from '../components/Constants';
 
 function FriendsPage() {
     const { userDetails } = useUser();
