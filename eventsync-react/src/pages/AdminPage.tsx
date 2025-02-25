@@ -5,9 +5,9 @@ import WarningIcon from '@mui/icons-material/Warning';
 import BlockIcon from '@mui/icons-material/Block';
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { BASE_URL } from "../components/Cosntants";
+import { BASE_URL } from "../components/Constants";
 import User from "../types/User";
 import Message from "../types/Message";
 import { Group } from "./GroupsPage";
@@ -28,8 +28,6 @@ type Report = {
 };
 
 function AdminPage(){
-    const { userDetails } = useUser();
-
     const navigate = useNavigate();
 
     const handleBackClick = () => {
@@ -41,7 +39,12 @@ function AdminPage(){
 
     async function reloadReports() {
         try {
-          const response = await axios.get(`${BASE_URL}/get_reports`);
+          const response = await axios.get(`${BASE_URL}/get_reports/${userDetails.email}`, {
+            headers: {
+                'Authorization': `Bearer ${userDetails.token}`,
+                'Content-Type': 'application/json'
+            }
+          });
           const res: Report[] = response.data;
           setReports(res);
         } catch (error) {

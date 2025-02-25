@@ -2121,7 +2121,7 @@ def get_reports(userId):
         mycursor = conn.cursor()
 
         # make sure they're an  admin
-        admin_query = "SELECT isAdmin FROM User WHERE email = %s"
+        admin_query = "SELECT isAdmin FROM User WHERE id = %s"
         mycursor.execute(admin_query, (user_email,))
         result = mycursor.fetchone()
         if not result or result[0] != 1: 
