@@ -20,7 +20,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 export type Group = {
     id: number;
     groupName: string;
-    creatorId: number;
+    creatorId: string;
     chatId: number;
     users: User[];
 }
