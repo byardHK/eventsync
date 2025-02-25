@@ -1,3 +1,5 @@
+import jwt
+import requests
 from flask import Flask, request, jsonify, Response
 # INSTALL THESE:
 # pip install mysql-connector-python
@@ -8,7 +10,11 @@ from dateutil.relativedelta import *
 import pusher
 import os
 
+
 app = Flask(__name__)
+app.config["DEBUG"] = True
+app.config["PROPAGATE_EXCEPTIONS"] = True  # Ensure exceptions are raised
+
 CORS(app)
 
 db_config = {
@@ -18,6 +24,36 @@ db_config = {
     'password': 'EventSync1!@',
     'database': 'event_sync'
 }
+
+GRAPH_API_URL = "https://graph.microsoft.com/v1.0/me"
+
+def get_authenticated_user():
+    """Fetches the authenticated user's email from Microsoft Graph API."""
+    
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
+        print("ERROR: Missing Authorization header")
+        return None, jsonify({"error": "Invalid or missing Authorization header"}), 403
+
+    headers = {
+        "Authorization": auth_header,
+        "Accept": "application/json"
+    }
+
+    response = requests.get(GRAPH_API_URL, headers=headers)
+    if response.status_code != 200:
+        return None, jsonify({"error": "Failed to fetch user profile", "details": response.text}), 403
+
+    data = response.json()
+    user_email = data.get("mail")  # Extract user email
+
+    if not user_email:
+        return None, jsonify({"error": "Email not found in token response"}), 403
+
+    return user_email, None, None  # No error, return email
+
+
+
 
 pusher_client = pusher.Pusher(
   app_id='1939690',
@@ -29,8 +65,23 @@ pusher_client = pusher.Pusher(
 
 @app.route('/api/update_user_profile', methods=['POST'])
 def update_user_profile():
+     ###### validating email #####
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "userId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+    
+    print("body", body["userId"].lower())
+    print("token",  user_email.lower())
+
+    if body["userId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    ######   end validation  #####
+
     try:
-        # Extract the data sent in the request
         data = request.json
         email = data.get('userId')
         bio = data.get('bio')
@@ -78,6 +129,14 @@ def update_user_profile():
 
 @app.route('/api/get_user/<string:id>', methods=['GET'])
 def get_user(id):
+    
+    # user_email, error_response, status_code = get_authenticated_user()
+    # if error_response:
+    #     return error_response, status_code  
+
+    # if id.lower() != user_email.lower():
+    #     return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+   
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor(dictionary=True)  
@@ -97,6 +156,16 @@ def get_user(id):
 
 @app.route('/api/check_user/<string:id>', methods=['GET'])
 def check_user(id):
+       
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        print(error_response)
+        return error_response, status_code   
+
+    if id.lower() != user_email.lower():
+        print("Unauthorized: userId does not match token email")
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+   
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -114,6 +183,30 @@ def check_user(id):
     
 @app.route('/api/add_user/', methods=['POST'])
 def add_user():
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  # Handle authentication errors
+
+    body = request.get_json()
+    if not body or "email" not in body:
+        return jsonify({"error": "Missing required 'email' field in request body"}), 400
+
+    if body.get("email").lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  # Handle authentication errors
+
+    body = request.get_json()
+    if not body or "email" not in body:
+        return jsonify({"error": "Missing required 'email' field in request body"}), 400
+
+    if body.get("email").lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     try:
         data = request.get_json()
         print(data)
@@ -168,8 +261,18 @@ def add_user():
         return jsonify({"error": "Database insert failed"}), 500
 
 
-@app.route('/get_events/')
-def get_events():
+@app.route('/get_events/<string:id>')
+def get_events(id):
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        print(error_response)
+        return error_response, status_code   
+
+    if id.lower() != user_email.lower():
+        print("Unauthorized: userId does not match token email")
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -205,27 +308,14 @@ def get_events():
         print(f"Error: {err}")
     return {}
 
-@app.route('/get_users/')
-def get_users():
-    try:  
-        conn = mysql.connector.connect(**db_config)
-        mycursor = conn.cursor()
-        mycursor.execute("""
-                        SELECT * FROM User;
-                        );
-                     """)
-        response = mycursor.fetchall()
-        headers = mycursor.description
-        res = sqlResponseToJson(response, headers)
-        mycursor.close()
-        conn.close()
-        return res
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-    return {}
-
 @app.route('/get_unfriended_users/<userId>/')
 def get_unfriended_users(userId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -252,20 +342,33 @@ def get_unfriended_users(userId):
 
 @app.post('/create_custom_tag/')
 def add_custom_tag():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
     body = request.json
-    try:  
+    if not body or "userId" not in body or "name" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["userId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+   
+    
+    try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        query = f"""
-                INSERT INTO Tag (name, numTimesUsed, userId) VALUES ("{body["name"]}", 0, "{body["userId"]}");
-                """
-        mycursor.execute(query)
+        query = "INSERT INTO Tag (name, numTimesUsed, userId) VALUES (%s, %s, %s)"
+        mycursor.execute(query, (body["name"], 0, body["userId"]))
         conn.commit()
+    except mysql.connector.Error as err:
+        return jsonify({"error": "Database error", "details": str(err)}), 500
+    finally:
         mycursor.close()
         conn.close()
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-    return {}
+
+    return jsonify({"message": "Tag created successfully"}), 201
+
+   
 
 @app.route('/delete_custom_tag/<int:tagId>/', methods=['DELETE'])
 def delete_custom_tag(tagId):
@@ -291,11 +394,22 @@ def delete_custom_tag(tagId):
 
 @app.post('/save_user_selected_tags/')
 def save_user_selected_tags():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
     body = request.json
+    if not body or "userId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["userId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
+    
     userId = body["userId"]
     values: str = ""
 
-    selectedTags = body["selectedTags"];
+    selectedTags = body["selectedTags"]
     if len(selectedTags) == 0:
         return {}
 
@@ -322,7 +436,18 @@ def save_user_selected_tags():
 
 @app.post('/delete_user_deselected_tags/')
 def delete_user_deselected_tags():
+    
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
     body = request.json
+    if not body or "userId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["userId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
     userId = body["userId"]
     deselectedTags = body["deselectedTags"]
 
@@ -357,7 +482,23 @@ def delete_user_deselected_tags():
 # Here
 @app.post('/save_event_selected_tags/')
 def save_event_selected_tags():
+   
+    # READ THIS: UNTESTED VALIDATION CODE
+    # user_email, error_response, status_code = get_authenticated_user()
+    # if error_response:
+    #     return error_response, status_code  
+
     # body = request.json
+    # if not body or "userId" not in body:
+    #     return jsonify({"error": "Missing required fields in request body"}), 400
+
+    # if body["userId"].lower() != user_email.lower():
+    #     return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
+
+
+    #### UNESTED ^^^
+
     # eventInfoId = body["eventInfoId"]
     # values: str = ""
 
@@ -388,7 +529,21 @@ def save_event_selected_tags():
 
 @app.post('/delete_event_deselected_tags/')
 def delete_event_deselected_tags():
+     # READ THIS: UNTESTED VALIDATION CODE BELOW
+    # user_email, error_response, status_code = get_authenticated_user()
+    # if error_response:
+    #     return error_response, status_code  
+
     # body = request.json
+    # if not body or "userId" not in body:
+    #     return jsonify({"error": "Missing required fields in request body"}), 400
+
+    # if body["userId"].lower() != user_email.lower():
+    #     return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
+    #### UNESTED ^^^
+
+
     # eventInfoId = body["eventInfoId"]
     # deselectedTags = body["deselectedTags"]
 
@@ -420,6 +575,17 @@ def delete_event_deselected_tags():
 @app.route('/get_tags/', defaults={'userId': None})
 @app.route('/get_tags/<string:userId>/')
 def get_tags(userId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId:
+        if userId.lower() != user_email.lower():
+            return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    else:
+        if not user_email:
+            return jsonify({"error": "Unauthorized: Missing valid authenticated user"}), 403
+
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -445,6 +611,14 @@ def get_tags(userId):
 
 @app.route('/get_user_tags/<string:userId>/')
 def get_user_tags(userId):
+
+    # user_email, error_response, status_code = get_authenticated_user()
+    # if error_response:
+    #     return error_response, status_code  
+
+    # if userId.lower() != user_email.lower():
+    #     return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -466,6 +640,13 @@ def get_user_tags(userId):
 
 @app.route('/get_event_tags/<int:eventInfoId>/')
 def get_event_tags(eventInfoId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if not user_email:
+        return jsonify({"error": "Unauthorized: Missing valid authenticated user"}), 403
+    
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -519,6 +700,13 @@ def get_friends(userId):
 
 @app.route('/get_pending_friends/<userId>/')
 def get_pending_friends(userId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor(dictionary=True)
@@ -554,6 +742,12 @@ def get_pending_friends(userId):
 
 @app.route('/get_friend_requests/<userId>/')
 def get_friend_requests(userId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -576,6 +770,13 @@ def get_friend_requests(userId):
 
 @app.route('/accept_friend_request/<string:userId>/<string:friendId>/', methods=['POST'])
 def accept_friend_request(userId, friendId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -585,6 +786,24 @@ def accept_friend_request(userId, friendId):
                 WHERE user1Id = %s AND user2Id = %s;
                 """
         mycursor.execute(query, (friendId, userId))
+
+        # Create chat for friend
+        createChat = f"""
+            INSERT INTO Chat (name, chatType) VALUES ("", 'Event');
+        """
+        mycursor.execute(createChat)
+        chatId = mycursor.lastrowid
+
+        # add relationships in ChatToUser
+        chatToUser = f"""
+                INSERT INTO ChatToUser (chatId, userId) VALUES ({chatId}, '{friendId}');
+            """
+        mycursor.execute(chatToUser)
+        chatToUser = f"""
+            INSERT INTO ChatToUser (chatId, userId) VALUES ({chatId}, '{userId}');
+            """
+        mycursor.execute(chatToUser)
+
         conn.commit()
         mycursor.close()
         conn.close()
@@ -594,6 +813,15 @@ def accept_friend_request(userId, friendId):
 
 @app.route('/reject_friend_request/<string:userId>/<string:friendId>/', methods=['DELETE'])
 def reject_friend_request(userId, friendId):
+    
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
+
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -611,6 +839,13 @@ def reject_friend_request(userId, friendId):
 
 @app.route('/remove_friend_request/<string:userId>/<string:friendId>/', methods=['DELETE'])
 def remove_friend_request(userId, friendId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -628,6 +863,13 @@ def remove_friend_request(userId, friendId):
 
 @app.route('/add_friend/<string:userId>/<string:friendId>/', methods=['POST'])
 def add_friend(userId, friendId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -645,6 +887,13 @@ def add_friend(userId, friendId):
 
 @app.route('/remove_friend/<string:userId>/<string:friendId>/', methods=['DELETE'])
 def remove_friend(userId, friendId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -667,6 +916,12 @@ def remove_friend(userId, friendId):
 
 @app.route('/delete_one_event/<int:eventId>/', methods=['DELETE'])
 def delete_one_event(eventId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if not user_email:
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -689,28 +944,16 @@ def delete_one_event(eventId):
     return {}
 
 
-@app.route('/delete_user/<int:userId>/', methods=['DELETE'])
-def delete_user(userId):
-    try:  
-        conn = mysql.connector.connect(**db_config)
-        mycursor = conn.cursor()
-        mycursor.execute("DELETE FROM User WHERE id = %s", (userId,))
-        conn.commit()
-        rowCount: int = mycursor.rowcount
-        mycursor.close()
-        conn.close()
-
-        if rowCount == 0:
-            return jsonify({"Message":"User not found"}), 404
-        else:
-            return jsonify({"Message":"User deleted successfully"}), 200
-        
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-    return {}
-
 @app.route('/delete_multiple_events/<int:eventId>/', methods=['DELETE'])
 def delete_mult_event(eventId):
+    
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if not user_email:
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -738,6 +981,18 @@ def delete_mult_event(eventId):
 
 @app.route('/addOneView/<int:eventId>/', methods=['POST'])
 def addOneView(eventId):
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "userId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["userId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -785,6 +1040,18 @@ def basic_authentication():
 
 @app.post('/post_event/')
 def post_event():
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "creatorId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["creatorId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     data = request.json
     try:  
         conn = mysql.connector.connect(**db_config)
@@ -801,8 +1068,24 @@ def post_event():
                         INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency, creatorName)
                         VALUES ("{data["creatorId"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}", "{data["venmo"]}", "{data["recurFrequency"]}", "{data["creatorName"]}");
                      """
+        mycursor.execute(insertEventInfo)
+        eventInfoId = mycursor.lastrowid
+        
+        # Create chat for event
+        createChat = f"""
+            INSERT INTO Chat (name, chatType) VALUES ("{data["title"]}", 'Event');
+        """
+        mycursor.execute(createChat)
+        chatId = mycursor.lastrowid
+
+        # add relationship from chat to eventInfo
+        addEventInfoToChat = f"""
+                INSERT INTO EventInfoToChat (chatId, eventInfoId) VALUES ({chatId}, {eventInfoId});
+            """
+        mycursor.execute(addEventInfoToChat)
+
         insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views, numRsvps)
-                        VALUES (last_insert_id(), "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", 0, 0);"""
+                        VALUES ({eventInfoId}, "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", 0, 0);"""
         tags = data["tags"]
         for tag in tags:
             updateTag = f"""
@@ -811,8 +1094,6 @@ def post_event():
                             WHERE name="{tag["name"]}"
                         """
             mycursor.execute(updateTag)
-        mycursor.execute(insertEventInfo)
-        eventInfoId = mycursor.lastrowid
         mycursor.execute(insertEvent)
         mycursor.execute("SET @eventId = last_insert_id();")
 
@@ -845,6 +1126,14 @@ def post_event():
 # for each event return: name, location, date/time, (views/rsvps), viewing link
 @app.route('/get_my_events/<string:user_id>')
 def get_my_events(user_id: str):
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if user_id.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -879,6 +1168,16 @@ def get_my_events(user_id: str):
 
 @app.post('/post_recurring_event')
 def post_recurring_event():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "creatorId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+    
+    if body["creatorId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     data = request.json
     try:  
         conn = mysql.connector.connect(**db_config)
@@ -892,6 +1191,21 @@ def post_recurring_event():
         mycursor.execute(insertEventInfo)
         eventInfoId = mycursor.lastrowid
         mycursor.execute("SET @eventInfoId = last_insert_id();")
+
+        # Create chat for event
+        createChat = f"""
+            INSERT INTO Chat (name, chatType) VALUES ("{data["title"]}", 'Event');
+        """
+        mycursor.execute(createChat)
+        chatId = mycursor.lastrowid
+
+        # add relationship from chat to eventInfo
+        addEventInfoToChat = f"""
+                INSERT INTO EventInfoToChat (chatId, eventInfoId) VALUES ({chatId}, {eventInfoId});
+            """
+        mycursor.execute(addEventInfoToChat)
+
+        
         tags = data["tags"]
         for tag in tags:
             updateTag = f"""
@@ -997,6 +1311,14 @@ def get_event_info(event_info_id):
 
 @app.route('/get_event/<int:event_id>/<string:user_id>', methods=['GET'])
 def get_event(event_id: int, user_id: str):
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if user_id.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -1063,6 +1385,16 @@ def get_event(event_id: int, user_id: str):
 
 @app.route('/editEvent/<int:eventId>', methods=['PUT'])
 def edit_event(eventId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "creatorId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["creatorId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -1318,6 +1650,16 @@ def edit_event(eventId):
 
 @app.route('/edit_user_to_item/', methods=['PUT'])
 def edit_user_to_item():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "userId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["userId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:
         data = request.json
         conn = mysql.connector.connect(**db_config)
@@ -1342,6 +1684,16 @@ def edit_user_to_item():
 
 @app.route('/rsvp', methods=['POST'])
 def rsvp():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "userId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["userId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -1415,6 +1767,16 @@ def unrsvp():
 
 @app.route('/check_rsvp', methods=['POST'])
 def check_rsvp():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "userId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["userId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -1443,6 +1805,13 @@ def check_rsvp():
 
 @app.route('/get_rsvps', methods=['POST'])
 def get_rsvps():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if not user_email:
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -1471,6 +1840,14 @@ def get_rsvps():
 
 @app.route('/get_my_groups/<string:userId>')
 def get_my_groups(userId):
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -1499,6 +1876,12 @@ def get_my_groups(userId):
 
 @app.get('/get_group/<int:groupId>')
 def get_group(groupId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if not user_email:
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -1542,6 +1925,16 @@ def append_users_to_group_object(group, mycursor):
 
 @app.post('/edit_group')
 def edit_group():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "creatorId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["creatorId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -1552,17 +1945,11 @@ def edit_group():
         creatorId = body.get("creatorId")
         users = body.get("users")
 
-        # Update users in group & group chat
+        # Update users in group
         removeGroupUsers = f"""
             DELETE FROM GroupOfUserToUser WHERE groupId = {groupId}
         """
         mycursor.execute(removeGroupUsers)
-
-        removeChatUsers = f"""
-            DELETE ChatToUser FROM GroupOfUser JOIN ChatToUser ON GroupOfUser.chatId = ChatToUser.chatId
-            WHERE GroupOfUser.id = {groupId};
-        """
-        mycursor.execute(removeChatUsers)
 
         add_users_to_group(users, groupId, mycursor)
 
@@ -1583,6 +1970,16 @@ def edit_group():
 
 @app.post('/create_group')
 def create_group():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "creatorId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["creatorId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -1594,7 +1991,7 @@ def create_group():
 
         # Create chat for group
         createChat = f"""
-            INSERT INTO Chat (name, isGroupChat) VALUES ("{groupName}", 1);
+            INSERT INTO Chat (name, chatType) VALUES ("{groupName}", 'Group');
         """
         mycursor.execute(createChat)
         chatId = mycursor.lastrowid
@@ -1605,6 +2002,12 @@ def create_group():
         """
         mycursor.execute(createGroup)
         groupId = mycursor.lastrowid
+
+        # add relationship from chat to group 
+        addGroupOfUserToChat = f"""
+                INSERT INTO GroupOfUserToChat (chatId, groupOfUserId) VALUES ({chatId}, {groupId});
+            """
+        mycursor.execute(addGroupOfUserToChat)
 
         add_users_to_group(users, groupId, mycursor)
         
@@ -1642,11 +2045,90 @@ def add_users_to_group(users, groupId, mycursor):
         """
         mycursor.execute(addUserToChat)
 
-@app.route('/get_reports/')
-def get_reports():
+@app.post('/remove_user_from_group')
+def remove_user_from_group():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        currentUserId = body.get("currentUserId")
+        groupId = body.get("groupId")
+
+        removeUserFromGroup = f"""
+            DELETE FROM GroupOfUserToUser WHERE userId = "{currentUserId}" AND groupId = {groupId};
+        """
+        mycursor.execute(removeUserFromGroup)
+
+        removeUserFromGroupChat = f"""
+            DELETE ChatToUser FROM GroupOfUser JOIN ChatToUser ON GroupOfUser.chatId = ChatToUser.chatId
+            WHERE ChatToUser.userId = "{currentUserId}" AND GroupOfUser.id = {groupId};
+        """
+        mycursor.execute(removeUserFromGroupChat)
+        
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"message": "creation successful"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.post('/delete_group')
+def delete_group():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        groupId = body.get("groupId")
+
+        removeGroupChatToUsers = f"""
+            DELETE ChatToUser FROM GroupOfUser JOIN ChatToUser ON GroupOfUser.chatId = ChatToUser.chatId
+            WHERE GroupOfUser.id = {groupId};
+        """
+        mycursor.execute(removeGroupChatToUsers)
+
+        removeGroupUsers = f"""
+            DELETE FROM GroupOfUserToUser WHERE groupId = {groupId};
+        """
+        mycursor.execute(removeGroupUsers)
+
+        removeGroup = f"""
+            DELETE FROM GroupOfUser WHERE id = {groupId};
+        """
+        mycursor.execute(removeGroup)
+        
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"message": "creation successful"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_reports/<string:userId>/')
+def get_reports(userId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if userId.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+
+        # make sure they're an  admin
+        admin_query = "SELECT isAdmin FROM User WHERE email = %s"
+        mycursor.execute(admin_query, (user_email,))
+        result = mycursor.fetchone()
+        if not result or result[0] != 1: 
+            mycursor.close()
+            conn.close()
+            return jsonify({"error": "Forbidden: Only admins can access reports"}), 403
+
         mycursor.execute("""
                         SELECT * FROM Report;
                      """)
@@ -1661,6 +2143,18 @@ def get_reports():
 
 @app.route('/reportEvent', methods=['POST'])
 def reportEvent():
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "reportedBy" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["reportedBy"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -1692,6 +2186,18 @@ def reportEvent():
 
 @app.route('/reportGroup', methods=['POST'])
 def reportGroup():
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "reportedBy" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["reportedBy"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -1722,6 +2228,18 @@ def reportGroup():
 
 @app.route('/reportMessage', methods=['POST'])
 def reportMessage():
+    
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "reportedBy" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["reportedBy"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -1746,6 +2264,18 @@ def reportMessage():
 
 @app.route('/reportUser', methods=['POST'])
 def reportUser():
+    
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "reportedBy" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["reportedBy"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -1792,6 +2322,18 @@ def delete_report():
 
 @app.route('/message/', methods=['POST'])
 def message():
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    body = request.json
+    if not body or "senderId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["senderId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     data = request.get_json()
     try:
         conn = mysql.connector.connect(**db_config)
@@ -1828,6 +2370,12 @@ def get_message(message_id: int):
 
 @app.route('/get_chat_hist/<int:chat_id>', methods=['GET'])
 def get_chat_hist(chat_id: int):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if not user_email:
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -1844,13 +2392,41 @@ def get_chat_hist(chat_id: int):
 
 @app.route('/get_my_chats/<string:user_id>', methods=['GET'])
 def get_my_chats(user_id: str):
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if user_id.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        # mycursor.execute(f"""SELECT Chat.id, GroupOfUser.groupName, Chat.isGroupChat FROM Chat 
-        #                     LEFT JOIN GroupOfUser ON Chat.id = GroupOfUser.chatId
-        #                     WHERE Chat.id IN (SELECT chatId FROM ChatToUser WHERE userId = '{user_id}');""")
-        mycursor.execute(f"SELECT * FROM Chat WHERE id IN (SELECT chatId FROM ChatToUser WHERE userId = '{user_id}');")
+        mycursor.execute(f"""(SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType FROM Chat
+                            JOIN (SELECT GroupOfUser.chatId, GroupOfUser.groupName FROM GroupOfUserToChat
+                            JOIN GroupOfUserToUser ON GroupOfUserToChat.groupOfUserId = GroupOfUserToUser.groupId
+                            JOIN GroupOfUser ON GroupOfUserToChat.groupOfUserId = GroupOfUser.id
+                            WHERE GroupOfUserToUser.userId = '{user_id}') AS groupStuff
+                            ON Chat.id = groupStuff.chatId)
+                            UNION 
+                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
+                            JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
+                            JOIN Event ON Event.eventInfoId = EventInfoToChat.eventInfoId
+                            JOIN EventToUser ON EventToUser.eventId = Event.id
+                            JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
+                            WHERE EventToUser.userId = "{user_id}")
+                            UNION
+                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
+                            JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
+                            JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
+                            WHERE EventInfo.creatorId = "harnlyam20@gcc.edu")
+                            UNION
+                            (SELECT Chat.id, Chat.chatType, otherUser.userId AS name FROM Chat 
+                            JOIN ChatToUser ON Chat.id = ChatToUser.chatId
+                            JOIN (SELECT * FROM ChatToUser WHERE ChatToUser.userId != '{user_id}') AS otherUser
+                            ON ChatToUser.chatId = otherUser.chatId
+                            WHERE ChatToUser.userId = '{user_id}')""")
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
@@ -1863,17 +2439,46 @@ def get_my_chats(user_id: str):
 
 @app.route('/get_chat/<string:chat_id>', methods=['GET'])
 def get_chat(chat_id: str):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if not user_email:
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"SELECT * FROM Chat WHERE id = {chat_id} LIMIT 1;")
+        mycursor.execute(f"""(SELECT Chat.id, GroupOfUser.groupName AS name, Chat.chatType FROM Chat
+                            JOIN GroupOfUser ON GroupOfUser.chatId = Chat.id 
+                            WHERE Chat.id = {chat_id})
+                            UNION 
+                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
+                            JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
+                            JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
+                            WHERE Chat.id = {chat_id})
+                            UNION
+                            (SELECT Chat.id, Chat.chatType, "" AS name FROM Chat 
+                            JOIN ChatToUser ON Chat.id = ChatToUser.chatId
+                            WHERE Chat.id = {chat_id})
+                            LIMIT 1""")
         response = mycursor.fetchall()
         headers = mycursor.description
         chat = sqlResponseToList(response, headers)[0]
-        mycursor.execute(f"""SELECT id, fname, lname 
-                            FROM User WHERE id IN (
-                            SELECT userId FROM ChatToUser
-                            WHERE chatId = {chat_id});""")
+        mycursor.execute(f"""(SELECT id, fname, lname FROM User
+                                JOIN GroupOfUserToUser ON User.id = GroupOfUserToUser.userId
+                                JOIN GroupOfUserToChat ON GroupOfUserToUser.groupId = GroupOfUserToChat.groupOfUserId
+                                WHERE GroupOfUserToChat.chatId = {chat_id})
+                            UNION
+                            (SELECT User.id, fname, lname FROM User
+                                JOIN EventToUser ON User.id = EventToUser.userId
+                                JOIN Event ON EventToUser.eventId = Event.id
+                                JOIN EventInfoToChat ON EventInfoToChat.eventInfoId = Event.eventInfoId
+                                WHERE EventInfoToChat.chatId = {chat_id})
+                            UNION
+                            (SELECT id, fname, lname 
+                                FROM User WHERE id IN (
+                                SELECT userId FROM ChatToUser
+                                WHERE chatId = {chat_id}))""")
         response = mycursor.fetchall()
         headers = mycursor.description
         users = sqlResponseToList(response, headers)
@@ -1881,6 +2486,51 @@ def get_chat(chat_id: str):
         mycursor.close()
         conn.close()
         return jsonify({f"users": users, "chat": chat})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_individual_chat_id/<string:curr_user_id>/<string:other_user_id>', methods=['GET'])
+def get_individual_chat_id(curr_user_id: str, other_user_id: str):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f"""SELECT ChatToUser.chatId FROM ChatToUser 
+                            JOIN (SELECT * FROM ChatToUser WHERE userId = '{other_user_id}') AS otherUserTable
+                            ON ChatToUser.chatId = otherUserTable.chatId
+                            WHERE ChatToUser.userId = '{curr_user_id}'
+                            LIMIT 1;""")
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return sqlResponseToJson(response, headers)
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.route('/get_event_chat_id/<int:event_id>/', methods=['GET'])
+def get_event_chat_id(event_id: int):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if not user_email:
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f"""SELECT chatId FROM Event
+                                JOIN EventInfoToChat ON Event.eventInfoId = EventInfoToChat.eventInfoId
+                                WHERE Event.id = {event_id}
+                                LIMIT 1""")
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return sqlResponseToJson(response, headers)
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}

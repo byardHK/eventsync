@@ -17,7 +17,7 @@ import { useUser } from "../sso/UserContext";
 import { useEffect, useState } from 'react';
 import "../styles/style.css"
 import Tag from '../types/Tag';
-import { BASE_URL } from '../components/Cosntants';
+import { BASE_URL } from '../components/Constants';
 
 function CreateEventPage() {
     const { userDetails } = useUser();
@@ -87,22 +87,26 @@ function CreateEventPage() {
         try {
             const deselectedData = {
                 "deselectedTags": tagsToDelete,
-                "eventInfoId": eventInfoId
+                "eventInfoId": eventInfoId,
+                "userId": currentUserId
             }
             const deleteResponse = await fetch(`${BASE_URL}/delete_event_deselected_tags/`, {
                 method: 'POST',
                 headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(deselectedData),
             });
             const selectedData = {
                 "selectedTags": tagsToAdd,
-                "eventInfoId": eventInfoId
+                "eventInfoId": eventInfoId,
+                "userId": currentUserId
             }
             const saveResponse = await fetch(`${BASE_URL}/save_event_selected_tags/`, {
                 method: 'POST',
                 headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(selectedData),
@@ -121,7 +125,12 @@ function CreateEventPage() {
         if (eventId) {
             const fetchEvent = async () => {
                 try {
-                    const response = await axios.get(`${BASE_URL}/get_event/${eventId}/${currentUserId}`);
+                    const response = await axios.get(`${BASE_URL}/get_event/${eventId}/${currentUserId}`,{
+                        headers: {
+                            'Authorization': `Bearer ${userDetails.token}`,
+                            'Content-Type': 'application/json',
+                        },
+                    });
                     const event = response.data;
                     console.log("Fetched event data:", event);
                     setEventInfoId(event.eventInfoId);
@@ -173,6 +182,7 @@ function CreateEventPage() {
             const response = await fetch(postPath, {
                 method: eventId ? 'PUT' : 'POST',
                 headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(data),
@@ -196,7 +206,7 @@ function CreateEventPage() {
                 setItems([]);
                 setEditAllEvents(true);
                 setCreatorName("");
-                navigate('/myeventspage');
+                navigate('/myEvents');
             }
            
         } catch (error) {
@@ -212,7 +222,7 @@ function CreateEventPage() {
     const navigate = useNavigate();
 
     const handleBackClick = () => {
-        navigate('/myeventspage');
+        navigate('/myEvents');
     };
 
     return <>

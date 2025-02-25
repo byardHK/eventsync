@@ -8,7 +8,7 @@ import { Button, Typography, Paper, Box, Dialog, DialogTitle, DialogContent, Fab
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
 import AddIcon from '@mui/icons-material/Add';
-import { BASE_URL } from '../components/Cosntants';
+import { BASE_URL } from '../components/Constants';
 
 function FriendsPage() {
     const { userDetails } = useUser();
@@ -32,9 +32,24 @@ function FriendsPage() {
     const refreshData = async (userId: string) => {
         try {
             const [usersResponse, friendsResponse, pendingResponse] = await Promise.all([
-                axios.get(`${BASE_URL}/get_unfriended_users/${userId}/`),
-                axios.get(`${BASE_URL}/get_friends/${userId}/`),
-                axios.get(`${BASE_URL}/get_pending_friends/${userId}/`),
+                axios.get(`${BASE_URL}/get_unfriended_users/${userId}/`,{
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json',
+                    },
+                }),
+                axios.get(`${BASE_URL}/get_friends/${userId}/`,{
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json',
+                    },
+                }),
+                axios.get(`${BASE_URL}/get_pending_friends/${userId}/`,{
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json',
+                    },
+                }),
             ]);
 
             setUsers(usersResponse.data || []);
@@ -152,7 +167,12 @@ function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refre
 
     const removeFriend = async (userId: string, friendId: string) => {
         try {
-            await axios.delete(`${BASE_URL}/remove_friend/${userId}/${friendId}/`);
+            await axios.delete(`${BASE_URL}/remove_friend/${userId}/${friendId}/`,{
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
             refreshData();
         } catch (error) {
             console.error('Error removing friend:', error);
@@ -199,7 +219,12 @@ function UserList({ users, refreshData, onAddFriend }: { users: EventSyncUser[];
 
     const addFriend = async (userId: string, friendId: string) => {
         try {
-            await axios.post(`${BASE_URL}/add_friend/${userId}/${friendId}/`);
+            await axios.post(`${BASE_URL}/add_friend/${userId}/${friendId}/`,{
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
             refreshData();
         } catch (error) {
             console.error('Error adding friend:', error);
@@ -245,7 +270,12 @@ function RequestsList({ requests, refreshData, onRequestAction }: { requests: Ev
 
     const acceptFriend = async (userId: string, friendId: string) => {
         try {
-            await axios.post(`${BASE_URL}/accept_friend_request/${userId}/${friendId}/`);
+            await axios.post(`${BASE_URL}/accept_friend_request/${userId}/${friendId}/`,{
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
             refreshData();
             onRequestAction();
         } catch (error) {
@@ -255,7 +285,12 @@ function RequestsList({ requests, refreshData, onRequestAction }: { requests: Ev
 
     const removeRequest = async (userId: string, friendId: string) => {
         try {
-            await axios.delete(`${BASE_URL}/reject_friend_request/${userId}/${friendId}/`);
+            await axios.delete(`${BASE_URL}/reject_friend_request/${userId}/${friendId}/`,{
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
             refreshData();
             onRequestAction();
         } catch (error) {
@@ -307,7 +342,12 @@ function PendingList({ pending, refreshData }: { pending: EventSyncUser[]; refre
 
     const removeRequest = async (userId: string, friendId: string) => {
         try {
-            await axios.delete(`${BASE_URL}/remove_friend_request/${userId}/${friendId}/`);
+            await axios.delete(`${BASE_URL}/remove_friend_request/${userId}/${friendId}/`,{
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
             refreshData();
         } catch (error) {
             console.error('Error removing request:', error);

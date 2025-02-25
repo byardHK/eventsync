@@ -7,7 +7,7 @@ import { useUser } from "../sso/UserContext";
 import User from "../types/User";
 import Message from "../types/Message";
 import { Group } from "../pages/GroupsPage";
-import { BASE_URL } from "./Cosntants";
+import { BASE_URL } from "./Constants";
 
 type ReportModalProps = {
     input: Event | Tag | User | Message | Group | undefined;
@@ -16,12 +16,17 @@ type ReportModalProps = {
     type: "event" | "tag" | "user" | "message" | "group";
 };
 
-async function reportEvent(event: Event, currentUserId: string, reportDetails: string) {
+async function reportEvent(event: Event, currentUserId: string, reportDetails: string, token: string|null) {
     try {
         const response = await axios.post(`${BASE_URL}/reportEvent`, {
             details: reportDetails,
             reportedBy: currentUserId,
             reportedEventId: event.id
+        }, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
         });
         console.log("reported event response: ", response);
     } catch (error) {
@@ -30,12 +35,17 @@ async function reportEvent(event: Event, currentUserId: string, reportDetails: s
     }
 };
 
-async function reportMessage(message: Message, currentUserId: string, reportDetails: string) {
+async function reportMessage(message: Message, currentUserId: string, reportDetails: string, token: string|null) {
     try {
         const response = await axios.post(`${BASE_URL}/reportMessage`, {
             details: reportDetails,
             reportedBy: currentUserId,
             reportedMessageId: message.id
+        },{
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
         });
         console.log(response);
     } catch (error) {
@@ -44,13 +54,18 @@ async function reportMessage(message: Message, currentUserId: string, reportDeta
     }
 };
 
-async function reportUser(user: User, currentUserId: string, reportDetails: string) {
+async function reportUser(user: User, currentUserId: string, reportDetails: string, token: string|null) {
     console.log(user);
     try {
         const response = await axios.post(`${BASE_URL}/reportUser`, {
             details: reportDetails,
             reportedBy: currentUserId,
             reportedUserId: user.id
+        },{
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
         });
         console.log(response);
     } catch (error) {
@@ -59,12 +74,17 @@ async function reportUser(user: User, currentUserId: string, reportDetails: stri
     }
 };
         
-async function reportGroup(group: Group, currentUserId: string, reportDetails: string) {
+async function reportGroup(group: Group, currentUserId: string, reportDetails: string, token: string|null) {
     try {
         const response = await axios.post(`${BASE_URL}/reportGroup`, {
             details: reportDetails,
             reportedBy: currentUserId,
             reportedGroupId: group.id
+        },{
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
         });
         console.log(response);
     } catch (error) {
@@ -79,16 +99,16 @@ function ReportModal({input, open, onClose, type}: ReportModalProps){
 
     function onSubmit(){
         if(type === "event"){
-            reportEvent(input as Event, userDetails.email!, reportText);
+            reportEvent(input as Event, userDetails.email!, reportText, userDetails.token);
         }
         if(type === "message"){
-            reportMessage(input as Message, userDetails.email!, reportText);
+            reportMessage(input as Message, userDetails.email!, reportText, userDetails.token);
         }
         if(type === "user"){
-            reportUser(input as User, userDetails.email!, reportText);
+            reportUser(input as User, userDetails.email!, reportText, userDetails.token);
         }
         if(type === "group"){
-            reportGroup(input as Group, userDetails.email!, reportText);
+            reportGroup(input as Group, userDetails.email!, reportText, userDetails.token);
         }
         onClose();
     }

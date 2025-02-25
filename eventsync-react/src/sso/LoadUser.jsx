@@ -5,7 +5,7 @@ import { useMsal } from '@azure/msal-react';
 import { useUser } from './UserContext';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { BASE_URL } from "../components/Cosntants";
+import { BASE_URL } from "../components/Constants";
 
 export const LoadUser = () => {
     const { userDetails, setUserDetails } = useUser();
@@ -47,17 +47,22 @@ export const LoadUser = () => {
                 const userEmail = graphData.userPrincipalName;
                 console.log(`📧 Checking if user exists: ${userEmail}`);
 
-                const res = await axios.get(`${BASE_URL}/api/check_user/${userEmail}`);
+                const res = await axios.get(`${BASE_URL}/api/check_user/${userEmail}`, {
+                    headers: {
+                        'Authorization': `Bearer ${response.accessToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
                 const userExists = res.data.exists;
                 console.log(`🔎 User exists: ${userExists}`);
 
                 if (userExists) {
-                    await FetchExistingUser(userEmail, setUserDetails);
-                    console.log(userDetails);
-                    console.log("i'm navigating to home");
-                    navigate('/home');
+                    await FetchExistingUser(userEmail, setUserDetails, response.accessToken);
+                    // console.log(userDetails);
+                    // console.log("i'm navigating to home");
+                    // navigate('/home');
                 } else {
-                    await setNewUserData(graphData);
+                    await setNewUserData(graphData, response.accessToken);
                     console.log("i'm navigating to onboarding")
                     navigate('/onboardingPage');
                 }
@@ -69,7 +74,7 @@ export const LoadUser = () => {
             }
         };
 
-        const setNewUserData = async (graphData) => {
+        const setNewUserData = async (graphData, accessToken) => {
             console.log('🆕 Setting new user details...');
             setUserDetails({
                 isOnboardingComplete: false,
@@ -77,6 +82,7 @@ export const LoadUser = () => {
                 lastName: graphData.surname,
                 email: graphData.userPrincipalName,
                 microsoftId: graphData.id,
+                token: accessToken
             });
         };
 
@@ -90,14 +96,20 @@ export const LoadUser = () => {
 };
 
 
-export const FetchExistingUser = async (email, setUserDetails) => {
+export const FetchExistingUser = async (email, setUserDetails, accessToken) => {
     try {
-        const res = await axios.get(`${BASE_URL}/api/get_user/${email}`);
+        const res = await axios.get(`${BASE_URL}/api/get_user/${email}`,{
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+        });
         console.log("Fetched user data: (load user)", res.data);
 
         setUserDetails(prevDetails => {
             const updatedDetails = {
                 ...prevDetails,
+                isOnboardingComplete: true,
                 firstName: res.data[0].fname,
                 lastName: res.data[0].lname,
                 email: res.data[0].id,
@@ -112,6 +124,7 @@ export const FetchExistingUser = async (email, setUserDetails) => {
                 friendRequest: res.data[0].friendRequest,
                 eventInvite: res.data[0].eventInvite,
                 eventCancelled: res.data[0].eventCancelled,
+                token: accessToken
             };
             return updatedDetails;
         });

@@ -4,7 +4,7 @@ import { useUser } from "../sso/UserContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/style.css";
-import { BASE_URL } from '../components/Cosntants';
+import { BASE_URL } from '../components/Constants';
 import {FetchExistingUser} from '../sso/LoadUser';
 
 const OnboardingPage = () => {
@@ -12,6 +12,8 @@ const OnboardingPage = () => {
     const navigate = useNavigate();
     console.log(userDetails);
     const userId = userDetails.email;
+    const token = userDetails.token;
+    console.log("onboarding page  tkn ", token);
 
     // Initialize form state with userDetails
     const [firstName, setFirstName] = useState(userDetails.firstName);
@@ -42,7 +44,15 @@ const OnboardingPage = () => {
 
         try {
             console.log(updatedUser);
-            await axios.post(`${BASE_URL}/api/add_user`, updatedUser);
+            await axios.post(`${BASE_URL}/api/add_user`, updatedUser,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    }
+                }
+            );
+            
         }
         catch(error){
             console.error("Error submitting onboarding data:", error);
@@ -53,7 +63,7 @@ const OnboardingPage = () => {
     const handleSubmit = async () => {
         try {
             await addNewUser();     
-            await FetchExistingUser(userId, setUserDetails);   
+            await FetchExistingUser(userId, setUserDetails, userDetails.token);   
             navigate("/home");      
         } catch (error) {
             console.error("Error submitting new user:", error);

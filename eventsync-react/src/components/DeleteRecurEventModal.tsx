@@ -4,13 +4,14 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup'; 
 import FormControl from '@mui/material/FormControl'; 
 import EventSyncEvent from '../types/EventSyncEvent';
-import { BASE_URL } from './Cosntants';
+import { BASE_URL } from './Constants';
 
 function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged: React.Dispatch<React.SetStateAction<Boolean>> }){
     const [isOpen, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
     const [numToDelete, setNumToDelete] = useState<String>("one");
+    const {userDetails} = userUser();
 
     async function handleDelete(){
         console.log(`Delete ${props.event.id}, ${numToDelete}`);
@@ -19,6 +20,7 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged:
             const response = await fetch(deletePath, {
                 method: 'DELETE',
                 headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
                     'Content-Type': 'application/json',
                 },
             });
@@ -72,3 +74,7 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged:
 }
 
 export default DeleteRecurEventModal
+
+function userUser(): { userDetails: any; } {
+    throw new Error('Function not implemented.');
+}

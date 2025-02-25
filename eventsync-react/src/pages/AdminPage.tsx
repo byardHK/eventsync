@@ -37,6 +37,7 @@ function AdminPage(){
     };
     
     const [reports, setReports] = useState<Report[]>([]);
+    const {userDetails} = useUser();
 
     async function reloadReports() {
         try {

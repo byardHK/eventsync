@@ -1,4 +1,4 @@
-import { Box, Button, ButtonGroup, Card, ClickAwayListener, Grow, IconButton, MenuItem, MenuList, Paper, Popper } from "@mui/material"
+import { Box, Button, ButtonGroup, Card, ClickAwayListener, Dialog, Grow, IconButton, MenuItem, MenuList, Paper, Popper } from "@mui/material"
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNavBar from "../components/BottomNavBar";
@@ -13,12 +13,15 @@ import User from "../types/User";
 import AddIcon from '@mui/icons-material/Add';
 import GroupModal from "../components/GroupModal";
 import ReportModal from "../components/ReportModal";
-import { BASE_URL } from "../components/Cosntants";
+import { BASE_URL } from "../components/Constants";
+import DeleteIcon from '@mui/icons-material/Delete';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 export type Group = {
     id: number;
     groupName: string;
     creatorId: string;
+    chatId: number;
     users: User[];
 }
 
@@ -30,7 +33,12 @@ function GroupsPage(){
 
     async function reloadMyGroups() {
         try {
-            const response = await axios.get(`${BASE_URL}/get_my_groups/${currentUserId}`);
+            const response = await axios.get(`${BASE_URL}/get_my_groups/${currentUserId}`,{
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
             setGroups(response.data);
             
         } catch (error) {
@@ -40,14 +48,13 @@ function GroupsPage(){
 
     useEffect(() => {
         reloadMyGroups();
-    }, []);
-
+    }, [currentUserId]);
 
     const navigate = useNavigate();
 
     function toggleFriendsGroupPages(isFriendsPage: boolean){
         if(isFriendsPage){
-            navigate('/friendsPage');
+            navigate('/friends');
         }
     }
 
@@ -81,7 +88,7 @@ function GroupsPage(){
                 sx={{height: "75vh"}}
             >
                 {groups.map(group =>
-                    <SplitButton group={group} key={group.id} onSave={reloadMyGroups}/>
+                    <SplitButton group={group} key={group.id} currentUserId={currentUserId!} onSave={reloadMyGroups}/>
                 )}
             </Box>
             <Box
@@ -107,23 +114,73 @@ function GroupsPage(){
 type SplitButtonProps = {
     group: Group;
     onSave: () => void;
+    currentUserId: string;
 };
 
-function SplitButton({group, onSave}: SplitButtonProps) {
+function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
     const [open, setOpen] = React.useState(false);
     const anchorRef = React.useRef<HTMLDivElement>(null);
     const [selectedIndex, setSelectedIndex] = React.useState(1);
+    console.log(selectedIndex);
+    console.log(setSelectedIndex);
     const [editing, setEditing] = useState<boolean>(false);
+    const [leavingGroupModalOpen, setLeavingGroupModalOpen] = useState<boolean>(false); 
+    const [deleteGroupModalOpen, setDeleteGroupModalOpen] = useState<boolean>(false); 
 
-    const handleMenuItemClick = (
-        // event: React.MouseEvent<HTMLLIElement, MouseEvent>,
-        index: number,
-    ) => {
-        setSelectedIndex(index);
-        console.log("resolving unused error: ", selectedIndex);
-        setOpen(false);
-    };
-    console.log(handleMenuItemClick);
+    function LeaveGroupModal(){
+        return <Dialog
+            onClose={()=> {setLeavingGroupModalOpen(false)}}
+            open={leavingGroupModalOpen}
+        >
+            <Box sx={{padding : 3}}>
+                <h2>Leave group?</h2>
+                <Box display="flex" flexDirection="row" justifyContent="space-between">
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setLeavingGroupModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={leaveGroup}>Yes</Button>
+                </Box>
+            </Box>
+        </Dialog>
+    }
+
+    async function leaveGroup(){
+        try {
+            await axios.post(`${BASE_URL}/remove_user_from_group`, {
+                currentUserId: currentUserId,
+                groupId: group.id
+            });
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+        setLeavingGroupModalOpen(false);
+        onSave();
+    }
+
+    function DeleteGroupModal(){
+        return <Dialog
+            onClose={()=> {setDeleteGroupModalOpen(false)}}
+            open={deleteGroupModalOpen}
+        >
+            <Box sx={{padding : 3}}>
+                <h2>Delete group?</h2>
+                <Box display="flex" flexDirection="row" justifyContent="space-between">
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setDeleteGroupModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={deleteGroup}>Yes</Button>
+                </Box>
+            </Box>
+        </Dialog>
+    }
+
+    async function deleteGroup(){
+        try {
+            await axios.post(`${BASE_URL}/delete_group`, {
+                groupId: group.id
+            });
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+        setDeleteGroupModalOpen(false);
+        onSave();
+    }
 
     const handleToggle = () => {
         setOpen((prevOpen) => !prevOpen);
@@ -144,6 +201,8 @@ function SplitButton({group, onSave}: SplitButtonProps) {
     const [reportModalOpen, setReportModalOpen] = useState<boolean>(false);
     return (
     <>
+        <LeaveGroupModal></LeaveGroupModal>
+        <DeleteGroupModal></DeleteGroupModal>
         <GroupModal groupId={group.id} open={editing} onClose={() => setEditing(false)} onSave={onSave}/>
         <ButtonGroup
             variant="contained"
@@ -159,12 +218,24 @@ function SplitButton({group, onSave}: SplitButtonProps) {
                             <FlagIcon style={{ color: 'red'}}></FlagIcon>
                         </IconButton>
                     </Box>
-                    <IconButton onClick={()=>navigate('/friendsPage')}>
+                    <IconButton onClick={()=>navigate(`/viewChat/${group.chatId}`)}>
                         <ChatIcon style={{color: "blue"}}></ChatIcon>
                     </IconButton>
                     <IconButton onClick={() => setEditing(true)}>
                         <EditIcon style={{color: "blue"}}></EditIcon>
                     </IconButton>
+                    {/* {currentUserId === group.creatorId ? ( */}
+                    {true ? (
+                        <IconButton onClick={() => setDeleteGroupModalOpen(true)}>
+                            <DeleteIcon style={{color: "red"}}></DeleteIcon>
+                        </IconButton>
+                    ) :
+                    (
+                        <IconButton onClick={() => setLeavingGroupModalOpen(true)}>
+                            <LogoutIcon style={{color: "red"}}></LogoutIcon>
+                        </IconButton>
+                    )}
+                    
                 </Box>
             </Card>
             <Button

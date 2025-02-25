@@ -7,7 +7,7 @@ import { useUser } from '../sso/UserContext';
 import "../styles/style.css"
 import Chat from '../types/Chat';
 import "../styles/chatHome.css";
-import { BASE_URL } from '../components/Cosntants';
+import { BASE_URL } from '../components/Constants';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 
@@ -66,7 +66,12 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const response = await axios.get<Chat[]>(`${BASE_URL}/get_my_chats/${currentUserId}`);
+            const response = await axios.get<Chat[]>(`${BASE_URL}/get_my_chats/${currentUserId}`,{
+              headers: {
+                  'Authorization': `Bearer ${userDetails.token}`,
+                  'Content-Type': 'application/json',
+              },
+          });
             // const chats: Chat[] = response.data;
             // for(const chat of chats){
             //   if(!chat.isGroupChat){

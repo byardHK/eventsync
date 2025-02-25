@@ -20,7 +20,8 @@ export interface UserDetails {
   notificationId: number | null;
   friendRequest: boolean | null,
   eventInvite: boolean | null,
-  eventCancelled: boolean | null
+  eventCancelled: boolean | null,
+  token: string | null
 };
 
 interface UserContextType {
@@ -47,7 +48,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       notificationId: null,
       friendRequest: null,
       eventInvite: null,
-      eventCancelled: null
+      eventCancelled: null,
+      token: null
   });
 
     return (

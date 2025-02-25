@@ -25,6 +25,7 @@ export const SignInButton = () => {
         boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
         minWidth: "250px", // Ensures enough space for text
         whiteSpace: "nowrap", // Prevents text from wrapping
+        color: "#000",
       }}
     >
       <img
