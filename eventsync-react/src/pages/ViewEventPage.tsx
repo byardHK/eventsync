@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import BottomNavBar from '../components/BottomNavBar';
 import Box from '@mui/material/Box';
 import { Button, Card, Accordion, AccordionSummary, AccordionDetails, Typography, Chip, Dialog, IconButton } from '@mui/material';
@@ -336,7 +336,7 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
                 <p>{event.title}</p>
                 <p>{timeToString2(dayjs(event.startTime), dayjs(event.endTime))}</p>
                 <p>{`Where?: ${event.locationName}`}</p>
-                <p>{`Created By: ${event.creatorName}`}</p>
+                <p>{"Created By: "}<Link to={`/profile/${event.creatorId}`}>{event.creatorName}</Link></p>
                 <ListTags></ListTags>
             </Box>
             <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
