@@ -34,7 +34,7 @@ function AdminPage(){
         navigate('/home');
     };
     
-    const [reports, setReports] = useState<Report[]>([]);
+    const [reports, setReports] = useState<Report[]>();
     const {userDetails} = useUser();
 
     async function reloadReports() {
@@ -67,9 +67,20 @@ function AdminPage(){
                 alignItems="center"
                 gap={2}
             >
-                {reports.map(report =>
-                    <AdminReportCard report={report} key={report.id} reloadReports={reloadReports}/>
-                )}
+                {reports ?
+                    reports.map(report =>
+                        <AdminReportCard report={report} key={report.id} reloadReports={reloadReports}/>
+                    ) :
+                    <Box
+                        display="flex"
+                        flexDirection="column"
+                        justifyContent="center"
+                        alignItems="center"
+                    >
+                        <Typography>Loading...</Typography>
+                        <CircularProgress/>
+                    </Box>
+                }
             </Box>
         </> :
         <Typography>You don't have access to this page.</Typography>
