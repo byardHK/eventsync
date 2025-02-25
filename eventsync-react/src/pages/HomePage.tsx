@@ -44,12 +44,14 @@ function HomePage() {
             padding={2}
             gap={2}
         >
-            <Link to="/admin">
-                <Button variant="contained">
-                    <FlagIcon/>
-                </Button>
-            </Link>
-            
+            {userDetails.isAdmin ?
+                <Link to="/admin">
+                    <Button variant="contained">
+                        <FlagIcon/>
+                    </Button>
+                </Link> :
+                <></>
+            }
             <Link to={`/profile/${currentUserId}`}>
                 <Button variant="contained">
                     <PersonIcon/>

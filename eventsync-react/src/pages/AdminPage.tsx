@@ -12,6 +12,7 @@ import User from "../types/User";
 import Message from "../types/Message";
 import { Group } from "./GroupsPage";
 import EventInfo from "../types/EventInfo";
+import { useUser } from "../sso/UserContext";
 
 type Report = {
     id: number;
@@ -27,6 +28,7 @@ type Report = {
 };
 
 function AdminPage(){
+    const { userDetails } = useUser();
 
     const navigate = useNavigate();
 
@@ -50,21 +52,24 @@ function AdminPage(){
         reloadReports();
     }, []);
 
-    return <>
-        <Button onClick={handleBackClick}>
-            <ArrowBackIcon />
-        </Button>
-        <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            gap={2}
-        >
-            {reports.map(report =>
-                <AdminReportCard report={report} key={report.id} reloadReports={reloadReports}/>
-            )}
-        </Box>
-    </>
+    return (userDetails.isAdmin ?
+        <>
+            <Button onClick={handleBackClick}>
+                <ArrowBackIcon />
+            </Button>
+            <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center"
+                gap={2}
+            >
+                {reports.map(report =>
+                    <AdminReportCard report={report} key={report.id} reloadReports={reloadReports}/>
+                )}
+            </Box>
+        </> :
+        <Typography>You don't have access to this page.</Typography>
+    );
 }
 
 type AdminReportCardProps = {
