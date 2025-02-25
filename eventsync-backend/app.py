@@ -979,6 +979,22 @@ def get_user_name(user_id: str):
         print(f"Error: {err}")
     return {}
 
+@app.get('/get_event_info/<int:event_info_id>/')
+def get_event_info(event_info_id):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f"""SELECT * FROM EventInfo WHERE id = {event_info_id}""")
+        response = mycursor.fetchall()
+        headers = mycursor.description
+
+        mycursor.close()
+        conn.close()
+        return sqlResponseToJson(response, headers)
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
 @app.route('/get_event/<int:event_id>/<string:user_id>', methods=['GET'])
 def get_event(event_id: int, user_id: str):
     try:  
@@ -1790,6 +1806,22 @@ def message():
         pusher_client.trigger(f'chat-{data["chatId"]}', 'new-message', {'messageContent': data['messageContent'], 'senderId': data['senderId'],
                                     'chatId': data['chatId'], 'timeSent': data['timeSent'], 'id': data['id']}) # TODO: change id
         return "message sent"
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+@app.get('/get_message/<int:message_id>')
+def get_message(message_id: int):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute(f"SELECT * FROM Message WHERE id={message_id};")
+        response = mycursor.fetchall()
+        headers = mycursor.description
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return sqlResponseToJson(response, headers)
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}

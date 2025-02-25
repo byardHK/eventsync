@@ -18,7 +18,7 @@ import { BASE_URL } from "../components/Cosntants";
 export type Group = {
     id: number;
     groupName: string;
-    creatorId: number;
+    creatorId: string;
     users: User[];
 }
 
