@@ -10,7 +10,7 @@ import User from "../types/User";
 import Message from "../types/Message";
 import { Group } from "./GroupsPage";
 import EventInfo from "../types/EventInfo";
-import { useUser } from "../sso/UserContext";
+import { UserDetails, useUser } from "../sso/UserContext";
 import BackButton from "../components/BackButton";
 
 type Report = {
@@ -61,7 +61,7 @@ function AdminPage(){
             >
                 {reports ?
                     reports.map(report =>
-                        <AdminReportCard report={report} key={report.id} reloadReports={reloadReports}/>
+                        <AdminReportCard report={report} key={report.id} reloadReports={reloadReports} userDetails={userDetails}/>
                     ) :
                     <Box
                         display="flex"
@@ -81,10 +81,11 @@ function AdminPage(){
 
 type AdminReportCardProps = {
     report: Report;
+    userDetails: UserDetails;
     reloadReports: () => void;
 };
 
-function AdminReportCard({report, reloadReports} : AdminReportCardProps){
+function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardProps){
     const [deleteReportModalOpen, setDeleteReportModalOpen] = useState<boolean>(false);
     const [viewReportModalOpen, setViewReportModalOpen] = useState<boolean>(false);
 
@@ -184,7 +185,15 @@ function AdminReportCard({report, reloadReports} : AdminReportCardProps){
         const [group, setGroup] = useState<Group>();
 
         async function loadGroup() {
-            const res = await axios.get(`${BASE_URL}/get_group/${report.reportedGroupId}`);
+            const res = await axios.get(
+                `${BASE_URL}/get_group/${report.reportedGroupId}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
             setGroup(res.data);
         }
 

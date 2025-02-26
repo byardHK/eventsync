@@ -51,8 +51,8 @@ function FriendsPage() {
                     },
                 }),
             ]);
-
             setUsers(usersResponse.data || []);
+            setFilteredUsers(usersResponse.data || []);
             setFriends(friendsResponse.data || []);
             setRequests(pendingResponse.data.requests || []);
             setPending(pendingResponse.data.pending || []);
