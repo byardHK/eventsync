@@ -5,14 +5,13 @@ import WarningIcon from '@mui/icons-material/Warning';
 import BlockIcon from '@mui/icons-material/Block';
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { BASE_URL } from "../components/Constants";
 import User from "../types/User";
 import Message from "../types/Message";
 import { Group } from "./GroupsPage";
 import EventInfo from "../types/EventInfo";
 import { useUser } from "../sso/UserContext";
+import BackButton from "../components/BackButton";
 
 type Report = {
     id: number;
@@ -28,11 +27,6 @@ type Report = {
 };
 
 function AdminPage(){
-    const navigate = useNavigate();
-
-    const handleBackClick = () => {
-        navigate('/home');
-    };
     
     const [reports, setReports] = useState<Report[]>();
     const {userDetails} = useUser();
@@ -58,9 +52,7 @@ function AdminPage(){
 
     return (userDetails.isAdmin ?
         <>
-            <Button onClick={handleBackClick}>
-                <ArrowBackIcon />
-            </Button>
+            <BackButton></BackButton>
             <Box
                 display="flex"
                 flexDirection="column"
