@@ -2458,9 +2458,9 @@ def get_my_chats(user_id: str):
                             (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
                             JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            WHERE EventInfo.creatorId = "harnlyam20@gcc.edu")
+                            WHERE EventInfo.creatorId = "{user_id}")
                             UNION
-                            (SELECT Chat.id, Chat.chatType, otherUser.userId AS name FROM Chat 
+                            (SELECT Chat.id, otherUser.userId AS name, Chat.chatType FROM Chat 
                             JOIN ChatToUser ON Chat.id = ChatToUser.chatId
                             JOIN (SELECT * FROM ChatToUser WHERE ChatToUser.userId != '{user_id}') AS otherUser
                             ON ChatToUser.chatId = otherUser.chatId
