@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import axios from "axios";
-import { Button, Grid2, InputAdornment, TextField, Autocomplete, Checkbox, FormControlLabel } from '@mui/material';
+import { Button, Grid2, InputAdornment, TextField, Autocomplete, Checkbox, FormControlLabel, Collapse } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PersonIcon from '@mui/icons-material/Person';
 import BottomNavBar from '../components/BottomNavBar';
@@ -14,6 +14,13 @@ import FlagIcon from '@mui/icons-material/Flag';
 import EventSyncEvent from '../types/EventSyncEvent';
 import { BASE_URL } from '../components/Constants';
 import logo from '../images/logo.png'; 
+import { MobileDateTimePicker } from '@mui/x-date-pickers/MobileDateTimePicker';
+import { Dayjs } from 'dayjs';
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import ReplayIcon from '@mui/icons-material/Replay';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
 function HomePage() {
     const { userDetails } = useUser();
@@ -30,8 +37,19 @@ function HomePage() {
     const [userTags, setUserTags] = useState<string[]>([]);
     const [tagOptions, setTagOptions] = useState<string[]>([]);
     const [inputValue, setInputValue] = useState('');
-    const [isComingSoon, setIsComingSoon] = useState<boolean>(true); 
+    const [isComingSoon, setIsComingSoon] = useState<boolean>(true);
+    const [afterDate, setAfterDate] = useState<Dayjs | null>(null);
+    const [beforeDate, setBeforeDate] = useState<Dayjs | null>(null);
     const [hideFullEvents, setHideFullEvents] = useState<boolean>(false);
+    const [filtersVisible, setFiltersVisible] = useState<boolean>(false);
+
+    const resetBeforePicker = () => {
+        setBeforeDate(null);
+    }
+
+    const resetAfterPicker = () => {
+        setAfterDate(null);
+    }
 
     useEffect(() => {
         const fetchTagOptions = async () => {
@@ -64,130 +82,157 @@ function HomePage() {
     }, []);
     
     return <>
-        <Box
-            display="flex"
-            alignItems="right" 
-            justifyContent="right"
-            padding={2}
-            gap={2}
-        >
-            <Link to="/admin">
-                <Button variant="contained">
-                    <FlagIcon/>
-                </Button>
-            </Link>
-            
-            <Link to={`/profile/${currentUserId}`}>
-                <Button variant="contained">
-                    <PersonIcon/>
-                </Button>
-            </Link>
-            
-        </Box>
-        <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center" 
-            justifyContent="center"
-            gap={2}
-        >
-            {/* <h3 className="card-title">Welcome {userDetails.firstName}!</h3> */}
-            <TextField 
-                sx={{input: {backgroundColor: 'white'}}}
-                id="outlined-basic" 
-                label="Search" 
-                onChange={(e) => setSearchKeyword(e.target.value)}
-                slotProps={{
-                    input: {
-                        startAdornment: (
-                        <InputAdornment position="start">
-                            <SearchIcon/>
-                        </InputAdornment>
-                        ),
-                    },
-                }}
-                variant="outlined"
-            />
-            <Autocomplete
-                multiple
-                id="multiple-limit-tags"
-                options={tagOptions}
-                value={tags}
-                getOptionLabel={(option) => option}
-                renderInput={(params) => (
-                    <TextField 
-                        {...params} 
-                        label="Tags" 
-                        type="text" 
-                        InputProps={{
-                            ...params.InputProps,
-                            endAdornment: (
-                                <div style={{ display: 'none' }}>
-                                    {params.InputProps.endAdornment}
-                                </div>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Box
+                display="flex"
+                alignItems="right" 
+                justifyContent="right"
+                padding={2}
+                gap={2}
+            >
+                <Link to="/admin">
+                    <Button variant="contained">
+                        <FlagIcon/>
+                    </Button>
+                </Link>
+                
+                <Link to={`/profile/${currentUserId}`}>
+                    <Button variant="contained">
+                        <PersonIcon/>
+                    </Button>
+                </Link>
+                
+            </Box>
+            <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center" 
+                justifyContent="center"
+                gap={2}
+            >
+                {/* <h3 className="card-title">Welcome {userDetails.firstName}!</h3> */}
+                <TextField 
+                    sx={{input: {backgroundColor: 'white'}}}
+                    id="outlined-basic" 
+                    label="Search" 
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                    slotProps={{
+                        input: {
+                            startAdornment: (
+                            <InputAdornment position="start">
+                                <SearchIcon/>
+                            </InputAdornment>
                             ),
+                        },
+                    }}
+                    variant="outlined"
+                />
+                <Button onClick={() => setFiltersVisible(!filtersVisible)}>
+                    {filtersVisible ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </Button>
+                <Collapse in={filtersVisible}>
+                    <Autocomplete
+                        multiple
+                        id="multiple-limit-tags"
+                        options={tagOptions}
+                        value={tags}
+                        getOptionLabel={(option) => option}
+                        renderInput={(params) => (
+                            <TextField 
+                                {...params} 
+                                label="Tags" 
+                                type="text" 
+                                InputProps={{
+                                    ...params.InputProps,
+                                    endAdornment: (
+                                        <div style={{ display: 'none' }}>
+                                            {params.InputProps.endAdornment}
+                                        </div>
+                                    ),
+                                }}
+                            />
+                        )}
+                        sx={{ width: '255px' }}
+                        inputValue={inputValue}
+                        onInputChange={(_, newInputValue) => {
+                            setInputValue(newInputValue);
                         }}
+                        onChange={(_, newValue) => {
+                            setTags(newValue);
+                        }}
+                        open={inputValue !== ''}
                     />
-                )}
-                sx={{ width: '255px' }}
-                inputValue={inputValue}
-                onInputChange={(_, newInputValue) => {
-                    setInputValue(newInputValue);
-                }}
-                onChange={(_, newValue) => {
-                    setTags(newValue);
-                }}
-                open={inputValue !== ''}
-            />
-            <FormControlLabel
-                control={
-                    <Checkbox
-                        checked={hideFullEvents}
-                        onChange={(e) => setHideFullEvents(e.target.checked)}
-                        name="hideFullEvents"
-                        color="primary"
+                    <Box display="flex" alignItems="center" width={"255px"}>
+                        <MobileDateTimePicker
+                            label="After"
+                            value={afterDate}
+                            onChange={(newValue) => setAfterDate(newValue)}
+                        />
+                        <Button onClick={resetAfterPicker}>
+                            <ReplayIcon/>
+                        </Button>
+                    </Box>
+                    <Box display="flex" alignItems="center" width={"255px"}>
+                        <MobileDateTimePicker
+                            label="Before"
+                            value={beforeDate}
+                            onChange={(newValue) => setBeforeDate(newValue)}
+                        />
+                        <Button onClick={resetBeforePicker}>
+                            <ReplayIcon/>
+                        </Button>
+                    </Box>
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={hideFullEvents}
+                                onChange={(e) => setHideFullEvents(e.target.checked)}
+                                name="hideFullEvents"
+                                color="primary"
+                            />
+                        }
+                        label="Hide Full Events"
                     />
-                }
-                label="Hide Full Events"
-            />
-        </Box>
-        <Box
-            display="flex"
-            flexDirection="row"
-            alignItems="center" 
-            justifyContent="center"
-            padding={2}
-            gap={2}
-        >
-           <Button 
-                variant={isComingSoon ? "contained" : "outlined"} 
-                fullWidth
-                onClick={() => {setIsComingSoon(true)}}
+                </Collapse>
+            </Box>
+            <Box
+                display="flex"
+                flexDirection="row"
+                alignItems="center" 
+                justifyContent="center"
+                padding={2}
+                gap={2}
             >
-                Coming Soon
-            </Button>
             <Button 
-                variant={!isComingSoon ? "contained" : "outlined"} 
-                fullWidth
-                onClick={() => {setIsComingSoon(false)}}
+                    variant={isComingSoon ? "contained" : "outlined"} 
+                    fullWidth
+                    onClick={() => {setIsComingSoon(true)}}
+                >
+                    Coming Soon
+                </Button>
+                <Button 
+                    variant={!isComingSoon ? "contained" : "outlined"} 
+                    fullWidth
+                    onClick={() => {setIsComingSoon(false)}}
+                >
+                    Recommended
+                </Button> 
+            </Box> 
+            <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center" 
+                justifyContent="center"
+                gap={2}
             >
-                Recommended
-            </Button> 
-        </Box> 
-        <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center" 
-            justifyContent="center"
-            gap={2}
-        >
-            <EventList searchKeyword={searchKeyword} tags={tags} userTags={userTags} isComingSoon={isComingSoon} hideFullEvents={hideFullEvents}/>         
+            <EventList searchKeyword={searchKeyword} tags={tags} userTags={userTags} isComingSoon={isComingSoon} hideFullEvents={hideFullEvents} afterDate={afterDate} beforeDate={beforeDate}/>                
             <BottomNavBar userId={currentUserId!}/>
-        </Box>
+            </Box>
+        </LocalizationProvider>
     </>;
 };
 
-function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents}: {searchKeyword: string, tags: string[], userTags: string[], isComingSoon: boolean, hideFullEvents: boolean}) {
+function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents, afterDate, beforeDate}: {searchKeyword: string, tags: string[], userTags: string[], isComingSoon: boolean, hideFullEvents: boolean, afterDate: Dayjs | null, beforeDate: Dayjs | null}) {
     const [events, setEvents] = useState<EventSyncEvent[]>([]);    
     const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
     const {userDetails} = useUser()
@@ -241,11 +286,14 @@ function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents}
         const notFull = hideFullEvents
             ? event.RSVPLimit === 0 || event.numRsvps < event.RSVPLimit
             : true;
-    
-        // Debugging logs
-        console.log(`Event: ${event.eventName}, numRsvps: ${event.numRsvps}, RSVPLimit: ${event.RSVPLimit}, notFull: ${notFull}`);
-    
-        return matchesKeyword && matchesTags && notFull;
+        const selectedAfter = afterDate
+            ? new Date(event.startTime).getTime() > afterDate.toDate().getTime()
+            : true;
+        const selectedBefore = beforeDate
+            ? new Date(event.startTime).getTime() < beforeDate.toDate().getTime()
+            : true;
+
+        return matchesKeyword && matchesTags && notFull && selectedAfter && selectedBefore;
     });
     
     const sortedFilteredEvents = filteredEvents.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
