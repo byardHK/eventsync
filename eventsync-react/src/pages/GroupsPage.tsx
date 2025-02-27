@@ -1,4 +1,4 @@
-import { Box, Button, ButtonGroup, Card, ClickAwayListener, Dialog, Grow, IconButton, MenuItem, MenuList, Paper, Popper } from "@mui/material"
+import { Box, Button, ButtonGroup, Card, CircularProgress, ClickAwayListener, Dialog, Grow, IconButton, MenuItem, MenuList, Paper, Popper, Typography } from "@mui/material"
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNavBar from "../components/BottomNavBar";
@@ -20,13 +20,13 @@ import LogoutIcon from '@mui/icons-material/Logout';
 export type Group = {
     id: number;
     groupName: string;
-    creatorId: number;
+    creatorId: string;
     chatId: number;
     users: User[];
 }
 
 function GroupsPage(){
-    const [groups, setGroups] = useState<Group[]>([]);
+    const [groups, setGroups] = useState<Group[]>();
     const [isFriendsPage] = useState<Boolean>(false);  
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
@@ -87,9 +87,20 @@ function GroupsPage(){
                 paddingTop={3}
                 sx={{height: "75vh"}}
             >
-                {groups.map(group =>
-                    <SplitButton group={group} key={group.id} currentUserId={currentUserId!} onSave={reloadMyGroups}/>
-                )}
+                {groups ? 
+                    groups.map(group =>
+                        <SplitButton group={group} key={group.id} currentUserId={currentUserId!} onSave={reloadMyGroups}/>
+                    ) :
+                    <Box
+                        display="flex"
+                        flexDirection="column"
+                        justifyContent="center"
+                        alignItems="center"
+                    >
+                        <Typography>Loading...</Typography>
+                        <CircularProgress/>
+                    </Box>
+                }
             </Box>
             <Box
                 display="flex"
@@ -120,7 +131,6 @@ type SplitButtonProps = {
 function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
     const [open, setOpen] = React.useState(false);
     const anchorRef = React.useRef<HTMLDivElement>(null);
-    const [selectedIndex, setSelectedIndex] = React.useState(1);
     const [editing, setEditing] = useState<boolean>(false);
     const [leavingGroupModalOpen, setLeavingGroupModalOpen] = useState<boolean>(false); 
     const [deleteGroupModalOpen, setDeleteGroupModalOpen] = useState<boolean>(false); 
@@ -130,7 +140,7 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
             onClose={()=> {setLeavingGroupModalOpen(false)}}
             open={leavingGroupModalOpen}
         >
-            <Box sx={{padding : 3}}>
+            <Box sx={{padding : 3}}>fconsole.log
                 <h2>Leave group?</h2>
                 <Box display="flex" flexDirection="row" justifyContent="space-between">
                     <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setLeavingGroupModalOpen(false)}}>Cancel</Button>
@@ -222,7 +232,8 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
                     <IconButton onClick={() => setEditing(true)}>
                         <EditIcon style={{color: "blue"}}></EditIcon>
                     </IconButton>
-                    {currentUserId === group.creatorId ? (
+                    {/* {currentUserId === group.creatorId ? ( */}
+                    {true ? (
                         <IconButton onClick={() => setDeleteGroupModalOpen(true)}>
                             <DeleteIcon style={{color: "red"}}></DeleteIcon>
                         </IconButton>
@@ -269,6 +280,7 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
                   {group.users.map((user) => (
                     <MenuItem
                       key={user.id}
+                      onClick={() => {navigate(`/profile/${user.id}`)}}
                     >
                       {`${user.fname} ${user.lname}`}
                     </MenuItem>

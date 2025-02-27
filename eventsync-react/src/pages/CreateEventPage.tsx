@@ -8,7 +8,6 @@ import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import dayjs, { Dayjs } from "dayjs";
 import { useNavigate, useParams } from 'react-router-dom';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import TagModal from '../components/TagModal';
 import ItemModal from '../components/ItemModal';
 import CheckIcon from '@mui/icons-material/Check';
@@ -18,6 +17,7 @@ import { useEffect, useState } from 'react';
 import "../styles/style.css"
 import Tag from '../types/Tag';
 import { BASE_URL } from '../components/Constants';
+import BackButton from '../components/BackButton';
 
 function CreateEventPage() {
     const { userDetails } = useUser();
@@ -228,9 +228,7 @@ function CreateEventPage() {
     return <>
         <Box>
             <Box display="flex" alignItems="center" justifyContent="center">
-                <Button onClick={handleBackClick} title="go to My Events page">
-                    <ArrowBackIcon />
-                </Button>
+                <BackButton></BackButton>
                 <Box display="flex" flexDirection="column">
                     <Typography variant="body1">
                         {eventId ? "Edit Event" : "Create Event"}

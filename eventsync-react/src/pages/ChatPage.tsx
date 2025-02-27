@@ -5,8 +5,7 @@ import Message from '../types/Message';
 import Chat from '../types/Chat';
 import { useState } from 'react';
 import { useUser } from '../sso/UserContext';
-import { useNavigate, useParams } from 'react-router-dom';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useParams } from 'react-router-dom';
 import '../styles/chat.css'
 import dayjs, { Dayjs } from "dayjs";
 import SendIcon from '@mui/icons-material/Send';
@@ -14,6 +13,7 @@ import isToday from 'dayjs/plugin/isToday';
 import FlagIcon from '@mui/icons-material/Flag';
 import chatType from '../types/chatType';
 import { Link } from 'react-router-dom';
+import BackButton from '../components/BackButton';
 
 dayjs.extend(isToday);
 
@@ -31,7 +31,6 @@ function ChatPage() {
     const { userDetails } = useUser();
     const currentUserId = userDetails.email ? userDetails.email : "";
     const channelName = `chat-${chatId}`;
-    const navigate = useNavigate();
     const [nonGroupOtherUser, setNonGroupOtherUser] = useState<User | null>(null);
 
 	useEffect(() => {
@@ -109,10 +108,6 @@ function ChatPage() {
         setMessages(response.data.chats);
     }
 
-    const handleBackClick = () => {
-        navigate('/chatHome');
-    };
-
     function chatTitle() {
         if (!chat) return <div></div>;
         if (chat.chatType == chatType.INDIVIDUAL && nonGroupOtherUser) {
@@ -136,9 +131,7 @@ function ChatPage() {
 	return(
 		<div className="chat-container">
              <div className="chat-header"> 
-             <Button className='arrow' onClick={handleBackClick} title="go to My Events page">
-                    <ArrowBackIcon style={{ color: 'white'}} />
-                </Button> 
+             <BackButton></BackButton>
                 {chatTitle()}    
             </div>
             <ChatList messages={messages} currentUserId={currentUserId} groupChat={!(chat?.chatType == chatType.INDIVIDUAL)!} getName={getName}></ChatList>
@@ -190,13 +183,13 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
                                     <FlagIcon style={{ color: 'red'}}></FlagIcon>
                                 </IconButton>
                             </Box>
-                            <ListItemText className="message">{message.messageContent}</ListItemText>
-                            <ListItemText className="date">{messageDateString(message.timeSent)}</ListItemText>
+                            <ListItemText>{message.messageContent}</ListItemText>
+                            <div className="date">{messageDateString(message.timeSent)}</div>
                         </div>
                     ) : (
                         <div>
                             <ListItemText className="message">{message.messageContent}</ListItemText>
-                            <ListItemText className="date">{messageDateString(message.timeSent)}</ListItemText>
+                            <div className="date">{messageDateString(message.timeSent)}</div>
                         </div>
                     )}
             

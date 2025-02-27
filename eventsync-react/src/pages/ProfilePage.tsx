@@ -5,7 +5,6 @@ import axios from "axios";
 import { useUser } from "../sso/UserContext";
 import {UserDetails} from "../sso/UserContext";
 import "../styles/style.css";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate, useParams } from "react-router-dom";
 import SignOutButton from "../components/SignOutButton";
 import Tag from "../types/Tag";
@@ -14,6 +13,7 @@ import FlagIcon from '@mui/icons-material/Flag';
 import ReportModal from "../components/ReportModal";
 import User from "../types/User";
 import logo from '../images/logo.png'; 
+import BackButton from "../components/BackButton";
 
 
 export const FetchExistingUserTS = async (email: string, setUserDetails: Dispatch<SetStateAction<UserDetails>>) => {
@@ -167,16 +167,11 @@ function ProfilePage() {
             fetchData();
         }, [userTagsTrigger]);
 
-    const navigate = useNavigate();
-    const handleBackClick = () => navigate("/home");
-
         return (
             <Box display="flex" flexDirection="column" alignItems="center" width="85%" maxWidth="350px" margin="auto">
                 {/* Back & Logout Buttons */}
                 <Box display="flex" justifyContent="space-between" width="100%">
-                    <Button onClick={handleBackClick}>
-                        <ArrowBackIcon />
-                    </Button>
+                    <BackButton></BackButton>
                     <SignOutButton />
                 </Box>
 
@@ -361,7 +356,6 @@ function ProfilePage() {
         }, []);
     
         const navigate = useNavigate();
-        const handleBackClick = () => navigate("/home");
 
         async function goToMessages() {
             if(user){
@@ -380,9 +374,7 @@ function ProfilePage() {
                 {/* Back Button */}
                 <ReportModal input={user} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="user"/>
                 <Box display="flex" flexDirection="row" justifyContent="space-between" width="100%">
-                    <Button onClick={handleBackClick}>
-                        <ArrowBackIcon />
-                    </Button>
+                    <BackButton></BackButton>
                     <IconButton onClick={()=>setReportModalOpen(true)}>
                         <FlagIcon style={{ color: 'red'}}></FlagIcon>
                     </IconButton>
