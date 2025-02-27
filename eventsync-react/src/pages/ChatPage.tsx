@@ -183,13 +183,13 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
                                     <FlagIcon style={{ color: 'red'}}></FlagIcon>
                                 </IconButton>
                             </Box>
-                            <ListItemText className="message">{message.messageContent}</ListItemText>
-                            <ListItemText className="date">{messageDateString(message.timeSent)}</ListItemText>
+                            <ListItemText>{message.messageContent}</ListItemText>
+                            <div className="date">{messageDateString(message.timeSent)}</div>
                         </div>
                     ) : (
                         <div>
                             <ListItemText className="message">{message.messageContent}</ListItemText>
-                            <ListItemText className="date">{messageDateString(message.timeSent)}</ListItemText>
+                            <div className="date">{messageDateString(message.timeSent)}</div>
                         </div>
                     )}
             

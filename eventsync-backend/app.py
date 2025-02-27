@@ -902,6 +902,24 @@ def remove_friend(userId, friendId):
                 WHERE (user1Id = %s AND user2Id = %s) OR (user1Id = %s AND user2Id = %s);
                 """
         mycursor.execute(query, (userId, friendId, friendId, userId))
+
+        getChatId = f"""SET @chatId =
+                            (SELECT ChatToUser.chatId FROM ChatToUser 
+                            JOIN (SELECT * FROM ChatToUser WHERE userId = '{userId}') AS otherUserTable
+                            ON ChatToUser.chatId = otherUserTable.chatId
+                            WHERE ChatToUser.userId = '{friendId}'
+                            LIMIT 1);"""
+        deleteChatToUser = f"""
+                DELETE FROM ChatToUser
+                WHERE (userId = '{userId}' AND chatId = @chatId) OR (userId = '{friendId}' AND chatId = @chatId);
+                """
+        deleteChat = f"""
+                DELETE FROM Chat
+                WHERE id = @chatId;
+                """
+        mycursor.execute(getChatId)
+        mycursor.execute(deleteChatToUser)
+        mycursor.execute(deleteChat)
         conn.commit()
         mycursor.close()
         conn.close()
@@ -2457,7 +2475,7 @@ def get_chat(chat_id: str):
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
                             WHERE Chat.id = {chat_id})
                             UNION
-                            (SELECT Chat.id, Chat.chatType, "" AS name FROM Chat 
+                            (SELECT Chat.id, "" AS name, Chat.chatType FROM Chat 
                             JOIN ChatToUser ON Chat.id = ChatToUser.chatId
                             WHERE Chat.id = {chat_id})
                             LIMIT 1""")
