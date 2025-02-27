@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, TextField } from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, IconButton } from "@mui/material";
 import { useState } from "react";  
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
@@ -12,7 +12,7 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
 
     function createNewPartialItem() {
         const item: Item = {
-            id: 1,
+            id: partialItems.length + 1,
             description: "New Item", 
             amountNeeded: 1,
             quantityAccountedFor: 0,
@@ -31,88 +31,87 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
         setPartialItems(newPartialItems);
     }
 
-    function changeItemDescription(description: String, index: number){
+    function changeItemDescription(description: string, index: number){
         const newPartialItems = [...partialItems];
         newPartialItems[index].description = description;
         setPartialItems(newPartialItems);
     }
 
-    function ItemRow(item: Item, index: number){
-        return <Box
-            display="flex"
-            flexDirection="row"
-            justifyContent="center"
-        >
-            <Box
-                display="flex"
-                width="50%"
-                justifyContent="left"
-                paddingLeft={3}
-            >  
-                <TextField 
-                    onChange={(event) => changeItemDescription(event.target.value, index)}
-                    defaultValue = {item.description}
-                >
-                    </TextField>
-            </Box>
-            <Box
-                display="flex"
-                width="50%" 
-                justifyContent="right"
-                gap={3}
-            >
-                <Button variant="contained" onClick={() => changeItemQuantity(-1, index)}>
-                    <RemoveIcon></RemoveIcon>
-                </Button>
-                <h3>{item.amountNeeded}</h3>
-                <Button variant="contained" onClick={() => changeItemQuantity(1, index)}>
-                    <AddIcon></AddIcon>
-                </Button>
-            </Box>
-            <Box
-                display="flex"
-                width="50%" 
-                justifyContent="right"
-                gap={3}
-            >
-                <Button variant="contained" 
-                    onClick={() => {
-                        partialItems.length == 1 ? setPartialItems([]) : 
-                        partialItems.splice(partialItems.findIndex((thisItem) => item.id = thisItem.id), 1)}}>
-                    <DeleteIcon></DeleteIcon>
-                </Button>
-            </Box>
-        </Box>
+    function deleteItem(index: number){
+        const newPartialItems = partialItems.filter((_, i) => i !== index);
+        setPartialItems(newPartialItems);
     }
 
-    return <>
-        <Button 
-            variant="outlined" 
-            sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
-            onClick={handleOpen}
-            title="edit items to bring"
-        >
-            <AddIcon />
-        </Button>
-        <Dialog 
-            onClose={handleClose} 
-            open={open}
-            fullScreen
-        >
-            <Box
-                display="flex"
-                flexDirection="column"
+    function handleSave() {
+        prop.itemsToParent(partialItems);
+        handleClose();
+    }
+
+    return (
+        <div>
+            <Button 
+                variant="outlined"
+                sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
+                onClick={handleOpen}
+                title="edit tags"
             >
-                {partialItems.map((item, index) =>           
-                    ItemRow(item,index)
-                )}
-                <Button onClick={createNewPartialItem}>
-                    Add New Item
-                </Button>
-            </Box>
-            <Button onClick={() => {prop.itemsToParent(partialItems); handleClose(); }}>Done</Button>
-        </Dialog>
-    </>
+                <AddIcon/>
+            </Button>
+            <Dialog open={open} onClose={handleClose} fullWidth>
+                <DialogTitle>Manage Items</DialogTitle>
+                <DialogContent>
+                    {partialItems.map((item, index) => (
+                        <Box key={index} display="flex" alignItems="center" mb={2}>
+                            <TextField
+                                label="Description"
+                                value={item.description}
+                                onChange={(e) => changeItemDescription(e.target.value, index)}
+                                fullWidth
+                                margin="normal"
+                            />
+                            <IconButton onClick={() => changeItemQuantity(-1, index)}>
+                                <RemoveIcon />
+                            </IconButton>
+                            <TextField
+                                type="number"
+                                value={item.amountNeeded}
+                                onChange={(e) => changeItemQuantity(Number(e.target.value) - item.amountNeeded, index)}
+                                inputProps={{ min: 1, style: { MozAppearance: 'textfield' } }}
+                                sx={{
+                                    '& input[type=number]': {
+                                        MozAppearance: 'textfield',
+                                    },
+                                    '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': {
+                                        WebkitAppearance: 'none',
+                                        margin: 0,
+                                    },
+                                }}
+                                margin="normal"
+                                style={{ width: '150px' }}
+                            />
+                            <IconButton onClick={() => changeItemQuantity(1, index)}>
+                                <AddIcon />
+                            </IconButton>
+                            <IconButton onClick={() => deleteItem(index)}>
+                                <DeleteIcon />
+                            </IconButton>
+                        </Box>
+                    ))}
+                    <Button variant="outlined" onClick={createNewPartialItem}>
+                        Add Item
+                    </Button>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleSave} color="primary">
+                        Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </div>
+    );
 }
 
 type Item = {

@@ -123,7 +123,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
         >
             <AddIcon />
         </Button>
-        <Dialog onClose={handleClose} open={open}>
+        <Dialog onClose={handleClose} open={open} fullWidth maxWidth="md">
             <Box
                 display="flex" 
                 flexDirection="column"

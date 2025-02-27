@@ -43,7 +43,6 @@ function CreateEventPage() {
     const [descriptionText, setDescriptionText] = useState<String>("");
     const [editAllEvents, setEditAllEvents] = useState<boolean>(true);
     const [creatorName, setCreatorName] = useState<String>(userDetails.firstName + " " + userDetails.lastName);
-
     const [eventTagsTrigger, setEventTagsTrigger] = useState<number>(0);
 
     function reloadEventTags() {
@@ -281,7 +280,7 @@ function CreateEventPage() {
                         value={endDateTime}
                         onChange={(newValue) => setEndDateTime(newValue)} 
                     />
-                    <Box display="flex" alignItems="center">
+                    <Box display="flex" alignItems="center" margin={5}>
                         <Typography variant="body1">Tags:</Typography>
                         <TagModal savedTags={tags} handleSave={handleSave}></TagModal>
                         <Typography variant="body1">Items to Bring:</Typography>

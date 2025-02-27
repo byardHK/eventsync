@@ -130,6 +130,7 @@ function HomePage() {
                     variant="outlined"
                 />
                 <Button onClick={() => setFiltersVisible(!filtersVisible)}>
+                    {filtersVisible ? "Close Filters" : "Open Filters"}
                     {filtersVisible ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                 </Button>
                 <Collapse in={filtersVisible}>
