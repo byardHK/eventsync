@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import axios from "axios";
-import { Button, Grid2, InputAdornment, TextField, Autocomplete } from '@mui/material';
+import { Button, Grid2, InputAdornment, TextField, Autocomplete, Checkbox, FormControlLabel } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PersonIcon from '@mui/icons-material/Person';
 import BottomNavBar from '../components/BottomNavBar';
@@ -31,6 +31,7 @@ function HomePage() {
     const [tagOptions, setTagOptions] = useState<string[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isComingSoon, setIsComingSoon] = useState<boolean>(true); 
+    const [hideFullEvents, setHideFullEvents] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchTagOptions = async () => {
@@ -138,6 +139,17 @@ function HomePage() {
                 }}
                 open={inputValue !== ''}
             />
+            <FormControlLabel
+                control={
+                    <Checkbox
+                        checked={hideFullEvents}
+                        onChange={(e) => setHideFullEvents(e.target.checked)}
+                        name="hideFullEvents"
+                        color="primary"
+                    />
+                }
+                label="Hide Full Events"
+            />
         </Box>
         <Box
             display="flex"
@@ -169,13 +181,13 @@ function HomePage() {
             justifyContent="center"
             gap={2}
         >
-            <EventList searchKeyword={searchKeyword} tags={tags} userTags={userTags} isComingSoon={isComingSoon}/>         
+            <EventList searchKeyword={searchKeyword} tags={tags} userTags={userTags} isComingSoon={isComingSoon} hideFullEvents={hideFullEvents}/>         
             <BottomNavBar userId={currentUserId!}/>
         </Box>
     </>;
 };
 
-function EventList({searchKeyword, tags, userTags, isComingSoon}: {searchKeyword: string, tags: string[], userTags: string[], isComingSoon: boolean}) {
+function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents}: {searchKeyword: string, tags: string[], userTags: string[], isComingSoon: boolean, hideFullEvents: boolean}) {
     const [events, setEvents] = useState<EventSyncEvent[]>([]);    
     const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
     const {userDetails} = useUser()
@@ -218,7 +230,7 @@ function EventList({searchKeyword, tags, userTags, isComingSoon}: {searchKeyword
         }
         navigate(`/viewEvent/${event.id}`);
     }
-
+    
     const filteredEvents = events.filter(event => {
         const matchesKeyword = searchKeyword
             ? event.eventName.toLowerCase().includes(searchKeyword.toLowerCase())
@@ -226,19 +238,26 @@ function EventList({searchKeyword, tags, userTags, isComingSoon}: {searchKeyword
         const matchesTags = tags.length > 0
             ? tags.every(tag => event.tags && event.tags.map(t => t.name).includes(tag))
             : true;
-        return matchesKeyword && matchesTags;
+        const notFull = hideFullEvents
+            ? event.RSVPLimit === 0 || event.numRsvps < event.RSVPLimit
+            : true;
+    
+        // Debugging logs
+        console.log(`Event: ${event.eventName}, numRsvps: ${event.numRsvps}, RSVPLimit: ${event.RSVPLimit}, notFull: ${notFull}`);
+    
+        return matchesKeyword && matchesTags && notFull;
     });
-
+    
     const sortedFilteredEvents = filteredEvents.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-
+    
     const eventRecommended = filteredEvents
         .filter(event => event.tags && event.tags.some(tag => userTags.includes(tag.name)))
         .sort((a, b) => {
             const aTagMatches = a.tags ? a.tags.filter(tag => userTags.includes(tag.name)).length : 0;
             const bTagMatches = b.tags ? b.tags.filter(tag => userTags.includes(tag.name)).length : 0;
             return bTagMatches - aTagMatches;
-    });
-
+        });
+    
     return <Grid2
         container spacing={3}
         display="flex"
@@ -253,6 +272,6 @@ function EventList({searchKeyword, tags, userTags, isComingSoon}: {searchKeyword
             <StyledCard key={event.id} event={event} viewEvent={viewEvent} showTags/>
         )}
     </Grid2>;
-};
+    };
 
 export default HomePage;
