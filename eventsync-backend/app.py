@@ -943,10 +943,23 @@ def delete_one_event(eventId):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+        
+        setEventInfoId = f"SET @eventInfoId = (SELECT eventInfoId FROM Event WHERE id = {eventId});"
+        setChatId = "SET @chatId = (SELECT chatId FROM EventInfoToChat WHERE eventInfoId = @eventInfoId);"
+        deleteEventInfoToChat = f"DELETE FROM EventInfoToChat WHERE eventInfoId = @eventInfoId"
+        deleteChat = f"DELETE FROM Chat WHERE id = @chatId"
+        mycursor.execute(setEventInfoId)
+        mycursor.execute(setChatId)
+        mycursor.execute(deleteEventInfoToChat)
+        mycursor.execute(deleteChat)
+
         mycursor.execute("DELETE FROM EventToItem WHERE eventId = %s", (eventId,))
         mycursor.execute("DELETE FROM EventToUser WHERE eventId = %s", (eventId,))
         mycursor.execute("DELETE FROM Event WHERE id = %s", (eventId,))
         mycursor.execute
+
+        deleteEventInfo = f"DELETE FROM EventInfo WHERE id = @eventInfoId"
+
         conn.commit()
         rowCount: int = mycursor.rowcount
         mycursor.close()
