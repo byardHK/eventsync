@@ -10,6 +10,8 @@ type EventSyncEvent = {
     recurs: Boolean;
     tags: Tag[];
     creatorId: string;
+    numRsvps: number;
+    RSVPLimit: number;
 };
 
 export default EventSyncEvent;
