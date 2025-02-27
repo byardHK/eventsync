@@ -2460,9 +2460,12 @@ def get_my_chats(user_id: str):
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
                             WHERE EventInfo.creatorId = "{user_id}")
                             UNION
-                            (SELECT Chat.id, otherUser.userId AS name, Chat.chatType FROM Chat 
+                            (SELECT Chat.id, CONCAT(otherUser.fname, " ", otherUser.lname) AS name, Chat.chatType FROM Chat 
                             JOIN ChatToUser ON Chat.id = ChatToUser.chatId
-                            JOIN (SELECT * FROM ChatToUser WHERE ChatToUser.userId != '{user_id}') AS otherUser
+                            JOIN (SELECT * FROM ChatToUser 
+                                JOIN User ON ChatToUser.userId = User.id
+                                WHERE ChatToUser.userId != '{user_id}'
+                                ) AS otherUser
                             ON ChatToUser.chatId = otherUser.chatId
                             WHERE ChatToUser.userId = '{user_id}')""")
         response = mycursor.fetchall()
