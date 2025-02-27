@@ -2101,11 +2101,13 @@ def delete_group():
         body = request.json
         groupId = body.get("groupId")
 
-        removeGroupChatToUsers = f"""
-            DELETE ChatToUser FROM GroupOfUser JOIN ChatToUser ON GroupOfUser.chatId = ChatToUser.chatId
-            WHERE GroupOfUser.id = {groupId};
+        getChatId = f"SET @chatId = (SELECT chatId FROM GroupOfUserToChat WHERE groupOfUserId = {groupId});"
+
+        removeGroupOfUserToChat = f"""
+            DELETE FROM GroupOfUserToChat WHERE groupOfUserId = {groupId};
         """
-        mycursor.execute(removeGroupChatToUsers)
+        mycursor.execute(getChatId)
+        mycursor.execute(removeGroupOfUserToChat)
 
         removeGroupUsers = f"""
             DELETE FROM GroupOfUserToUser WHERE groupId = {groupId};
@@ -2116,6 +2118,11 @@ def delete_group():
             DELETE FROM GroupOfUser WHERE id = {groupId};
         """
         mycursor.execute(removeGroup)
+
+        removeChat = f"""
+            DELETE FROM Chat WHERE id = @chatId;
+        """
+        mycursor.execute(removeChat)
         
         conn.commit()
         mycursor.close()
