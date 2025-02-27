@@ -902,6 +902,24 @@ def remove_friend(userId, friendId):
                 WHERE (user1Id = %s AND user2Id = %s) OR (user1Id = %s AND user2Id = %s);
                 """
         mycursor.execute(query, (userId, friendId, friendId, userId))
+
+        getChatId = f"""SET @chatId =
+                            (SELECT ChatToUser.chatId FROM ChatToUser 
+                            JOIN (SELECT * FROM ChatToUser WHERE userId = '{userId}') AS otherUserTable
+                            ON ChatToUser.chatId = otherUserTable.chatId
+                            WHERE ChatToUser.userId = '{friendId}'
+                            LIMIT 1);"""
+        deleteChatToUser = f"""
+                DELETE FROM ChatToUser
+                WHERE (userId = '{userId}' AND chatId = @chatId) OR (userId = '{friendId}' AND chatId = @chatId);
+                """
+        deleteChat = f"""
+                DELETE FROM Chat
+                WHERE id = @chatId;
+                """
+        mycursor.execute(getChatId)
+        mycursor.execute(deleteChatToUser)
+        mycursor.execute(deleteChat)
         conn.commit()
         mycursor.close()
         conn.close()
@@ -925,10 +943,23 @@ def delete_one_event(eventId):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+        
+        setEventInfoId = f"SET @eventInfoId = (SELECT eventInfoId FROM Event WHERE id = {eventId});"
+        setChatId = "SET @chatId = (SELECT chatId FROM EventInfoToChat WHERE eventInfoId = @eventInfoId);"
+        deleteEventInfoToChat = f"DELETE FROM EventInfoToChat WHERE eventInfoId = @eventInfoId"
+        deleteChat = f"DELETE FROM Chat WHERE id = @chatId"
+        mycursor.execute(setEventInfoId)
+        mycursor.execute(setChatId)
+        mycursor.execute(deleteEventInfoToChat)
+        mycursor.execute(deleteChat)
+
         mycursor.execute("DELETE FROM EventToItem WHERE eventId = %s", (eventId,))
         mycursor.execute("DELETE FROM EventToUser WHERE eventId = %s", (eventId,))
         mycursor.execute("DELETE FROM Event WHERE id = %s", (eventId,))
         mycursor.execute
+
+        deleteEventInfo = f"DELETE FROM EventInfo WHERE id = @eventInfoId"
+
         conn.commit()
         rowCount: int = mycursor.rowcount
         mycursor.close()
@@ -2083,11 +2114,13 @@ def delete_group():
         body = request.json
         groupId = body.get("groupId")
 
-        removeGroupChatToUsers = f"""
-            DELETE ChatToUser FROM GroupOfUser JOIN ChatToUser ON GroupOfUser.chatId = ChatToUser.chatId
-            WHERE GroupOfUser.id = {groupId};
+        getChatId = f"SET @chatId = (SELECT chatId FROM GroupOfUserToChat WHERE groupOfUserId = {groupId});"
+
+        removeGroupOfUserToChat = f"""
+            DELETE FROM GroupOfUserToChat WHERE groupOfUserId = {groupId};
         """
-        mycursor.execute(removeGroupChatToUsers)
+        mycursor.execute(getChatId)
+        mycursor.execute(removeGroupOfUserToChat)
 
         removeGroupUsers = f"""
             DELETE FROM GroupOfUserToUser WHERE groupId = {groupId};
@@ -2098,6 +2131,11 @@ def delete_group():
             DELETE FROM GroupOfUser WHERE id = {groupId};
         """
         mycursor.execute(removeGroup)
+
+        removeChat = f"""
+            DELETE FROM Chat WHERE id = @chatId;
+        """
+        mycursor.execute(removeChat)
         
         conn.commit()
         mycursor.close()
@@ -2420,9 +2458,9 @@ def get_my_chats(user_id: str):
                             (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
                             JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            WHERE EventInfo.creatorId = "harnlyam20@gcc.edu")
+                            WHERE EventInfo.creatorId = "{user_id}")
                             UNION
-                            (SELECT Chat.id, Chat.chatType, otherUser.userId AS name FROM Chat 
+                            (SELECT Chat.id, otherUser.userId AS name, Chat.chatType FROM Chat 
                             JOIN ChatToUser ON Chat.id = ChatToUser.chatId
                             JOIN (SELECT * FROM ChatToUser WHERE ChatToUser.userId != '{user_id}') AS otherUser
                             ON ChatToUser.chatId = otherUser.chatId
@@ -2457,7 +2495,7 @@ def get_chat(chat_id: str):
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
                             WHERE Chat.id = {chat_id})
                             UNION
-                            (SELECT Chat.id, Chat.chatType, "" AS name FROM Chat 
+                            (SELECT Chat.id, "" AS name, Chat.chatType FROM Chat 
                             JOIN ChatToUser ON Chat.id = ChatToUser.chatId
                             WHERE Chat.id = {chat_id})
                             LIMIT 1""")
