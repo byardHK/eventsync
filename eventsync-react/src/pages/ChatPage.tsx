@@ -96,7 +96,7 @@ function ChatPage() {
                 }
             }
         }
-      }, [users]);
+      }, [chat, users]);
 
     async function retrieveHistory() {
         const response = await axios.get<MessageList>(`${BASE_URL}/get_chat_hist/${chatId}`, {
@@ -112,11 +112,11 @@ function ChatPage() {
         if (!chat) return <div></div>;
         if (chat.chatType == chatType.INDIVIDUAL && nonGroupOtherUser) {
             return (
-                <h2>
+                <h1>
                 <Link to={`/profile/${nonGroupOtherUser.id}`}>
                     {getName(nonGroupOtherUser.id)}
                 </Link>
-                </h2>
+                </h1>
             )
         }
         return <h2>{chat.name}</h2>;
@@ -129,11 +129,11 @@ function ChatPage() {
     }
 
 	return(
-		<div className="chat-container">
-             <div className="chat-header"> 
-             <BackButton></BackButton>
-                {chatTitle()}    
-            </div>
+		<div >
+            <Box display="flex" alignItems="center" justifyContent="center">
+                <BackButton></BackButton>
+                {chatTitle()}   
+            </Box>
             <ChatList messages={messages} currentUserId={currentUserId} groupChat={!(chat?.chatType == chatType.INDIVIDUAL)!} getName={getName}></ChatList>
             <ChatInput channelName={""} currentUserId={currentUserId} chatId={chatId ?? "-1"}></ChatInput>
 		</div>
@@ -206,7 +206,7 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
                 <ListItemButton className="self">
                     <div className="msg">
                         <ListItemText className="message">{message.messageContent}</ListItemText>
-                        <ListItemText className="date">{messageDateString(message.timeSent)}</ListItemText>
+                        <div className="date">{messageDateString(message.timeSent)}</div>
 
                     </div>
                 </ListItemButton>
@@ -229,7 +229,7 @@ const ChatInput = (props: { channelName: String, currentUserId: String, chatId: 
             const data = {
                 senderId: props.currentUserId,
                 messageContent: message,
-                id: -1, // TODO: how do I want to do this?
+                id: -1,
                 chatId: props.chatId,
                 timeSent: getCurDate()
             };
