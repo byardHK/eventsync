@@ -104,10 +104,10 @@ function ViewEventPage() {
     function RsvpModal() {
         return (
             <>
-                <Button variant="outlined" onClick={isRsvped ? handleUnrsvp : handleRsvp}>
+                <Button variant="outlined" onClick={isRsvped ? handleUnrsvp : handleRsvp} sx={{ width: "100px", height: "60px" }}>
                     {isRsvped ? 'Un-RSVP' : 'RSVP'}
                 </Button>
-                <Dialog onClose={handleClose} open={open}>
+                {/* <Dialog onClose={handleClose} open={open}>
                     <Box
                         display="flex"
                         flexDirection="column"
@@ -120,7 +120,7 @@ function ViewEventPage() {
                         <Button variant="outlined" fullWidth onClick={handleClose}>Yes</Button>
                     </Box> 
                     <Button variant="outlined" fullWidth onClick={handleClose}>Close</Button>
-                </Dialog>
+                </Dialog> */}
         </>
         )
     }
@@ -154,7 +154,7 @@ function ViewEventPage() {
     
         return (
             <>
-                <Button variant="outlined" onClick={handleOpenRsvpList}>View RSVP List</Button>
+                <Button variant="outlined" onClick={handleOpenRsvpList} sx={{ width: "140px", height: "60px" }}>View RSVP List</Button>
                 <Dialog onClose={handleCloseRsvpList} open={openRsvpList}>
                     <Box
                         display="flex"
@@ -164,13 +164,13 @@ function ViewEventPage() {
                         sx={{ width: "100%" }}
                         minWidth={300}
                     >
-                    <h2>RSVP List</h2>
-                    <ul style={{ listStyleType: 'none', padding: 0 }}>
-                        {rsvpList.map(user => (
-                            <li key={user.userId} style={{ marginBottom: '10px' }}>{user.fname} {user.lname}</li>
-                        ))}
-                    </ul>
-                    <Button variant="outlined" fullWidth onClick={handleCloseRsvpList}>Close</Button>
+                        <h2>RSVP List</h2>
+                        <ul style={{ listStyleType: 'none', padding: 0 }}>
+                            {rsvpList.map(user => (
+                                <li key={user.userId} style={{ marginBottom: '10px' }}>{user.fname} {user.lname}</li>
+                            ))}
+                        </ul>
+                        <Button variant="outlined" fullWidth onClick={handleCloseRsvpList}>Close</Button>
                 </Box>
             </Dialog>
         </>
@@ -237,14 +237,16 @@ function ViewEventPage() {
                 <p>Loading Event {eventId}</p>
             )}
             <Box
-            display="flex"
-            flexDirection="row"
-            alignItems="center" 
-            justifyContent="center"
+                display="flex"
+                flexDirection="row"
+                alignItems="center" 
+                justifyContent= "space-evenly"
+                margin={2}
+                gap={1}
             >
                 <RsvpModal/>     
                 <RsvpListModal eventId={intEventId}/>  
-                <Button variant="outlined" onClick={navigateToChat}>Event Chat</Button>
+                <Button variant="outlined" onClick={navigateToChat} sx={{ width: "100px", height: "60px" }}>Event Chat</Button>
             </Box>
             <BottomNavBar userId={currentUserId!}/>
         </Box>
@@ -339,14 +341,16 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
                 <p>{`Created By: ${event.creatorName}`}</p>
                 <ListTags></ListTags>
             </Box>
-            <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography>Description</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                    <Typography>{event.description}</Typography>
-                </AccordionDetails>
-            </Accordion>
+            {event.description && (
+                <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography>Description</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <Typography>{event.description}</Typography>
+                    </AccordionDetails>
+                </Accordion>
+            )}
             {items && items.length > 0 && (
                 <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
