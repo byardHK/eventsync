@@ -219,7 +219,8 @@ function UserList({ users, refreshData, onAddFriend }: { users: EventSyncUser[];
 
     const addFriend = async (userId: string, friendId: string) => {
         try {
-            await axios.post(`${BASE_URL}/add_friend/${userId}/${friendId}/`,{
+            console.log(userDetails.token);
+            await axios.post(`${BASE_URL}/add_friend/${userId}/${friendId}/`,{},{
                 headers: {
                     'Authorization': `Bearer ${userDetails.token}`,
                     'Content-Type': 'application/json',
