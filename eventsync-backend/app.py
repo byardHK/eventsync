@@ -2358,6 +2358,29 @@ def delete_report():
         print(f"Error: {err}")
     return {}
 
+@app.post('/warn_user')
+def warn_user():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        reportId = body.get("reportedUserId")
+
+        # TODO: Set creator of event/chat/group, post entry in ChatToUser, increase number of times user has been reported
+        warnUser = f"""
+            
+        """
+        mycursor.execute(warnUser)
+
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"message": "creation successful"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
 @app.route('/message/', methods=['POST'])
 def message():
 

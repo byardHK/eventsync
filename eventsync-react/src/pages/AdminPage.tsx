@@ -88,6 +88,7 @@ type AdminReportCardProps = {
 function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardProps){
     const [deleteReportModalOpen, setDeleteReportModalOpen] = useState<boolean>(false);
     const [viewReportModalOpen, setViewReportModalOpen] = useState<boolean>(false);
+    const [warnUserModalOpen, setWarnUserModalOpen] = useState<boolean>(false);
 
     const ReportCard = styled(Paper)(({ theme }) => ({
         width: 300,
@@ -158,6 +159,35 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
             </Box> :
             <CircularProgress/>
         );
+    }
+
+    function WarnUserModal(){
+        return <Dialog
+            onClose={()=> {setWarnUserModalOpen(false)}}
+            open={warnUserModalOpen}
+        >
+            <Box sx={{padding : 3}}>
+                {/* TODO: can't see name of user if it's not a reportedUser report */}
+                <h2>Warn user {report.reportedUserId}?</h2>
+                <Box display="flex" flexDirection="row" justifyContent="space-between">
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setWarnUserModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={warnUser}>Yes</Button>
+                </Box>
+            </Box>
+        </Dialog>
+    }
+
+    async function warnUser(){
+        try {
+            await axios.post(`${BASE_URL}/warn_user`, {
+                //TODO: will only work if it's a ReportUser report
+                reportedUserId: report.reportedUserId
+            });
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+        reloadReports();
+        setWarnUserModalOpen(false);
     }
 
     function ViewReportedUser() {
@@ -235,6 +265,7 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
     }
 
     return <Box>
+        <WarnUserModal></WarnUserModal>
         <DeleteReportModal></DeleteReportModal>
         <ViewReportModal></ViewReportModal>
         <ReportCard elevation={10} square={false} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '200px'}}>
@@ -247,12 +278,12 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
                 <Button variant="contained" onClick={() => { setDeleteReportModalOpen(true) }}>
                     <DeleteIcon/>
                 </Button>
-                <Button variant="contained">
+                <Button variant="contained" onClick={() => { setWarnUserModalOpen(true) }}>
                     <WarningIcon/>
                 </Button>
-                <Button variant="contained">
+                {/* <Button variant="contained">
                     <BlockIcon/>
-                </Button>
+                </Button> */}
             </Box>
         </ReportCard>
     </Box>

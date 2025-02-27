@@ -178,7 +178,7 @@ function EventList({ events, canDeleteEvents, setEventsChanged }: { events: Even
         display="flex"
         alignItems="center" 
         justifyContent="center"
-        style={{maxHeight: '30vh', overflow: 'auto'}}
+        style={{maxHeight: '28.5vh', overflow: 'auto'}}
         padding={2}
     >
         {events.map(event =>  

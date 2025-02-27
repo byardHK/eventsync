@@ -108,6 +108,7 @@ function ChatPage() {
         setMessages(response.data.chats);
     }
 
+    //TODO: add if statement to change chat title if logged in user is an admin
     function chatTitle() {
         if (!chat) return <div></div>;
         if (chat.chatType == chatType.INDIVIDUAL && nonGroupOtherUser) {
