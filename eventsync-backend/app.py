@@ -277,7 +277,7 @@ def get_events(id):
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         mycursor.execute("""
-                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName, EventInfo.creatorName, Event.views, Event.id, Event.eventInfoId, Event.numRsvps, EventInfo.RSVPLimit, (
+                        SELECT Event.startTime, Event.endTime, EventInfo.title as eventName, EventInfo.creatorName, Event.views, Event.id, Event.eventInfoId, Event.numRsvps, EventInfo.RSVPLimit, EventInfo.isPublic, (
                             SELECT COUNT(*) FROM Event WHERE Event.eventInfoId = EventInfo.id ) AS recurs
                         from Event
                         JOIN EventInfo 
