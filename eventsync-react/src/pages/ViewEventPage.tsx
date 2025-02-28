@@ -221,9 +221,11 @@ function ViewEventPage() {
             justifyContent="right"
             padding={2}
         >
-            <Button variant="contained">
-                <PersonIcon/>
-            </Button>
+            <Link to={`/profile/${currentUserId}`}>
+                <Button variant="contained">
+                    <PersonIcon/>
+                </Button>
+            </Link>
         </Box>
         <Box
             display="flex"

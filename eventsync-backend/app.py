@@ -902,24 +902,7 @@ def remove_friend(userId, friendId):
                 WHERE (user1Id = %s AND user2Id = %s) OR (user1Id = %s AND user2Id = %s);
                 """
         mycursor.execute(query, (userId, friendId, friendId, userId))
-
-        getChatId = f"""SET @chatId =
-                            (SELECT ChatToUser.chatId FROM ChatToUser 
-                            JOIN (SELECT * FROM ChatToUser WHERE userId = '{userId}') AS otherUserTable
-                            ON ChatToUser.chatId = otherUserTable.chatId
-                            WHERE ChatToUser.userId = '{friendId}'
-                            LIMIT 1);"""
-        deleteChatToUser = f"""
-                DELETE FROM ChatToUser
-                WHERE (userId = '{userId}' AND chatId = @chatId) OR (userId = '{friendId}' AND chatId = @chatId);
-                """
-        deleteChat = f"""
-                DELETE FROM Chat
-                WHERE id = @chatId;
-                """
-        mycursor.execute(getChatId)
-        mycursor.execute(deleteChatToUser)
-        mycursor.execute(deleteChat)
+        
         conn.commit()
         mycursor.close()
         conn.close()
@@ -2019,13 +2002,17 @@ def edit_group():
         """
         mycursor.execute(removeGroupUsers)
 
+        removeChatUsers = f"""
+            DELETE ChatToUser FROM GroupOfUser JOIN ChatToUser ON GroupOfUser.chatId = ChatToUser.chatId WHERE GroupOfUser.id = {groupId};
+        """
+        mycursor.execute(removeChatUsers)
+
         add_users_to_group(users, groupId, mycursor)
 
         # Update name of group
         updateGroupName = f"""
             UPDATE GroupOfUser SET groupName = "{groupName}" WHERE id = {groupId};
         """
-        print(updateGroupName);
         mycursor.execute(updateGroupName)
         
         conn.commit()
@@ -2057,6 +2044,9 @@ def create_group():
         creatorId = body.get("creatorId")
         users = body.get("users")
 
+        users_and_creator = users.copy()
+        users_and_creator.append({ "id": creatorId })
+
         # Create chat for group
         createChat = f"""
             INSERT INTO Chat (name, chatType) VALUES ("{groupName}", 'Group');
@@ -2077,7 +2067,7 @@ def create_group():
             """
         mycursor.execute(addGroupOfUserToChat)
 
-        add_users_to_group(users, groupId, mycursor)
+        add_users_to_group(users_and_creator, groupId, mycursor)
         
         conn.commit()
         mycursor.close()
@@ -2095,14 +2085,8 @@ def add_users_to_group(users, groupId, mycursor):
     chatId = response[0]
     creatorId = response[1]
 
-    users_and_creator = list(users)
-    users_and_creator.append({
-        "id": creatorId
-    })
-    print(users_and_creator)
-
     # Add each selected user to created group & group chat
-    for user in users_and_creator:
+    for user in users:
         addUserToGroup = f"""
             INSERT INTO GroupOfUserToUser (groupId, userId) VALUES ({groupId}, "{user["id"]}");
         """

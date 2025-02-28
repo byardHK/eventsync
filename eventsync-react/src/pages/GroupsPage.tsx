@@ -1,4 +1,4 @@
-import { Box, Button, ButtonGroup, Card, CircularProgress, ClickAwayListener, Dialog, Grow, IconButton, MenuItem, MenuList, Paper, Popper, Typography } from "@mui/material"
+import { Box, Button, ButtonGroup, Card, CircularProgress, ClickAwayListener, Dialog, Grid2, Grow, IconButton, MenuItem, MenuList, Paper, Popper, Typography } from "@mui/material"
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNavBar from "../components/BottomNavBar";
@@ -79,13 +79,13 @@ function GroupsPage(){
                 </Button>
             </Box>
             <GroupModal open={newGroupsModalOpen} onClose={() => setNewGroupsModalOpen(false)} onSave={reloadMyGroups}/>
-            <Box
+            <Grid2
+                container spacing={3}
                 display="flex"
-                flexDirection="column"
-                alignItems="center"
-                gap={2}
-                paddingTop={3}
-                sx={{height: "75vh"}}
+                alignItems="center" 
+                justifyContent="center"
+                style={{maxHeight: '84vh', overflow: 'auto'}}
+                padding={2}
             >
                 {groups ? 
                     groups.map(group =>
@@ -101,7 +101,7 @@ function GroupsPage(){
                         <CircularProgress/>
                     </Box>
                 }
-            </Box>
+            </Grid2>
             <Box
                 display="flex"
                 flexDirection="row"
@@ -217,7 +217,7 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
             ref={anchorRef}
             aria-label="Button group with a nested menu"
         >
-            <Card sx={{padding: 3}}>
+            <Card sx={{padding: 3, maxWidth: "25vh"}} >
                 <h2>{group.groupName}</h2>
                 <Box display="flex" flexDirection="row">
                     <ReportModal input={group} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="group"/>

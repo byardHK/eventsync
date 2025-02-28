@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import BottomNavBar from '../components/BottomNavBar';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css";
 import { Button, Typography, Paper, Box, Dialog, DialogTitle, DialogContent, Fab, TextField } from '@mui/material';
@@ -164,6 +164,7 @@ function FriendsPage() {
 
 function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refreshData: () => void }) {
     const { userDetails } = useUser();
+    const navigate = useNavigate();
 
     const removeFriend = async (userId: string, friendId: string) => {
         try {
@@ -183,31 +184,33 @@ function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refre
         <ul style={{ listStyleType: 'none', padding: 0 }}>
             {Array.isArray(friends) && friends.map((friend, index) => (
                 <li key={index}>
-                    <Link to={`/profile/${friend.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                        <Paper elevation={3}>
-                            <Box
-                                display="flex"
-                                justifyContent="space-between"
-                                alignItems="center"
-                                width="300px"
-                                padding="10px"
-                                border="1px solid #ccc"
-                                borderRadius="5px"
-                                margin="5px 0"
-                                bgcolor="white"
+                    <Paper elevation={3}>
+                        <Box
+                            onClick={() => {navigate(`/profile/${friend.id}`);}}
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            width="300px"
+                            padding="10px"
+                            border="1px solid #ccc"
+                            borderRadius="5px"
+                            margin="5px 0"
+                            bgcolor="white"
+                        >
+                            <Button 
+                                variant="contained" 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    userDetails.email && removeFriend(userDetails.email, friend.id);
+                                }}
                             >
-                                <Button 
-                                    variant="contained" 
-                                    onClick={() => userDetails.email && removeFriend(userDetails.email, friend.id)}
-                                >
-                                    <CloseIcon/>
-                                </Button>
-                                <Box flexGrow={1} textAlign="left" marginLeft={5}>
-                                        {`${friend.fname} ${friend.lname}`}
-                                </Box>
+                                <CloseIcon/>
+                            </Button>
+                            <Box flexGrow={1} textAlign="left" marginLeft={5}>
+                                    {`${friend.fname} ${friend.lname}`}
                             </Box>
-                        </Paper>
-                    </Link>
+                        </Box>
+                    </Paper>
                 </li>
             ))}
         </ul>
