@@ -11,9 +11,7 @@ import StyledCard from '../StyledCard';
 import EventSyncEvent from '../types/EventSyncEvent';
 import { BASE_URL } from '../components/Constants';
 import logo from '../images/logo.png'; 
-
-// const currentUserId = "segulinWH20@gcc.edu"; // Placeholder for the current user that is logged in. TODO: get the actual current user
-
+import DeleteRecurEventModal from '../components/DeleteRecurEventModal';
 
 function MyEventsPage() {
     // console.log("my events page: ")
@@ -98,6 +96,7 @@ function EventLists() {
           }
         };
         fetchData();
+        setEventsChanged(false);
     }, [eventsChanged]);
 
     return (
@@ -165,14 +164,6 @@ function EventList({ events, canDeleteEvents, setEventsChanged }: { events: Even
         setEventsChanged(true);
     }
 
-    function handleDeleteButton(event: EventSyncEvent){
-        // if(!event.recurs){
-            deleteEvent(event)
-        // } else {
-        //     return <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}></DeleteRecurEventModal>
-        // }
-    }
-
     return <Grid2
         container spacing={3}
         display="flex"
@@ -183,17 +174,16 @@ function EventList({ events, canDeleteEvents, setEventsChanged }: { events: Even
     >
         {events.map(event =>  
             <StyledCard key={event.id} event={event} viewEvent={viewEvent} showShareIcon={true} showViews>
-                {canDeleteEvents && (
+                                {canDeleteEvents && (
                     <Box display="flex" flexDirection="row" gap={2}>
                         <Button fullWidth variant="contained" onClick={() => editEvent(event)}>Edit</Button>
-                        <Button fullWidth variant="contained" onClick={() => handleDeleteButton(event)}>Delete</Button>
+                        {canDeleteEvents && (event.recurs > 1 ?
+                            <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}>
+                            </DeleteRecurEventModal>
+                            : <Button fullWidth variant="contained" onClick={() => deleteEvent(event)}>Delete</Button>
+                            )} 
                     </Box>
-                )}
-                {/* {canDeleteEvents && (event.recurs ?
-                <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}>
-                </DeleteRecurEventModal>
-                : <Button variant="contained" onClick={() => deleteEvent(event)}>Delete Event</Button>
-                )}  */}
+                )}   
             </StyledCard>
         )}
     </Grid2>;

@@ -7,7 +7,7 @@ type EventSyncEvent = {
     endTime: string;
     views: number;
     id: number;
-    recurs: Boolean;
+    recurs: number;
     tags: Tag[];
     creatorId: string;
     numRsvps: number;
