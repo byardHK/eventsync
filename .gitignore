@@ -1,3 +1,4 @@
 package-lock.json
 node_modules/
 *.pyc
+eventsync-react/src/components/Constants.ts
