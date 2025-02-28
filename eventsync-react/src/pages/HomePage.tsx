@@ -313,7 +313,7 @@ function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents,
         display="flex"
         alignItems="center" 
         justifyContent="center"
-        style={{maxHeight: '58vh', overflow: 'auto'}}
+        style={{maxHeight: '50vh', overflow: 'auto'}}
         padding={2}
     >
         {isComingSoon ? sortedFilteredEvents.map(event =>

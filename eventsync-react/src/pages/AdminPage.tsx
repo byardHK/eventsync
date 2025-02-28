@@ -12,6 +12,7 @@ import { Group } from "./GroupsPage";
 import EventInfo from "../types/EventInfo";
 import { UserDetails, useUser } from "../sso/UserContext";
 import BackButton from "../components/BackButton";
+import { getCurDate } from "./ChatPage";
 
 type Report = {
     id: number;
@@ -88,6 +89,7 @@ type AdminReportCardProps = {
 function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardProps){
     const [deleteReportModalOpen, setDeleteReportModalOpen] = useState<boolean>(false);
     const [viewReportModalOpen, setViewReportModalOpen] = useState<boolean>(false);
+    const [warnUserModalOpen, setWarnUserModalOpen] = useState<boolean>(false);
 
     const ReportCard = styled(Paper)(({ theme }) => ({
         width: 300,
@@ -127,8 +129,11 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
 
     function ViewReportModal(){
         return <Dialog
-            onClose={()=> {setViewReportModalOpen(false)}}
-            open={viewReportModalOpen}
+            onClose={()=> {
+                setViewReportModalOpen(false);
+                setWarnUserModalOpen(false);
+            }}
+            open={viewReportModalOpen || warnUserModalOpen}
         >
             <Box sx={{padding : 3}}>
                 {report.reportedEventInfoId ? <ViewReportedEvent/>: <></> }
@@ -137,6 +142,25 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
                 {report.reportedGroupId ? <ViewReportedGroup/> : <></>}
             </Box>
         </Dialog>
+    }
+
+    async function warnUser(reportedUserId: string, warningMessage: string){
+        try {
+            await axios.post(`${BASE_URL}/warn_user`, {
+                reportedUserId: reportedUserId,
+                warningMessage: warningMessage,
+                timeSent: getCurDate()
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+        reloadReports();
+        setWarnUserModalOpen(false);
     }
 
     function ViewReportedMessage() {
@@ -151,12 +175,28 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
             loadMessage();
         }, []);
 
-        return ( message ?
+        if(!message) {
+            return <CircularProgress/>
+        }
+
+        return ( viewReportModalOpen ?
             <Box>
                 <Typography>{`Sender Email: ${message.senderId}`}</Typography>
                 <Typography>{`Message: ${message.messageContent}`}</Typography>
             </Box> :
-            <CircularProgress/>
+            <Box>
+                <Typography>{`Warn the author of this message (${message.senderId})?`}</Typography>
+                <Box display="flex" flexDirection="row" justifyContent="space-between">
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setWarnUserModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={() => {warnUser(
+                        message.senderId,
+                        `A message you sent been reported by a user and reviewed by an admin:\n
+                            (Message: ${message.messageContent})\n
+                         The contents of message have warranted a warning. Subsequent reports may result in a ban from EventSync.
+                        `
+                    )}}>Yes</Button>
+                </Box>
+            </Box>
         );
     }
 
@@ -172,12 +212,27 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
             loadUser();
         }, []);
 
-        return (user ?
+        if(!user) {
+            return <CircularProgress/>
+        }
+
+        return (viewReportModalOpen ?
             <Box>
                 <Typography>{`Name: ${user.fname} ${user.lname}`}</Typography>
                 <Typography>{`Email: ${user.id}`}</Typography>
             </Box> :
-            <CircularProgress/>
+            <Box>
+                <Typography>{`Warn ${user.fname} ${user.lname} (${user.id})?`}</Typography>
+                <Box display="flex" flexDirection="row" justifyContent="space-between">
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setWarnUserModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={() => {warnUser(
+                        user.id,
+                        `Your profile has been reported by a user and reviewed by an admin.\n
+                         The contents of your profile have warranted a warning. Subsequent reports may result in a ban from EventSync.
+                        `
+                    )}}>Yes</Button>
+                </Box>
+            </Box>
         );
     }
 
@@ -201,12 +256,28 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
             loadGroup();
         }, []);
 
-        return (group ?
+        if(!group) {
+            return <CircularProgress/>
+        }
+
+        return (viewReportModalOpen ?
             <Box>
                 <Typography>{`Creator Email: ${group.creatorId}`}</Typography>
                 <Typography>{`Group Name: ${group.groupName}`}</Typography>
             </Box> :
-            <CircularProgress/>
+            <Box>
+                <Typography>{`Warn the creator of this group (${group.creatorId})?`}</Typography>
+                <Box display="flex" flexDirection="row" justifyContent="space-between">
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setWarnUserModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={() => {warnUser(
+                        group.creatorId,
+                        `A group created by you has been reported by a user and reviewed by an admin:\n
+                            (Group Name: ${group.groupName})\n
+                        The contents of this group's details have warranted a warning. Subsequent reports may result in a ban from EventSync.
+                        `
+                    )}}>Yes</Button>
+                </Box>
+            </Box>
         );
     }
 
@@ -222,7 +293,11 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
             loadEvent();
         }, []);
 
-        return (eventInfo ?
+        if(!eventInfo) {
+            return <CircularProgress/>
+        }
+
+        return (viewReportModalOpen ?
             <Box>
                 <Typography>{`Creator: ${eventInfo.creatorName} (${eventInfo.creatorId})`}</Typography>
                 <Typography>{`Event Title: ${eventInfo.title}`}</Typography>
@@ -230,7 +305,22 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
                 <Typography>{`Event Location: ${eventInfo.locationName} ${eventInfo.locationLink ? `(${eventInfo.locationLink})` : ``}`}</Typography>
                 {eventInfo.venmo ? <Typography>{`Venmo: ${eventInfo.venmo}`}</Typography> : <></>}
             </Box> :
-            <CircularProgress/>
+            <Box>
+                <Typography>{`Warn the creator of this event (${eventInfo.creatorId})?`}</Typography>
+                <Box display="flex" flexDirection="row" justifyContent="space-between">
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setWarnUserModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={() => {warnUser(
+                        eventInfo.creatorId,
+                        `An event created by you has been reported by a user and reviewed by an admin:\n
+                            (Event Title: ${eventInfo.title}, \n
+                            Event Description: ${eventInfo.description}, \n
+                            Event Location: ${eventInfo.locationName} ${eventInfo.locationLink ? `(${eventInfo.locationLink})` : ``}, \n
+                            Venmo: ${eventInfo.venmo})\n
+                         The contents of this event's details have warranted a warning. Subsequent reports may result in a ban from EventSync.
+                        `
+                    )}}>Yes</Button>
+                </Box>
+            </Box>
         );
     }
 
@@ -247,12 +337,12 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
                 <Button variant="contained" onClick={() => { setDeleteReportModalOpen(true) }}>
                     <DeleteIcon/>
                 </Button>
-                <Button variant="contained">
+                <Button variant="contained" onClick={() => { setWarnUserModalOpen(true) }}>
                     <WarningIcon/>
                 </Button>
-                <Button variant="contained">
+                {/* <Button variant="contained">
                     <BlockIcon/>
-                </Button>
+                </Button> */}
             </Box>
         </ReportCard>
     </Box>

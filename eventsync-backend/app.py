@@ -2358,6 +2358,73 @@ def delete_report():
         print(f"Error: {err}")
     return {}
 
+@app.post('/warn_user')
+def warn_user():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code
+
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        body = request.json
+        reportedUserId = body.get("reportedUserId")
+        warningMessage = body.get("warningMessage")
+        timeSent = body.get("timeSent")
+
+        #Try to find a chat between the warner and the warnee exclusively
+        usersInWarnChat = 2
+        if user_email.lower() == reportedUserId:
+            usersInWarnChat = 1
+
+        getChatIdBetweenUsers = f"""
+            SELECT Chat.chatId FROM (
+                SELECT Chat.id AS chatId, COUNT(ChatToUser.userId) AS userCount FROM ChatToUser JOIN (
+                    SELECT Chat.id FROM Chat JOIN ChatToUser ON Chat.id = ChatToUser.chatId WHERE Chat.chatType = "Individual" GROUP BY Chat.id HAVING COUNT(ChatToUser.userId) = {usersInWarnChat}
+                ) AS Chat ON Chat.id = ChatToUser.chatId WHERE ChatToUser.userId = "{user_email.lower()}" OR ChatToUser.userId = "{reportedUserId}" GROUP BY Chat.id
+            ) AS Chat WHERE Chat.userCount = {usersInWarnChat};
+        """
+        mycursor.execute(getChatIdBetweenUsers)
+        response = mycursor.fetchone()
+
+        #If one exists, we'll reuse it
+        if response:
+            warnChatId = response[0]
+        else:
+            #If not, we need to set up a new chat b/t the warner & warnee
+            createWarnChat = f"""
+                INSERT INTO Chat (name, chatType) VALUES ("Warning", "Individual");
+            """
+            mycursor.execute(createWarnChat)
+            warnChatId = mycursor.lastrowid
+
+            addWarnerToWarnChat = f"""
+                INSERT INTO ChatToUser (chatId, userId) VALUES ({warnChatId}, "{user_email.lower()}");
+            """
+            mycursor.execute(addWarnerToWarnChat)
+
+            if usersInWarnChat == 2:
+                addWarneeToWarnChat = f"""
+                    INSERT INTO ChatToUser (chatId, userId) VALUES ({warnChatId}, "{reportedUserId}");
+                """
+                mycursor.execute(addWarneeToWarnChat)
+
+        # Finally, we will post an automated message from the warner to the group chat with the warnee.
+        createWarningMessage = f"""
+            INSERT INTO Message (chatId, senderId, messageContent, timeSent) 
+                VALUES ({warnChatId}, "{user_email.lower()}", "{warningMessage}", "{timeSent}");
+        """
+        mycursor.execute(createWarningMessage)
+
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"message": "creation successful"})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
 @app.route('/message/', methods=['POST'])
 def message():
 

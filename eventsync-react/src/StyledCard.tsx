@@ -17,7 +17,6 @@ export type StyledCardProps = {
 
 function StyledCard({ children, event, showTags, showViews, showShareIcon, viewEvent }: StyledCardProps) {
     const [shareOpen, setShareOpen] = useState(false);
-    console.log(shareOpen);
     const eventUrl = `${window.location.origin}/viewEvent/${event.id}`;
 
     const handleShare = async () => {

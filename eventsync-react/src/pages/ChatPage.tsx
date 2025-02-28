@@ -108,6 +108,7 @@ function ChatPage() {
         setMessages(response.data.chats);
     }
 
+    //TODO: add if statement to change chat title if logged in user is an admin
     function chatTitle() {
         if (!chat) return <div></div>;
         if (chat.chatType == chatType.INDIVIDUAL && nonGroupOtherUser) {
@@ -259,7 +260,7 @@ const ChatInput = (props: { channelName: String, currentUserId: String, chatId: 
     );
 };
 
-function getCurDate() {
+export function getCurDate() {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`; 
 }

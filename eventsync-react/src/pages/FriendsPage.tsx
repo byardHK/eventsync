@@ -271,7 +271,8 @@ function RequestsList({ requests, refreshData, onRequestAction }: { requests: Ev
 
     const acceptFriend = async (userId: string, friendId: string) => {
         try {
-            await axios.post(`${BASE_URL}/accept_friend_request/${userId}/${friendId}/`,{
+            console.log(userDetails.token);
+            await axios.post(`${BASE_URL}/accept_friend_request/${userId}/${friendId}/`, {}, {
                 headers: {
                     'Authorization': `Bearer ${userDetails.token}`,
                     'Content-Type': 'application/json',
