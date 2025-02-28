@@ -992,6 +992,13 @@ def delete_mult_event(eventId):
                         SET @eventInfoId = (SELECT eventInfoId FROM Event WHERE id = {eventId});
                         
                      """)
+        setChatId = "SET @chatId = (SELECT chatId FROM EventInfoToChat WHERE eventInfoId = @eventInfoId);"
+        deleteEventInfoToChat = f"DELETE FROM EventInfoToChat WHERE eventInfoId = @eventInfoId"
+        deleteChat = f"DELETE FROM Chat WHERE id = @chatId"
+        mycursor.execute(setChatId)
+        mycursor.execute(deleteEventInfoToChat)
+        mycursor.execute(deleteChat)
+        
         mycursor.execute("""DELETE FROM Event
                         WHERE eventInfoId = @eventInfoId;""")
         conn.commit()
