@@ -1,21 +1,21 @@
-import { Box, Button, Dialog, FormControlLabel } from '@mui/material';
+import { Box, Button, Dialog, FormControlLabel, Typography } from '@mui/material';
 import { useState } from 'react';
 import Radio from '@mui/material/Radio'; 
 import RadioGroup from '@mui/material/RadioGroup'; 
 import FormControl from '@mui/material/FormControl'; 
 import EventSyncEvent from '../types/EventSyncEvent';
 import { BASE_URL } from './Constants';
+import { useUser } from '../sso/UserContext';
 
 function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged: React.Dispatch<React.SetStateAction<Boolean>> }){
     const [isOpen, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
     const [numToDelete, setNumToDelete] = useState<String>("one");
-    const {userDetails} = userUser();
+    const {userDetails} = useUser();
 
     async function handleDelete(){
         console.log(`Delete ${props.event.id}, ${numToDelete}`);
-        props.setEventsChanged(true);
         const deletePath = numToDelete == "one" ? `${BASE_URL}/delete_one_event/${props.event.id}/` : `${BASE_URL}/delete_multiple_events/${props.event.id}/`;
             const response = await fetch(deletePath, {
                 method: 'DELETE',
@@ -27,33 +27,39 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged:
             if(response.ok){
                 console.log('Data sent successfully:', response.json());
                 // setNumToDelete();
+                console.log(`events should be reloading`);
             }
         handleClose();
+                props.setEventsChanged(true);
+
     }
 
     return <>
-        <Button onClick={handleOpen}>Open Delete Recur Event modal</Button>
+        <Button fullWidth variant="contained" onClick={() => handleOpen()}>Delete</Button>
         <Dialog onClose={handleClose} open={isOpen}>
             <Box
                 display="flex" 
                 flexDirection="column"
                 alignItems="center" 
                 justifyContent="center"
+                padding={2}
             >
-                <p>Are you sure you would like to cancel this event?</p>
+                <h4>Are you sure you would like to cancel this event?</h4>
                 <Box
                     display="flex" 
                     flexDirection="row"
+                    
                 >
                     <FormControl> 
                         <RadioGroup 
                             defaultValue={null}
                             onChange={(event) => setNumToDelete(event.target.value)}
+                            style={{fontFamily: 'Times New Roman'}}
                         > 
-                            <FormControlLabel value="one" 
-                                control={<Radio />} label="This event" /> 
-                            <FormControlLabel value="all" 
-                                control={<Radio />} label="This event and all following events" /> 
+                            <FormControlLabel value="one" style={{fontFamily: 'Times New Roman'}}
+                                control={<Radio />} label={<Typography style={{ fontFamily: 'Times New Roman' }}>This event</Typography>} /> 
+                            <FormControlLabel value="all" style={{fontFamily: 'Times New Roman'}}
+                                control={<Radio />} label={<Typography style={{ fontFamily: 'Times New Roman' }}>This event and all other occurrences of this event</Typography>} /> 
                         </RadioGroup> 
                     </FormControl> 
                 </Box>
@@ -75,6 +81,6 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged:
 
 export default DeleteRecurEventModal
 
-function userUser(): { userDetails: any; } {
-    throw new Error('Function not implemented.');
-}
+// function userUser(): { userDetails: any; } {
+//     throw new Error('Function not implemented.');
+// }
