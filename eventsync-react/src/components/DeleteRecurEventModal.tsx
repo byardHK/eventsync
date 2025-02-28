@@ -16,7 +16,7 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged:
 
     async function handleDelete(){
         console.log(`Delete ${props.event.id}, ${numToDelete}`);
-        const deletePath = numToDelete == "one" ? `${BASE_URL}/delete_one_event/${props.event.id}/` : `${BASE_URL}/delete_multiple_events/${props.event.id}/`;
+        const deletePath = numToDelete == "one" ? `${BASE_URL}/delete_one_recurring_event/${props.event.id}/` : `${BASE_URL}/delete_multiple_events/${props.event.id}/`;
             const response = await fetch(deletePath, {
                 method: 'DELETE',
                 headers: {

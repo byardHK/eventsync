@@ -974,6 +974,36 @@ def delete_one_event(eventId):
         print(f"Error: {err}")
     return {}
 
+@app.route('/delete_one_recurring_event/<int:eventId>/', methods=['DELETE'])
+def delete_one_recurring_event(eventId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if not user_email:
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        mycursor.execute("DELETE FROM EventToItem WHERE eventId = %s", (eventId,))
+        mycursor.execute("DELETE FROM EventToUser WHERE eventId = %s", (eventId,))
+        mycursor.execute("DELETE FROM Event WHERE id = %s", (eventId,))
+
+        conn.commit()
+        rowCount: int = mycursor.rowcount
+        mycursor.close()
+        conn.close()
+
+        if rowCount == 0:
+            return jsonify({"Message":"Event not found"}), 404
+        else:
+            return jsonify({"Message":"Event deleted successfully"}), 200
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
 
 @app.route('/delete_multiple_events/<int:eventId>/', methods=['DELETE'])
 def delete_mult_event(eventId):
