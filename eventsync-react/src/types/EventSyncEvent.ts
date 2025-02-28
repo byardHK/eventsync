@@ -12,6 +12,7 @@ type EventSyncEvent = {
     creatorId: string;
     numRsvps: number;
     RSVPLimit: number;
+    isPublic: Boolean;
 };
 
 export default EventSyncEvent;

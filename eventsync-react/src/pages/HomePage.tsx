@@ -42,6 +42,7 @@ function HomePage() {
     const [beforeDate, setBeforeDate] = useState<Dayjs | null>(null);
     const [hideFullEvents, setHideFullEvents] = useState<boolean>(false);
     const [filtersVisible, setFiltersVisible] = useState<boolean>(false);
+    const [friends, setFriends] = useState<string[]>([]);
 
     const resetBeforePicker = () => {
         setBeforeDate(null);
@@ -65,12 +66,14 @@ function HomePage() {
                 console.error('Error fetching tags:', error);
             }
         };
+
         fetchTagOptions();
         const fetchUserTags = async () => {
             try {
                 const response = await axios.get(`${BASE_URL}/get_user_tags/${currentUserId}`,{
-                    headers: { 'Authorization': `Bearer ${userDetails.token}`, 
-                    "Content-Type": "application/json",   
+                    headers: { 
+                        'Authorization': `Bearer ${userDetails.token}`, 
+                        "Content-Type": "application/json",   
                     }
                  });
                 setUserTags(response.data.map((tag: { name: string }) => tag.name));
@@ -79,6 +82,21 @@ function HomePage() {
             }
         };
         fetchUserTags();
+
+        const fetchFriends = async () => {
+            try {
+                const response = await axios.get(`${BASE_URL}/get_friends/${currentUserId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+                setFriends(response.data.map((friend: { id: string }) => friend.id));
+            } catch (error) {
+                console.error('Error fetching friends:', error);
+            }
+        };
+        fetchFriends();
     }, []);
     
     return <>
@@ -130,6 +148,7 @@ function HomePage() {
                     variant="outlined"
                 />
                 <Button onClick={() => setFiltersVisible(!filtersVisible)}>
+                    {filtersVisible ? "Close Filters" : "Open Filters"}
                     {filtersVisible ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                 </Button>
                 <Collapse in={filtersVisible}>
@@ -227,14 +246,14 @@ function HomePage() {
                 justifyContent="center"
                 gap={2}
             >
-            <EventList searchKeyword={searchKeyword} tags={tags} userTags={userTags} isComingSoon={isComingSoon} hideFullEvents={hideFullEvents} afterDate={afterDate} beforeDate={beforeDate}/>                
+                <EventList searchKeyword={searchKeyword} tags={tags} userTags={userTags} isComingSoon={isComingSoon} hideFullEvents={hideFullEvents} afterDate={afterDate} beforeDate={beforeDate} friends={friends}/>   
             <BottomNavBar userId={currentUserId!}/>
             </Box>
         </LocalizationProvider>
     </>;
 };
 
-function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents, afterDate, beforeDate}: {searchKeyword: string, tags: string[], userTags: string[], isComingSoon: boolean, hideFullEvents: boolean, afterDate: Dayjs | null, beforeDate: Dayjs | null}) {
+function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents, afterDate, beforeDate, friends}: {searchKeyword: string, tags: string[], userTags: string[], isComingSoon: boolean, hideFullEvents: boolean, afterDate: Dayjs | null, beforeDate: Dayjs | null, friends: string[]}) {
     const [events, setEvents] = useState<EventSyncEvent[]>([]);    
     const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
     const {userDetails} = useUser()
@@ -294,8 +313,9 @@ function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents,
         const selectedBefore = beforeDate
             ? new Date(event.startTime).getTime() < beforeDate.toDate().getTime()
             : true;
+        const isVisible = event.isPublic || friends.includes(event.creatorId);
 
-        return matchesKeyword && matchesTags && notFull && selectedAfter && selectedBefore;
+        return matchesKeyword && matchesTags && notFull && selectedAfter && selectedBefore && isVisible;
     });
     
     const sortedFilteredEvents = filteredEvents.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());

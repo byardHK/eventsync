@@ -16,12 +16,13 @@ function TagModal({savedTags, handleSave}: TagModalProps){
     const { userDetails } = useUser();
     const userId = userDetails.email;
     const token = userDetails.token;
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
     const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
-    const [tags, setTags] = useState<Tag[]>([]);
+    const [defaultTags, setDefaultTags] = useState<Tag[]>([]);
     const [customTags, setCustomTags] = useState<Tag[]>([]);
     const [createCustomTagText, setCreateCustomTagText] = useState<String>("");
     const [getTagsTrigger, setGetTagsTrigger] = useState<number>(0);
@@ -52,6 +53,14 @@ function TagModal({savedTags, handleSave}: TagModalProps){
 
     const handleCreateCustomTag = async (e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault();
+        if (!createCustomTagText.trim()) {
+            setErrorMessage('Tag name cannot be empty');
+            return;
+        }
+        if (defaultTags.some(tag => tag.name === createCustomTagText) || customTags.some(tag => tag.name === createCustomTagText)) {
+            setErrorMessage(`Cannot create duplicate tag: ${createCustomTagText}`);
+            return;
+        }
         try {
             const response = await fetch(`${BASE_URL}/create_custom_tag`, {
                 method: 'POST',
@@ -69,6 +78,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                 console.log('Data sent successfully:', data);
                 setCreateCustomTagText("");
                 setGetTagsTrigger(getTagsTrigger+1);
+                setErrorMessage(null);
             }
         } catch (error) {
           console.error('Error sending data:', error);
@@ -105,7 +115,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                         customTags.push(tag);
                     }
                 });
-                setTags(defaultTags);
+                setDefaultTags(defaultTags);
                 setCustomTags(customTags);
             } catch (error) {
                 console.error('Error fetching tags:', error);
@@ -123,7 +133,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
         >
             <AddIcon />
         </Button>
-        <Dialog onClose={handleClose} open={open}>
+        <Dialog onClose={handleClose} open={open} fullWidth maxWidth="md">
             <Box
                 display="flex" 
                 flexDirection="column"
@@ -131,6 +141,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                 justifyContent="center"
             >
                 <h3>Create a Custom Tag</h3>
+                {errorMessage && <div className="error-message" style={{ color: 'red' }}>{errorMessage}</div>}
                 <Box
                     display="flex" 
                     flexDirection="row"
@@ -172,8 +183,8 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                             </Button>
                         </Box>
                     )}
-                    <h2>Tags</h2>
-                    {tags.map((tag, index) =>
+                    <h2>Default Tags</h2>
+                    {defaultTags.map((tag, index) =>
                         <Box 
                             key={index}        
                             display="flex"
