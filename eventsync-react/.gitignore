@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 package-lock.json
-*/Constants.ts
+eventsync-react/src/components/Constants.ts
