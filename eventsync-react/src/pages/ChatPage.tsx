@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import { Box, Button, IconButton, ListItemButton, ListItemText, TextField } from "@mui/material";
+import { Box, Button, Grid2, IconButton, ListItemButton, ListItemText, TextField } from "@mui/material";
 import axios from "axios";
 import Message from '../types/Message';
 import Chat from '../types/Chat';
@@ -130,14 +130,31 @@ function ChatPage() {
     }
 
 	return(
-		<div >
-            <Box display="flex" alignItems="center" justifyContent="center">
+        <Grid2
+            display="flex"
+            flexDirection="column"
+            // justifyContent="center"
+            // alignItems="center"
+            style={{maxHeight: '85vh', overflow: 'auto'}}
+            paddingTop={10}
+        >
+            <Box display="flex" alignItems="center" justifyContent="center" className="chat-header">
                 <BackButton></BackButton>
                 {chatTitle()}   
             </Box>
-            <ChatList messages={messages} currentUserId={currentUserId} groupChat={!(chat?.chatType == chatType.INDIVIDUAL)!} getName={getName}></ChatList>
-            <ChatInput channelName={""} currentUserId={currentUserId} chatId={chatId ?? "-1"}></ChatInput>
-		</div>
+            <Box>
+                <ChatList 
+                    messages={messages} 
+                    currentUserId={currentUserId} 
+                    groupChat={!(chat?.chatType == chatType.INDIVIDUAL)!} 
+                    getName={getName}
+                >
+                </ChatList>
+            </Box>
+            <Box>
+                <ChatInput channelName={""} currentUserId={currentUserId} chatId={chatId ?? "-1"}></ChatInput>
+            </Box>  
+        </Grid2>
 	)
 }
 
@@ -246,15 +263,15 @@ const ChatInput = (props: { channelName: String, currentUserId: String, chatId: 
 
     return (
         <div>
-        <div className="chat-input-container">
-        <TextField 
-            type="text" 
-            value={message} 
-            onChange={(event) => setMessage(event.target.value)}  
-        />
-        <Button onClick={sendMessage}>
-            <SendIcon></SendIcon>
-        </Button>
+            <div className="chat-input-container">
+            <TextField 
+                type="text" 
+                value={message} 
+                onChange={(event) => setMessage(event.target.value)}  
+            />
+            <Button onClick={sendMessage}>
+                <SendIcon></SendIcon>
+            </Button>
         </div>
       </div>
     );

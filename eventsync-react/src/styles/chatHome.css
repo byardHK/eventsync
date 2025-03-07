@@ -3,7 +3,6 @@
     top: 0;
     width: 100%;
     background-color: white;
-    color: #007AFF;;
     margin: 0%;
     text-align: center;
 }
@@ -23,13 +22,8 @@ li {
 button {
   margin-top: 10px;
   padding: 5px 10px;
-  background-color: #4CAF50;
   color: white;
   border: none;
   border-radius: 3px;
   cursor: pointer;
-}
-
-button:hover {
-  background-color: #45a049;
 }

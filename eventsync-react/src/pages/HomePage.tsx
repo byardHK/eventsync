@@ -101,150 +101,163 @@ function HomePage() {
     
     return <>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Box
-                display="flex"
-                alignItems="right" 
-                justifyContent="right"
-                padding={2}
-                gap={2}
-            >
-            {userDetails.isAdmin ?
-                    <Link to="/admin">
+            <Box style={{ position: 'fixed', top: '0', backgroundColor: "rgb(160, 160, 160)", width: "100%"}}>
+                <Box
+                    display="flex"
+                    alignItems="right" 
+                    justifyContent="right"
+                    padding={2}
+                    gap={2}
+                >
+                    {userDetails.isAdmin ?
+                        <Link to="/admin">
+                            <Button variant="contained">
+                                <FlagIcon/>
+                            </Button>
+                        </Link> :
+                    <></>
+                    }
+                    <Link to={`/profile/${currentUserId}`}>
                         <Button variant="contained">
-                            <FlagIcon/>
+                            <PersonIcon/>
                         </Button>
-                    </Link> :
-                <></>
-                }
-                <Link to={`/profile/${currentUserId}`}>
-                    <Button variant="contained">
-                        <PersonIcon/>
+                    </Link>
+                    
+                </Box>
+                <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center" 
+                    justifyContent="center"
+                    gap={2}
+                    sx={{height: "80px"}}
+                >
+                    {/* <h3 className="card-title">Welcome {userDetails.firstName}!</h3> */}
+                    <TextField 
+                        sx={{input: {backgroundColor: 'white'}}}
+                        id="outlined-basic" 
+                        label="Search" 
+                        onChange={(e) => setSearchKeyword(e.target.value)}
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                <InputAdornment position="start">
+                                    <SearchIcon/>
+                                </InputAdornment>
+                                ),
+                            },
+                        }}
+                        variant="outlined"
+                    />
+                    <Button sx={{height: "8px"}} onClick={() => setFiltersVisible(!filtersVisible)}>
+                        {filtersVisible ? "Close Filters" : "Open Filters"}
+                        {filtersVisible ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                     </Button>
-                </Link>
-                
-            </Box>
-            <Box
-                display="flex"
-                flexDirection="column"
-                alignItems="center" 
-                justifyContent="center"
-                gap={2}
-            >
-                {/* <h3 className="card-title">Welcome {userDetails.firstName}!</h3> */}
-                <TextField 
-                    sx={{input: {backgroundColor: 'white'}}}
-                    id="outlined-basic" 
-                    label="Search" 
-                    onChange={(e) => setSearchKeyword(e.target.value)}
-                    slotProps={{
-                        input: {
-                            startAdornment: (
-                            <InputAdornment position="start">
-                                <SearchIcon/>
-                            </InputAdornment>
-                            ),
-                        },
-                    }}
-                    variant="outlined"
-                />
-                <Button onClick={() => setFiltersVisible(!filtersVisible)}>
-                    {filtersVisible ? "Close Filters" : "Open Filters"}
-                    {filtersVisible ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                </Button>
-                <Collapse in={filtersVisible}>
-                    <Autocomplete
-                        multiple
-                        id="multiple-limit-tags"
-                        options={tagOptions}
-                        value={tags}
-                        getOptionLabel={(option) => option}
-                        renderInput={(params) => (
-                            <TextField 
-                                {...params} 
-                                label="Tags" 
-                                type="text" 
-                                InputProps={{
-                                    ...params.InputProps,
-                                    endAdornment: (
-                                        <div style={{ display: 'none' }}>
-                                            {params.InputProps.endAdornment}
-                                        </div>
-                                    ),
-                                }}
-                            />
-                        )}
-                        sx={{ width: '255px' }}
-                        inputValue={inputValue}
-                        onInputChange={(_, newInputValue) => {
-                            setInputValue(newInputValue);
-                        }}
-                        onChange={(_, newValue) => {
-                            setTags(newValue);
-                        }}
-                        open={inputValue !== ''}
-                    />
-                    <Box display="flex" alignItems="center" width={"255px"}>
-                        <MobileDateTimePicker
-                            label="After"
-                            value={afterDate}
-                            onChange={(newValue) => setAfterDate(newValue)}
-                        />
-                        <Button onClick={resetAfterPicker}>
-                            <ReplayIcon/>
-                        </Button>
+                    <Box sx={{width: "100%", position: 'fixed', top: '200px'}}>
+                        <Collapse in={filtersVisible} sx={{width: "100%"}} >
+                            <Box 
+                            sx={{backgroundColor: "rgb(160, 160, 160)"}} 
+                            display="flex"
+                            flexDirection="column"
+                            justifyContent="center"
+                            alignItems="center"
+                        >
+                                <Autocomplete
+                                    multiple
+                                    id="multiple-limit-tags"
+                                    options={tagOptions}
+                                    value={tags}
+                                    getOptionLabel={(option) => option}
+                                    renderInput={(params) => (
+                                        <TextField 
+                                            {...params} 
+                                            label="Tags" 
+                                            type="text" 
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                endAdornment: (
+                                                    <div style={{ display: 'none' }}>
+                                                        {params.InputProps.endAdornment}
+                                                    </div>
+                                                ),
+                                            }}
+                                        />
+                                    )}
+                                    sx={{ width: '255px' }}
+                                    inputValue={inputValue}
+                                    onInputChange={(_, newInputValue) => {
+                                        setInputValue(newInputValue);
+                                    }}
+                                    onChange={(_, newValue) => {
+                                        setTags(newValue);
+                                    }}
+                                    open={inputValue !== ''}
+                                />
+                                <Box display="flex" alignItems="center" width={"255px"}>
+                                    <MobileDateTimePicker
+                                        label="After"
+                                        value={afterDate}
+                                        onChange={(newValue) => setAfterDate(newValue)}
+                                    />
+                                    <Button onClick={resetAfterPicker}>
+                                        <ReplayIcon/>
+                                    </Button>
+                                </Box>
+                                <Box display="flex" alignItems="center" width={"255px"}>
+                                    <MobileDateTimePicker
+                                        label="Before"
+                                        value={beforeDate}
+                                        onChange={(newValue) => setBeforeDate(newValue)}
+                                    />
+                                    <Button onClick={resetBeforePicker}>
+                                        <ReplayIcon/>
+                                    </Button>
+                                </Box>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={hideFullEvents}
+                                            onChange={(e) => setHideFullEvents(e.target.checked)}
+                                            name="hideFullEvents"
+                                            color="primary"
+                                        />
+                                    }
+                                    label="Hide Full Events"
+                                />
+                            </Box>
+                        </Collapse>
                     </Box>
-                    <Box display="flex" alignItems="center" width={"255px"}>
-                        <MobileDateTimePicker
-                            label="Before"
-                            value={beforeDate}
-                            onChange={(newValue) => setBeforeDate(newValue)}
-                        />
-                        <Button onClick={resetBeforePicker}>
-                            <ReplayIcon/>
-                        </Button>
-                    </Box>
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                checked={hideFullEvents}
-                                onChange={(e) => setHideFullEvents(e.target.checked)}
-                                name="hideFullEvents"
-                                color="primary"
-                            />
-                        }
-                        label="Hide Full Events"
-                    />
-                </Collapse>
-            </Box>
-            <Box
-                display="flex"
-                flexDirection="row"
-                alignItems="center" 
-                justifyContent="center"
-                padding={2}
-                gap={2}
-            >
-            <Button 
-                    variant={isComingSoon ? "contained" : "outlined"} 
-                    fullWidth
-                    onClick={() => {setIsComingSoon(true)}}
+                </Box>
+                <Box
+                    display="flex"
+                    flexDirection="row"
+                    alignItems="center" 
+                    justifyContent="center"
+                    padding={1}
                 >
-                    Coming Soon
-                </Button>
                 <Button 
-                    variant={!isComingSoon ? "contained" : "outlined"} 
-                    fullWidth
-                    onClick={() => {setIsComingSoon(false)}}
-                >
-                    Recommended
-                </Button> 
-            </Box> 
+                        variant={isComingSoon ? "contained" : "outlined"} 
+                        fullWidth
+                        onClick={() => {setIsComingSoon(true)}}
+                    >
+                        Coming Soon
+                    </Button>
+                    <Button 
+                        variant={!isComingSoon ? "contained" : "outlined"} 
+                        fullWidth
+                        onClick={() => {setIsComingSoon(false)}}
+                    >
+                        Recommended
+                    </Button> 
+                </Box> 
+            </Box>
             <Box
                 display="flex"
                 flexDirection="column"
                 alignItems="center" 
                 justifyContent="center"
                 gap={2}
+                sx={{paddingTop: "200px"}}
             >
                 <EventList searchKeyword={searchKeyword} tags={tags} userTags={userTags} isComingSoon={isComingSoon} hideFullEvents={hideFullEvents} afterDate={afterDate} beforeDate={beforeDate} friends={friends}/>   
             <BottomNavBar userId={currentUserId!}/>
@@ -333,8 +346,7 @@ function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents,
         display="flex"
         alignItems="center" 
         justifyContent="center"
-        style={{maxHeight: '50vh', overflow: 'auto'}}
-        padding={2}
+        paddingBottom={10}
     >
         {isComingSoon ? sortedFilteredEvents.map(event =>
             <StyledCard key={event.id} event={event} viewEvent={viewEvent} showTags/>
