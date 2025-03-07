@@ -34,7 +34,6 @@ function MyEventsPage() {
             alignItems="center" 
             justifyContent="center"
         >
-            <h1>My Events</h1>
             {/* <Box
                 display="flex"
                 flexDirection="row"
@@ -100,24 +99,45 @@ function EventLists() {
     }, [eventsChanged]);
 
     return (
-        <Grid2
-            container
-            direction="column"
-        >
-            <h2>Attending</h2>
-            <EventList events={attendingEvents} canDeleteEvents={false} setEventsChanged={setEventsChanged}></EventList>
+        // <Grid2
+        //     // container
+        //     direction="column"
+        // >
+        <Box>
             <Box
                 display="flex"
-                flexDirection="row"
-                gap={2}
+                flexDirection="column"
+                justifyContent="center"
+                alignItems="center"
+                // height={175}
             >
-                <h2>Hosting</h2>
-                <Button title="Add Event Button" variant="contained" onClick={handleCreatEventClick}>
-                    <AddIcon/>
-                </Button>
+                <h2>Attending</h2>
+                <EventList events={attendingEvents} canDeleteEvents={false} setEventsChanged={setEventsChanged}></EventList>
             </Box>
-            <EventList events={hostingEvents} canDeleteEvents={true} setEventsChanged={setEventsChanged}></EventList>
-        </Grid2>
+            <Box
+                display="flex"
+                flexDirection="column"
+                justifyContent="center"
+                // alignItems="center"
+                height={175}
+                // gap={2}
+                sx={{ position: 'fixed', top: '52vh'}}
+            >
+                <Box
+                    display="flex"
+                    flexDirection="row"
+                    sx={{ '& button': { m: 1 } }}
+                    // gap={2}
+                >
+                    <h2>Hosting</h2>
+                    <Button size="small" title="Add Event Button" variant="contained" onClick={handleCreatEventClick}>
+                        <AddIcon/>
+                    </Button>
+                </Box>
+                <EventList events={hostingEvents} canDeleteEvents={true} setEventsChanged={setEventsChanged}></EventList>
+            </Box>
+        </Box>
+        // </Grid2>
     );
 };
 
@@ -169,18 +189,17 @@ function EventList({ events, canDeleteEvents, setEventsChanged }: { events: Even
         display="flex"
         alignItems="center" 
         justifyContent="center"
-        style={{maxHeight: '28.5vh', overflow: 'auto'}}
-        padding={2}
+        // padding={2}
     >
         {events.map(event =>  
             <StyledCard key={event.id} event={event} viewEvent={viewEvent} showShareIcon={true} showViews>
                                 {canDeleteEvents && (
-                    <Box display="flex" flexDirection="row" gap={2}>
-                        <Button fullWidth variant="contained" onClick={() => editEvent(event)}>Edit</Button>
+                    <Box display="flex" flexDirection="row" gap={2} sx={{ '& button': { m: 1 }}}>
+                        <Button size="small" fullWidth variant="contained" onClick={() => editEvent(event)}>Edit</Button>
                         {canDeleteEvents && (event.recurs > 1 ?
                             <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}>
                             </DeleteRecurEventModal>
-                            : <Button fullWidth variant="contained" onClick={() => deleteEvent(event)}>Delete</Button>
+                            : <Button size="small" fullWidth variant="contained" onClick={() => deleteEvent(event)}>Delete</Button>
                             )} 
                     </Box>
                 )}   

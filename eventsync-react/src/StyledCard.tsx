@@ -38,7 +38,7 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, viewE
 
     const EventCard = styled(Paper)(({ theme }) => ({
         width: 250,
-        height: 200,
+        height: 175,
         padding: theme.spacing(2),
         textAlign: 'center',
     }));
@@ -48,7 +48,7 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, viewE
 
     return (
         <Box display="flex" justifyContent="center" alignItems="center">
-            <EventCard elevation={10}>
+            <EventCard elevation={10} sx={{padding:2}}>
                 <div onClick={() => viewEvent(event)} style={{ cursor: "pointer" }}>
                     <p>{`Name: ${event.eventName}`}</p>
                     {start.isSame(end, "date") ? (
@@ -66,30 +66,29 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, viewE
                             ))}
                         </Box>
                     )}
-                    {showViews && <p>{`${event.views} Views`}</p>}
                 </div>
 
                 {/* Share Button */}
-                {showShareIcon && (
-                    <Button
-                        onClick={handleShare}
-                        startIcon={<IosShareIcon sx={{ color: "black" }} />} // Make icon black
-                        sx={{
-                            backgroundColor: "white", 
-                            color: "black", 
-                            padding: "8px 8px", 
-                            minWidth: "60px", 
-                            "&:hover": {
+                <Box display="flex" flexDirection="row" justifyContent="space-between">
+                    {showViews && <p>{`${event.views} Views`}</p>}
+                    {showShareIcon && (
+                        <Button
+                            onClick={handleShare}
+                            startIcon={<IosShareIcon sx={{ color: "black" }} />} // Make icon black
+                            sx={{
                                 backgroundColor: "white", 
                                 color: "black", 
-                            },
-                        }}
-                    >
-                    </Button>
-                )}
-                
-              
-
+                                padding: "8px 8px", 
+                                minWidth: "60px", 
+                                "&:hover": {
+                                    backgroundColor: "white", 
+                                    color: "black", 
+                                },
+                            }}
+                        >
+                        </Button>
+                    )}
+                </Box>
                 
                 {children}
             </EventCard>
