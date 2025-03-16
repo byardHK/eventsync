@@ -133,8 +133,6 @@ function ChatPage() {
         <Grid2
             display="flex"
             flexDirection="column"
-            // justifyContent="center"
-            // alignItems="center"
             style={{maxHeight: '85vh', overflow: 'auto'}}
             paddingTop={10}
         >

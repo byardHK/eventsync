@@ -14,10 +14,14 @@ import logo from '../images/logo.png';
 import DeleteRecurEventModal from '../components/DeleteRecurEventModal';
 
 function MyEventsPage() {
-    // console.log("my events page: ")
-    // console.log(currentUserId);
-
+    const [showingAttending, setShowingAttending ] = useState<boolean>(true); 
     const { userDetails } = useUser();
+    const navigate = useNavigate()
+
+    const handleCreatEventClick = () => {
+        navigate("/createEvent")
+    }
+
     if (!userDetails || !userDetails.email) {
         return <div className="loading-container">
         <img src={logo} alt="EventSync Logo" className="logo" />
@@ -34,47 +38,63 @@ function MyEventsPage() {
             alignItems="center" 
             justifyContent="center"
         >
-            {/* <Box
-                display="flex"
-                flexDirection="row"
-                gap={2}
+            <Box
+                sx={{width: "100%", position: 'fixed', top: '0px', backgroundColor: "rgb(160, 160, 160)",  "z-index": 10}}
             >
-                <Button 
-                    variant={isListView ? "contained" : "outlined"} 
-                    fullWidth
-                    onClick={() => {setIsListView(true)}}
+                <Box 
+                    display="flex" 
+                    flexDirection="row" 
+                    padding={2}
+                    // sx={{width: "100%", position: 'fixed', top: '10px', backgroundColor: "rgb(160, 160, 160)",  "z-index": 10}}
                 >
-                    List
-                </Button>
-                <Button 
-                    variant={!isListView ? "contained" : "outlined"} 
-                    fullWidth
-                    onClick={() => {setIsListView(false)}}
+                    <Button 
+                        variant={showingAttending ? "contained" : "outlined"} 
+                        fullWidth
+                        onClick={() => {setShowingAttending(true)}}
+                    >
+                        Attending
+                    </Button>
+                    <Button 
+                        variant={!showingAttending ? "contained" : "outlined"} 
+                        fullWidth
+                        onClick={() => {setShowingAttending(false)}}
+                    >
+                        Hosting
+                    </Button>
+                </Box>
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    gap={2}
                 >
-                    Calendar
-                </Button>
-            </Box> */
-            // uncomment for Sprint 3
-            }
-            <EventLists/>
+                    {showingAttending ?
+                        <h1>Attending</h1> :
+                        <>
+                            <h1>Hosting</h1>
+                            <Button title="Add Event Button" variant="contained" onClick={handleCreatEventClick}>
+                                <AddIcon/>
+                            </Button>
+                        </>
+                    }
+                </Box>
+            </Box>
+            <EventLists showingAttending={showingAttending}/>
             <BottomNavBar userId={currentUserId!}/>
         </Box>
     </>;
 };
 
-function EventLists() {
+type EventListsProps = {
+    showingAttending: boolean
+};
+
+function EventLists({showingAttending}: EventListsProps) {
     const [attendingEvents, setAttendingEvents] = useState<EventSyncEvent[]>([]);  
     const [hostingEvents, setHostingEvents] = useState<EventSyncEvent[]>([]);    
     const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
-
-    const navigate = useNavigate()
-
-    const handleCreatEventClick = () => {
-        navigate("/createEvent")
-    }
-
 
     useEffect(() => {
         const fetchData = async () => {
@@ -99,45 +119,25 @@ function EventLists() {
     }, [eventsChanged]);
 
     return (
-        // <Grid2
-        //     // container
-        //     direction="column"
-        // >
-        <Box>
+        <Box
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="center"
+        >
             <Box
                 display="flex"
-                flexDirection="column"
                 justifyContent="center"
                 alignItems="center"
-                // height={175}
+                paddingTop={18}
+                paddingBottom={8}
             >
-                <h2>Attending</h2>
-                <EventList events={attendingEvents} canDeleteEvents={false} setEventsChanged={setEventsChanged}></EventList>
+                {showingAttending ?
+                    <EventList events={attendingEvents} canDeleteEvents={false} setEventsChanged={setEventsChanged}/> :
+                    <EventList events={hostingEvents} canDeleteEvents={true} setEventsChanged={setEventsChanged}/>              
+                }
             </Box>
-            <Box
-                display="flex"
-                flexDirection="column"
-                justifyContent="center"
-                // alignItems="center"
-                height={175}
-                // gap={2}
-                sx={{ position: 'fixed', top: '52vh'}}
-            >
-                <Box
-                    display="flex"
-                    flexDirection="row"
-                    sx={{ '& button': { m: 1 } }}
-                    // gap={2}
-                >
-                    <h2>Hosting</h2>
-                    <Button size="small" title="Add Event Button" variant="contained" onClick={handleCreatEventClick}>
-                        <AddIcon/>
-                    </Button>
-                </Box>
-                <EventList events={hostingEvents} canDeleteEvents={true} setEventsChanged={setEventsChanged}></EventList>
-            </Box>
-        </Box>
-        // </Grid2>
+        </Box> 
     );
 };
 
@@ -192,8 +192,8 @@ function EventList({ events, canDeleteEvents, setEventsChanged }: { events: Even
         // padding={2}
     >
         {events.map(event =>  
-            <StyledCard key={event.id} event={event} viewEvent={viewEvent} showShareIcon={true} showViews>
-                                {canDeleteEvents && (
+            <StyledCard height={canDeleteEvents ? 225 : undefined} key={event.id} event={event} viewEvent={viewEvent} showShareIcon={true} showViews>
+                {canDeleteEvents && (
                     <Box display="flex" flexDirection="row" gap={2} sx={{ '& button': { m: 1 }}}>
                         <Button size="small" fullWidth variant="contained" onClick={() => editEvent(event)}>Edit</Button>
                         {canDeleteEvents && (event.recurs > 1 ?
