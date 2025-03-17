@@ -14,6 +14,9 @@ import os
 app = Flask(__name__)
 app.config["DEBUG"] = True
 app.config["PROPAGATE_EXCEPTIONS"] = True  # Ensure exceptions are raised
+UPLOAD_FOLDER = 'uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 CORS(app)
 
@@ -2662,4 +2665,48 @@ def get_event_chat_id(event_id: int):
         return sqlResponseToJson(response, headers)
     except mysql.connector.Error as err:
         print(f"Error: {err}")
+    return {}
+
+@app.route('/upload/', methods=['POST'])
+def upload():
+
+    # user_email, error_response, status_code = get_authenticated_user()
+    # if error_response:
+    #     return error_response, status_code  
+
+    # body = request.json
+    # if not body or "senderId" not in body:
+    #     return jsonify({"error": "Missing required fields in request body"}), 400
+
+    # if body["senderId"].lower() != user_email.lower():
+    #     return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
+    if 'file' not in request.files:
+        return jsonify({'message': 'No file part'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'message': 'No selected file'}), 400
+    if file:
+        # filename = secure_filename(file.filename)
+        filename = 'image.jpg'
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+
+        data = request.form
+        try:
+            conn = mysql.connector.connect(**db_config)
+            mycursor = conn.cursor()
+            mycursor.execute(f""" 
+                INSERT INTO Message (chatId, senderId, imagePath, timeSent) 
+                    VALUES ({data.get('chatId')}, "{data.get("senderId")}", "{filename}", "{data.get("timeSent")}");
+            """)
+            conn.commit()
+            mycursor.close()
+            conn.close()
+            # pusher_client.trigger(f'chat-{request.form.get("chatId")}', 'new-message', {'messageContent': data['messageContent'], 'senderId': request.form.get('senderId'),
+            #                             'chatId': request.form.get('chatId'), 'timeSent': request.form.get('timeSent'), 'id': -1}) # TODO: change id
+            return jsonify({'message': 'File uploaded successfully', 'filename': filename}), 200
+
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
     return {}

@@ -201,7 +201,8 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
     return (       
         <div className="chatWindow">
             <ul className='chat' id='chatList'>
-            {messages.map((message, index) => (
+                {MyComponent('0.jpg')}
+            {/* {messages.map((message, index) => (
             <div key={index}>
                 {currentUserId === message.senderId ? (
                 <ListItemButton className="self">
@@ -213,17 +214,18 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
                 </ListItemButton>
               ) : (
                 otherChat(message)
-              )}
-            </div>
-            ))}
+              )} */}
+            {/* </div>
+            ))} */}
             </ul>
         </div>)
 };
 
 
-const ChatInput = (props: { channelName: String, currentUserId: String, chatId: string }) => {
+const ChatInput = (props: { channelName: String, currentUserId: string, chatId: string }) => {
     const [message, setMessage] = useState<string>("");
     const {userDetails} = useUser();
+    const [selectedImage, setSelectedImage] = useState<File | undefined>();
 
     const sendMessage = () => {
         if (message.trim().length > 0) {
@@ -244,6 +246,44 @@ const ChatInput = (props: { channelName: String, currentUserId: String, chatId: 
         }
     };
 
+    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if(!event.target.files) {
+            return;
+        }
+        
+        setSelectedImage(event.target.files[0]);
+    }
+
+    const handleUpload = async () => {
+        if(!selectedImage) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', selectedImage);
+        formData.append('senderId', props.currentUserId);
+        formData.append('chatId', props.chatId);
+        formData.append('timeSent', getCurDate());
+
+        try {
+            const response = await axios.post('http://localhost:5000/upload', formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            });
+            console.log(response.data);
+            // Handle success (e.g., display success message, image preview)
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            // Handle error (e.g., display error message)
+        }
+    };
+
+    const onSend = () => {
+        sendMessage();
+        handleUpload();
+    }
+
     return (
         <div>
         <div className="chat-input-container">
@@ -252,13 +292,50 @@ const ChatInput = (props: { channelName: String, currentUserId: String, chatId: 
             value={message} 
             onChange={(event) => setMessage(event.target.value)}  
         />
-        <Button onClick={sendMessage}>
+        <Button onClick={onSend}>
             <SendIcon></SendIcon>
         </Button>
+        <div>
+            <TextField
+                type="file"
+                onChange={handleImageChange}
+                // inputProps={{accept: "image/*" }} TODO
+            >
+            {/* <Button 
+                onClick={handleImageChange} 
+                variant="contained">
+                Upload
+            </Button> */}
+            </TextField>
+        </div>
         </div>
       </div>
     );
 };
+
+const MyComponent = (imagePath: string) => {
+    // const fullPath = `../../../uploads/${imagePath}`;
+    // const fullPath = '../../../eventsync-backend/uploads/0.jpg';
+    const fullPath = '../uploads/0.jpg';
+
+
+//   console.log(fs.existsSync(fullPath));
+    
+
+    return (
+      <Box
+        component="img"
+        sx={{
+          height: 233,
+          width: 350,
+          maxHeight: { xs: 200, md: 167 },
+          maxWidth: { xs: 350, md: 250 },
+        }}
+        // alt="The house from the offer."
+        src={fullPath}
+      />
+    );
+  };
 
 export function getCurDate() {
     const now = new Date();
