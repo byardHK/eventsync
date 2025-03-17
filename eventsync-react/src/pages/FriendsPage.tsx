@@ -92,23 +92,22 @@ function FriendsPage() {
             flexDirection="column"
             alignItems="center"
             justifyContent="center"
-            padding={2}
         >
-            <Box display="flex" flexDirection="row">
+            <Box display="flex" flexDirection="row" padding={2} sx={{width: "100%"}}>
                 <Button 
-                        variant={isFriendsPage ? "contained" : "outlined"} 
-                        fullWidth
-                        onClick={() => {toggleFriendsGroupPages(true)}}
-                    >
-                        Friends
-                    </Button>
-                    <Button 
-                        variant={!isFriendsPage ? "contained" : "outlined"} 
-                        fullWidth
-                        onClick={() => {toggleFriendsGroupPages(false)}}
-                    >
-                        Groups
-                    </Button>
+                    variant={isFriendsPage ? "contained" : "outlined"} 
+                    fullWidth
+                    onClick={() => {toggleFriendsGroupPages(true)}}
+                >
+                    Friends
+                </Button>
+                <Button 
+                    variant={!isFriendsPage ? "contained" : "outlined"} 
+                    fullWidth
+                    onClick={() => {toggleFriendsGroupPages(false)}}
+                >
+                    Groups
+                </Button>
             </Box>
         
             <Typography variant="h4" gutterBottom>Friends</Typography>

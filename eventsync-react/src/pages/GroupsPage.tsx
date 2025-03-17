@@ -61,8 +61,13 @@ function GroupsPage(){
     const [newGroupsModalOpen, setNewGroupsModalOpen] = useState<boolean>(false);
 
     return(
-        <>
-            <Box display="flex" flexDirection="row">
+        <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+        >
+            <Box display="flex" flexDirection="row" padding={2} sx={{width: "100%"}}>
                 <Button 
                     variant={isFriendsPage ? "contained" : "outlined"} 
                     fullWidth
@@ -118,7 +123,7 @@ function GroupsPage(){
                 </Box>
             </Box>
             <BottomNavBar userId={currentUserId!}/>
-        </>
+        </Box>
     );
 }   
 

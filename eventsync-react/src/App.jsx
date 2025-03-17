@@ -16,12 +16,13 @@ import ChatHomePage from "./pages/ChatHomePage"
 import { useUser } from "./sso/UserContext";
 import LoadingPage from "./pages/LoadingPage";
 import { Navigate } from 'react-router-dom';
-
-
+import { ThemeProvider } from "@mui/material";
+import theme from "./components/ColorTheme";
 
 const MainContent = () => {
   const { userDetails } = useUser();
   return (
+    <ThemeProvider theme={theme}>
       <div className="App">
           <AuthenticatedTemplate>
             <BrowserRouter>
@@ -50,6 +51,7 @@ const MainContent = () => {
             </LoginPage>
           </UnauthenticatedTemplate>
       </div>
+    </ThemeProvider>
   );
 };
 
