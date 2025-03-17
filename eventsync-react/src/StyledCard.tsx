@@ -1,6 +1,6 @@
 // The share modal / navigation part of this page was written with generative AI.
 
-import { Box, Button, Chip,  Paper, styled } from "@mui/material"
+import { Box, Button, Chip,  Paper, styled, Typography } from "@mui/material"
 import { ReactNode, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import EventSyncEvent from "./types/EventSyncEvent";
@@ -12,10 +12,11 @@ export type StyledCardProps = {
     showTags?: boolean;
     showViews?: boolean;
     showShareIcon?: boolean;
+    height?: number;
     viewEvent: (event : EventSyncEvent) => Promise<void>;
 };
 
-function StyledCard({ children, event, showTags, showViews, showShareIcon, viewEvent }: StyledCardProps) {
+function StyledCard({ children, event, showTags, showViews, showShareIcon, height, viewEvent }: StyledCardProps) {
     const [shareOpen, setShareOpen] = useState(false);
     const eventUrl = `${window.location.origin}/viewEvent/${event.id}`;
 
@@ -38,7 +39,7 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, viewE
 
     const EventCard = styled(Paper)(({ theme }) => ({
         width: 250,
-        height: 200,
+        height: height ? height : 175,
         padding: theme.spacing(2),
         textAlign: 'center',
     }));
@@ -48,11 +49,11 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, viewE
 
     return (
         <Box display="flex" justifyContent="center" alignItems="center">
-            <EventCard elevation={10}>
+            <EventCard elevation={10} sx={{padding:2}}>
                 <div onClick={() => viewEvent(event)} style={{ cursor: "pointer" }}>
-                    <p>{`Name: ${event.eventName}`}</p>
+                    <Typography variant="h5" fontWeight="bold">{event.eventName}</Typography>
                     {start.isSame(end, "date") ? (
-                        <p>{`Time: ${timeToString2(start, end)}`}</p>
+                        <h3>{`${timeToString2(start, end)}`}</h3>
                     ) : (
                         <>
                             <p>{`Start: ${timeToString(start)}`}</p>
@@ -62,34 +63,34 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, viewE
                     {showTags && (
                         <Box display="flex" flexWrap="wrap" justifyContent="center">
                             {event.tags.map((tag, index) => (
-                                <Chip key={index} label={tag.name} style={{ margin: 2 }} />
+                                <Chip key={index} label={tag.name} style={{ margin: 2, backgroundColor: 'rgba(82, 113, 255, 0.5)' }}  />
                             ))}
                         </Box>
                     )}
-                    {showViews && <p>{`${event.views} Views`}</p>}
                 </div>
 
                 {/* Share Button */}
-                {showShareIcon && (
-                    <Button
-                        onClick={handleShare}
-                        startIcon={<IosShareIcon sx={{ color: "black" }} />} // Make icon black
-                        sx={{
-                            backgroundColor: "white", 
-                            color: "black", 
-                            padding: "8px 8px", 
-                            minWidth: "60px", 
-                            "&:hover": {
-                                backgroundColor: "white", 
-                                color: "black", 
-                            },
-                        }}
-                    >
-                    </Button>
-                )}
-                
-              
-
+                <Box display="flex" flexDirection="row" justifyContent="space-between">
+                    {showViews && <p>{`${event.views} Views`}</p>}
+                    {showShareIcon && (
+                        <Button
+                            onClick={handleShare}
+                            startIcon={<IosShareIcon sx={{ color: "black" }} />} // Make icon black
+                        //     sx={{
+                        //         backgroundColor: "white", 
+                        //         color: "black", 
+                        //         padding: "8px 8px", 
+                        //         minWidth: "60px", 
+                        //         "&:hover": {
+                        //             backgroundColor: "white", 
+                        //             color: "black", 
+                        //         },
+                        //     }}
+                        // 
+                        >
+                        </Button>
+                    )}
+                </Box>
                 
                 {children}
             </EventCard>
@@ -118,11 +119,11 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, viewE
 
 // Helper functions for formatting time
 export function timeToString(dayjsTime: Dayjs): string {
-    return `${dayjsTime.format("dddd, M/D")} at ${dayjsTime.format("h:mm A")}`;
+    return `${dayjsTime.format("dddd (M/D)")} at ${dayjsTime.format("h:mm A")}`;
 }
 
 export function timeToString2(startTime: Dayjs, endTime: Dayjs): string {
-    return `${startTime.format("dddd, M/D")} from ${startTime.format("h:mm A")} - ${endTime.format("h:mm A")}`;
+    return `${startTime.format("dddd (M/D)")} from ${startTime.format("h:mm A")} - ${endTime.format("h:mm A")}`;
 }
 
 export default StyledCard;

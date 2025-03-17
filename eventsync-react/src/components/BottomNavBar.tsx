@@ -31,12 +31,13 @@ function BottomNavBar({ userId }: { userId: string }) {
         fetchFriendRequests();
     }, [userId]);
 
-    return<Box
+    return <Box
         display="flex"
         flexDirection="row"
         width="100%"
         paddingBottom={2}
         paddingTop={2}
+        sx={{backgroundColor: "rgb(160, 160, 160)"}}
         justifyContent="space-around"
         style={{ position: 'fixed', bottom: '0' }}
     >
