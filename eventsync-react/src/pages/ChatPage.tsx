@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import { Box, Button, Grid2, IconButton, ListItemButton, ListItemText, TextField } from "@mui/material";
+import { Box, Button, Grid2, Input, IconButton, ListItemButton, ListItemText, TextField, InputLabel, FormControl } from "@mui/material";
 import axios from "axios";
 import Message from '../types/Message';
 import Chat from '../types/Chat';
@@ -14,6 +14,8 @@ import FlagIcon from '@mui/icons-material/Flag';
 import chatType from '../types/chatType';
 import { Link } from 'react-router-dom';
 import BackButton from '../components/BackButton';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import { useRef } from 'react';
 
 dayjs.extend(isToday);
 
@@ -299,9 +301,31 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
         handleUpload();
     }
 
+    const hiddenFileInput = useRef<HTMLDivElement>(null);
+
+    const handleClick = () => {
+        if (hiddenFileInput.current) {
+            hiddenFileInput.current.click();
+        }
+    }
+
+
     return (
         <div>
         <div className="chat-input-container">
+
+        <Button onClick={handleClick}>
+            <AttachFileIcon></AttachFileIcon>
+        </Button>
+        <FormControl>
+            <Input 
+                type="file" 
+                onChange={handleImageChange}
+                inputRef={hiddenFileInput}
+                style={{display:'none'}}
+                inputProps={{accept: "image/*" }}
+            />
+        </FormControl>
         <TextField 
             type="text" 
             value={message} 
@@ -310,18 +334,9 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
         <Button onClick={onSend}>
             <SendIcon></SendIcon>
         </Button>
+        
         <div>
-            <TextField
-                type="file"
-                onChange={handleImageChange}
-                // inputProps={{accept: "image/*" }} TODO
-            >
-            {/* <Button 
-                onClick={handleImageChange} 
-                variant="contained">
-                Upload
-            </Button> */}
-            </TextField>
+            
         </div>
         </div>
       </div>
