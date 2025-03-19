@@ -10,9 +10,9 @@ export default defineConfig({
     open: true, 
     proxy: {
       '/api': {
-        target: 'http://10.18.101.62:3000',
+        target: 'https://10.18.101.62:3000',
         changeOrigin: true,
-        secure: false,
+        secure: true,
       },
     },
   },
