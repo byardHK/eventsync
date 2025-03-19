@@ -15,7 +15,7 @@ app = Flask(__name__)
 app.config["DEBUG"] = True
 app.config["PROPAGATE_EXCEPTIONS"] = True  # Ensure exceptions are raised
 
-CORS(app, origins=["https://10.18.101.62:5173"])
+CORS(app, origins=["https://eventsync.gcc.edu:5173"])
 
 db_config = {
     'host': '10.18.101.62',  
