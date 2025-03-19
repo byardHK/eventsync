@@ -10,7 +10,7 @@ export default defineConfig({
     open: true, 
     proxy: {
       '/api': {
-        target: 'http://eventsync.gcc.edu:3000',
+        target: 'http://10.18.101.62:3000/',
         changeOrigin: true,
         secure: false,
       },
