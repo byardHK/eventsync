@@ -1,20 +1,23 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import basicSsl from '@vitejs/plugin-basic-ssl';
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import fs from 'fs';
 
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), basicSsl()],
+  plugins: [react()],
   server: {
     host: '0.0.0.0',
-    port: 5173, 
+    port: 5173,
     open: true,
+    https: {
+      key: fs.readFileSync('server.key'),  // Use backend's key
+      cert: fs.readFileSync('server.crt')  // Use backend's cert
+    },
     proxy: {
       '/api': {
-        target: 'https://10.18.101.62:3000',
+        target: 'https://10.18.101.62:3000', // Ensure backend is running HTTPS
         changeOrigin: true,
-        secure: false,
+        secure: false,  // Ignore SSL issues in dev mode
       },
     },
   },
-})
+});
