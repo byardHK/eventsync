@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import BottomNavBar from '../components/BottomNavBar';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css";
 import { Button, Typography, Paper, Box, Dialog, DialogTitle, DialogContent, Fab, TextField } from '@mui/material';
