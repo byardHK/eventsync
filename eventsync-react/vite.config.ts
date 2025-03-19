@@ -4,17 +4,16 @@ import basicSsl from '@vitejs/plugin-basic-ssl';
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), basicSsl()],
   server: {
     host: '0.0.0.0',
     port: 5173, 
-    open: true, 
-    https: true,
+    open: true,
     proxy: {
       '/api': {
         target: 'https://10.18.101.62:3000',
         changeOrigin: true,
-        secure: true,
+        secure: false,
       },
     },
   },
