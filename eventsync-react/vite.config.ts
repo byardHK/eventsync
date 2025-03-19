@@ -11,7 +11,7 @@ export default defineConfig({
     open: true,
     https: {
       key: fs.readFileSync(path.resolve(__dirname, '../eventsync-backend/server.key')),
-      cert: fs.readFileSync(path.resolve(__dirname, '../eventsync-backend/server.crt')), // Use backend's cert
+      cert: fs.readFileSync(path.resolve(__dirname, '../eventsync-backend/server.crt')), 
     },
     proxy: {
       '/api': {
