@@ -1,9 +1,9 @@
 // change this to be http://localhost:5000 for testing. Production should be https://eventsync.gcc.edu
 
 //Prod
-export const BASE_URL: string = "https://10.18.101.62:3000";
+export const BASE_URL: string = "https://eventsync.gcc.edu:3000";
 
-export const REDIRECT_URI: string = "https://10.18.101.62:5173";
+export const REDIRECT_URI: string = "https://eventsync.gcc.edu:5173";
 
 //Testing
 // export const BASE_URL: string = "http://localhost:5000";
