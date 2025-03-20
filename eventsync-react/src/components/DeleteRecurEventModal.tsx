@@ -44,22 +44,22 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged:
                 justifyContent="center"
                 padding={2}
             >
-                <h4>Are you sure you would like to cancel this event?</h4>
+                <Typography variant='h5'>Are you sure you would like to cancel this event?</Typography>
                 <Box
                     display="flex" 
                     flexDirection="row"
-                    
+                    padding={1}
                 >
                     <FormControl> 
                         <RadioGroup 
                             defaultValue={null}
                             onChange={(event) => setNumToDelete(event.target.value)}
-                            style={{fontFamily: 'Times New Roman'}}
+                            // style={{fontFamily: 'Times New Roman'}}
                         > 
-                            <FormControlLabel value="one" style={{fontFamily: 'Times New Roman'}}
-                                control={<Radio />} label={<Typography style={{ fontFamily: 'Times New Roman' }}>This event</Typography>} /> 
-                            <FormControlLabel value="all" style={{fontFamily: 'Times New Roman'}}
-                                control={<Radio />} label={<Typography style={{ fontFamily: 'Times New Roman' }}>This event and all other occurrences of this event</Typography>} /> 
+                            <FormControlLabel value="one" /*style={{fontFamily: 'Times New Roman'}}*/
+                                control={<Radio />} label={<Typography /*style={{ fontFamily: 'Times New Roman' }}*/>This event</Typography>} /> 
+                            <FormControlLabel value="all" /*style={{fontFamily: 'Times New Roman'}}*/
+                                control={<Radio />} label={<Typography /*style={{ fontFamily: 'Times New Roman' }}*/>This event and all other occurrences of this event</Typography>} /> 
                         </RadioGroup> 
                     </FormControl> 
                 </Box>
@@ -72,8 +72,8 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged:
                 padding={2}
                 gap={2}
             >
-                <Button variant="outlined" fullWidth onClick={handleClose}>No</Button>
-                <Button variant="outlined" fullWidth onClick={handleDelete}>Yes</Button>
+                <Button variant="contained" fullWidth onClick={handleClose}>No</Button>
+                <Button variant="contained" fullWidth onClick={handleDelete}>Yes</Button>
             </Box>
         </Dialog>
     </>

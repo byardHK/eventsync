@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, TextField } from "@mui/material";
+import { Box, Button, Dialog, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import { Event } from "../pages/ViewEventPage";
 import Tag from "../types/Tag";
@@ -123,8 +123,9 @@ function ReportModal({input, open, onClose, type}: ReportModalProps){
                 display="flex"
                 flexDirection="column"
                 sx={{padding: 3}}
+                gap={3}
             >
-                <p>Please add more details of what you would like to report: </p>
+                <Typography>Please add more details of what you would like to report: </Typography>
                 <TextField
                     sx={{input: {backgroundColor: 'white'}}}
                     id="outlined-basic"

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import BottomNavBar from '../components/BottomNavBar';
 import Box from '@mui/material/Box';
-import {InputAdornment, Paper, styled, TextField } from '@mui/material';
+import {InputAdornment, Paper, styled, TextField, Typography } from '@mui/material';
 import axios from 'axios';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css"
@@ -29,8 +29,9 @@ function ChatHomePage() {
             display="flex"
             alignItems="center" 
             justifyContent="center"
-        >
-            <h1 className="card-title">My Chats</h1>
+            padding={2}
+          >
+          <Typography variant="h3">My Chats</Typography>
         </Box>
               <TextField 
                 sx={{input: {backgroundColor: 'white'}}}
@@ -119,7 +120,7 @@ function StyledCard({chat, viewChat, chatName} : {chat: Chat, viewChat: (chat:Ch
       <Box display="flex" justifyContent="center" alignItems="center">
           <ChatCard elevation={10} square={false}>
               <div onClick={() => { viewChat(chat); }} style={{cursor: "pointer"}}>
-                  <h3>{chatName}</h3>
+                  <Typography variant="h5">{chatName}</Typography>
                 </div>
           </ChatCard>
       </Box>

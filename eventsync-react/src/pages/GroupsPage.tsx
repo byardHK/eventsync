@@ -145,8 +145,8 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
             onClose={()=> {setLeavingGroupModalOpen(false)}}
             open={leavingGroupModalOpen}
         >
-            <Box sx={{padding : 3}}>fconsole.log
-                <h2>Leave group?</h2>
+            <Box sx={{padding : 3}}>
+                <Typography variant="h5">Leave group?</Typography>
                 <Box display="flex" flexDirection="row" justifyContent="space-between">
                     <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setLeavingGroupModalOpen(false)}}>Cancel</Button>
                     <Button fullWidth sx={{marginTop: "auto"}} onClick={leaveGroup}>Yes</Button>
@@ -174,7 +174,7 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
             open={deleteGroupModalOpen}
         >
             <Box sx={{padding : 3}}>
-                <h2>Delete group?</h2>
+                <Typography variant="h5">Delete group?</Typography>
                 <Box display="flex" flexDirection="row" justifyContent="space-between">
                     <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setDeleteGroupModalOpen(false)}}>Cancel</Button>
                     <Button fullWidth sx={{marginTop: "auto"}} onClick={deleteGroup}>Yes</Button>
@@ -222,8 +222,8 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
             ref={anchorRef}
             aria-label="Button group with a nested menu"
         >
-            <Card sx={{padding: 3, maxWidth: "25vh"}} >
-                <h2>{group.groupName}</h2>
+            <Card sx={{padding: 3, maxWidth: "25vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center"}} >
+                <Typography variant="h5">{group.groupName}</Typography>
                 <Box display="flex" flexDirection="row">
                     <ReportModal input={group} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="group"/>
                     <Box display="flex" alignItems="right" justifyContent="right">

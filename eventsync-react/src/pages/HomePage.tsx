@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import axios from "axios";
-import { Button, Grid2, InputAdornment, TextField, Autocomplete, Checkbox, FormControlLabel, Collapse } from '@mui/material';
+import { Button, Grid2, InputAdornment, TextField, Autocomplete, Checkbox, FormControlLabel, Collapse, Typography } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PersonIcon from '@mui/icons-material/Person';
 import BottomNavBar from '../components/BottomNavBar';
@@ -26,8 +26,8 @@ function HomePage() {
     const { userDetails } = useUser();
     if (!userDetails || !userDetails.email) {
         return <div className="loading-container">
-        <img src={logo} alt="EventSync Logo" className="logo" />
-        <p className="loading-text">Loading...</p>
+            <img src={logo} alt="EventSync Logo" className="logo" />
+            <Typography className="loading-text">Loading...</Typography>
         </div>;
     }
     console.log("home page user details: ", userDetails);
@@ -101,7 +101,7 @@ function HomePage() {
     
     return <>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Box style={{ position: 'fixed', top: '0', backgroundColor: "rgb(160, 160, 160)", width: "100%"}}>
+            <Box style={{ position: 'fixed', top: '0', backgroundColor: "rgb(175, 175, 175)", width: "100%"}}>
                 <Box
                     display="flex"
                     alignItems="right" 
@@ -132,7 +132,7 @@ function HomePage() {
                     gap={2}
                     sx={{height: "80px"}}
                 >
-                    {/* <h3 className="card-title">Welcome {userDetails.firstName}!</h3> */}
+                    {/* <Typography variant="h5">Welcome {userDetails.firstName}!</Typography> */}
                     <TextField 
                         sx={{input: {backgroundColor: 'white'}}}
                         id="outlined-basic" 
@@ -156,7 +156,7 @@ function HomePage() {
                     <Box sx={{width: "100%", position: 'fixed', top: '200px'}}>
                         <Collapse in={filtersVisible} sx={{width: "100%"}} >
                             <Box 
-                            sx={{backgroundColor: "rgb(160, 160, 160)"}} 
+                            sx={{backgroundColor: "rgb(175, 175, 175)"}} 
                             display="flex"
                             flexDirection="column"
                             justifyContent="center"

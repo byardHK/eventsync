@@ -1,4 +1,4 @@
-import { Box, Button, Checkbox, Chip, Dialog, FormControlLabel, Grid2, TextField } from '@mui/material';
+import { Box, Button, Checkbox, Chip, Dialog, FormControlLabel, Grid2, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import axios from "axios";
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -139,15 +139,17 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                 flexDirection="column"
                 alignItems="center" 
                 justifyContent="center"
+                padding={2}
             >
-                <h3>Create a Custom Tag</h3>
+                <Typography variant="h5">Create a Custom Tag</Typography>
                 {errorMessage && <div className="error-message" style={{ color: 'red' }}>{errorMessage}</div>}
                 <Box
                     display="flex" 
                     flexDirection="row"
+                    paddingTop={2}
                 >
                     <TextField variant="outlined" value={createCustomTagText} onChange={(event) => setCreateCustomTagText(event.target.value)}  ></TextField>
-                    <Button onClick={handleCreateCustomTag}>Add Tag</Button>
+                    <Button size="small" variant="contained" onClick={handleCreateCustomTag}>Add Tag</Button>
                 </Box>
             </Box>
             <Box sx={{ border: 1 }}>
@@ -159,7 +161,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                     style={{maxHeight: '40vh', overflow: 'auto'}}
                     padding={1}
                 >
-                    <h2>Custom Tags</h2>
+                    <Typography variant="h4">Custom Tags</Typography>
                     {customTags.map((tag, index) =>
                         <Box 
                             key={index}       
@@ -183,7 +185,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                             </Button>
                         </Box>
                     )}
-                    <h2>Default Tags</h2>
+                    <Typography variant="h4">Default Tags</Typography>
                     {defaultTags.map((tag, index) =>
                         <Box 
                             key={index}        
@@ -210,13 +212,13 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                 alignItems="center"
                 justifyContent="center"
                 flexWrap="wrap"
-                padding={3}
+                padding={2}
             >
                 {selectedTags.map((tag, index) =>
                     <Box 
-                        key={index}    
+                        key={index} 
                     >    
-                        <Chip label={tag.name} onDelete={() => {
+                        <Chip sx={{margin:1, backgroundColor: 'rgba(82, 113, 255, 0.5)', color: "black" }} label={tag.name} onDelete={() => {
                             setSelectedTags(selectedTags.filter((_tag) => { return _tag.id !== tag.id; }))
                         }
                         }></Chip>
@@ -231,8 +233,8 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                 padding={2}
                 gap={2}
             >
-                <Button variant="outlined" fullWidth onClick={handleClose}>Cancel</Button>
-                <Button variant="outlined" fullWidth onClick={onSave}>Save</Button>
+                <Button variant="contained" fullWidth onClick={handleClose}>Cancel</Button>
+                <Button variant="contained" fullWidth onClick={onSave}>Save</Button>
             </Box>
         </Dialog>
     </>

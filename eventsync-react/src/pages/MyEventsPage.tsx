@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import BottomNavBar from '../components/BottomNavBar';
 import Box from '@mui/material/Box';
-import { Button, Grid2 } from '@mui/material';
+import { Button, Grid2, Typography } from '@mui/material';
 import axios from 'axios';
 import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
@@ -25,7 +25,7 @@ function MyEventsPage() {
     if (!userDetails || !userDetails.email) {
         return <div className="loading-container">
         <img src={logo} alt="EventSync Logo" className="logo" />
-        <p className="loading-text">Loading...</p>
+        <Typography className="loading-text">Loading...</Typography>
         </div>;
     }
 
@@ -39,13 +39,12 @@ function MyEventsPage() {
             justifyContent="center"
         >
             <Box
-                sx={{width: "100%", position: 'fixed', top: '0px', backgroundColor: "rgb(160, 160, 160)",  "z-index": 10}}
+                sx={{width: "100%", position: 'fixed', top: '0px', backgroundColor: "rgb(175, 175, 175)",  "z-index": 10}}
             >
                 <Box 
                     display="flex" 
                     flexDirection="row" 
                     padding={2}
-                    // sx={{width: "100%", position: 'fixed', top: '10px', backgroundColor: "rgb(160, 160, 160)",  "z-index": 10}}
                 >
                     <Button 
                         variant={showingAttending ? "contained" : "outlined"} 
@@ -69,9 +68,9 @@ function MyEventsPage() {
                     gap={2}
                 >
                     {showingAttending ?
-                        <h1>Attending</h1> :
+                        <Typography variant="h3">Attending</Typography> :
                         <>
-                            <h1>Hosting</h1>
+                            <Typography variant="h3">Hosting</Typography>
                             <Button title="Add Event Button" variant="contained" onClick={handleCreatEventClick}>
                                 <AddIcon/>
                             </Button>

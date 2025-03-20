@@ -56,14 +56,14 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, heigh
                         <h3>{`${timeToString2(start, end)}`}</h3>
                     ) : (
                         <>
-                            <p>{`Start: ${timeToString(start)}`}</p>
-                            <p>{`End: ${timeToString(end)}`}</p>
+                            <Typography>{`Start: ${timeToString(start)}`}</Typography>
+                            <Typography>{`End: ${timeToString(end)}`}</Typography>
                         </>
                     )}
                     {showTags && (
                         <Box display="flex" flexWrap="wrap" justifyContent="center">
                             {event.tags.map((tag, index) => (
-                                <Chip key={index} label={tag.name} style={{ margin: 2, backgroundColor: 'rgba(82, 113, 255, 0.5)' }}  />
+                                <Chip key={index} label={tag.name} style={{ margin: 2, backgroundColor: 'rgba(82, 113, 255, 0.5)', color:"black" }}  />
                             ))}
                         </Box>
                     )}
