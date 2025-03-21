@@ -23,6 +23,7 @@ dayjs.extend(isToday);
 import Pusher from 'pusher-js';
 import { BASE_URL } from '../components/Constants';
 import ReportModal from '../components/ReportModal';
+const imageDirectory = "../../../eventsync-backend/uploads/";
 
 function ChatPage() {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -34,6 +35,7 @@ function ChatPage() {
     const currentUserId = userDetails.email ? userDetails.email : "";
     const channelName = `chat-${chatId}`;
     const [nonGroupOtherUser, setNonGroupOtherUser] = useState<User | null>(null);
+    const [importedImages, setImportedImages] = useState<string[]>([])
 
 	useEffect(() => {
         const fetchChat = async () => {
@@ -218,7 +220,7 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
     return (       
         <div className="chatWindow">
             <ul className='chat' id='chatList'>
-                {MyComponent('0.jpg')}
+                {MyComponent('0')}
             {/* {messages.map((message, index) => (
             <div key={index}>
                 {currentUserId === message.senderId ? (
@@ -328,6 +330,8 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
         </FormControl>
         <TextField 
             type="text" 
+            // multiline
+            // maxRows={2}
             value={message} 
             onChange={(event) => setMessage(event.target.value)}  
         />
@@ -343,13 +347,25 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
     );
 };
 
-const MyComponent = (imagePath: string) => {
+const MyComponent = (imageName: string) => {
     // const fullPath = `../../../uploads/${imagePath}`;
     // const fullPath = '../../../eventsync-backend/uploads/0.jpg';
-    const fullPath = '../uploads/0.jpg';
+    // const fullPath = '../uploads/0.jpg';
+    const [imageRef, setImageRef] = useState<string>();
 
+    useEffect(() => {
+        importImage()
+      }, []);
 
 //   console.log(fs.existsSync(fullPath));
+    
+    // TODO: if image has not already been imported...
+    async function importImage() {
+        const imageImport = await import(`../../../eventsync-backend/uploads/${imageName}.jpg`);
+            // setImageRef(imageImport);
+            // .catch(() => console.log(`I could not import this`)); // TODO: an image when no image is found
+        setImageRef(imageImport.default);
+    }
     
 
     return (
@@ -362,8 +378,9 @@ const MyComponent = (imagePath: string) => {
           maxWidth: { xs: 350, md: 250 },
         }}
         // alt="The house from the offer."
-        src={fullPath}
+        src={imageRef ? imageRef : ""}
       />
+    
     );
   };
 
