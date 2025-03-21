@@ -180,17 +180,6 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
         
     }
 
-    // function handleClick(){
-    //     return <Dialog 
-    //         onClose={handleClose} 
-    //         open={open} 
-    //     >
-    //         <IconButton onClick={()=>setReportModalOpen(true)}>
-    //             <FlagIcon style={{ color: 'red'}}></FlagIcon>
-    //         </IconButton>
-    //     </Dialog>
-    // }
-
     function otherChat(message : Message){
         return <ListItemButton onClick={() => setFlagVisible(!flagVisible)} className="other">
                 <div className="msg">
@@ -219,26 +208,32 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
 
     return (       
         <div className="chatWindow">
-            <ul className='chat' id='chatList'>
-                {MyComponent('0')}
-            {/* {messages.map((message, index) => (
-            <div key={index}>
+            {/* <ul className='chat' id='chatList'>
+                {MyComponent('0')} */}
+            {messages.map((message, index) => (
+                <div key={index}>
                 {currentUserId === message.senderId ? (
                 <ListItemButton className="self">
                     <div className="msg">
                         <ListItemText className="message">{message.messageContent}</ListItemText>
+                        {message.id && message.imagePath &&
+                        <div>
+                            <ImageComponent 
+                                id={message.id} fileExtension={message.imagePath}/>
+                        </div>
+                        }
                         <div className="date">{messageDateString(message.timeSent)}</div>
 
                     </div>
                 </ListItemButton>
-              ) : (
-                otherChat(message)
-              )} */}
-            {/* </div>
-            ))} */}
-            </ul>
-        </div>)
-};
+                ) : (
+                    otherChat(message)
+                )}
+                </div>
+            ))}
+        </div>
+        )
+        }
 
 
 const ChatInput = (props: { channelName: String, currentUserId: string, chatId: string }) => {
@@ -347,11 +342,12 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
     );
 };
 
-const MyComponent = (imageName: string) => {
+const ImageComponent = ({id, fileExtension} : {id: number, fileExtension: string}) => {
     // const fullPath = `../../../uploads/${imagePath}`;
     // const fullPath = '../../../eventsync-backend/uploads/0.jpg';
     // const fullPath = '../uploads/0.jpg';
     const [imageRef, setImageRef] = useState<string>();
+    const imageName = id.toString();
 
     useEffect(() => {
         importImage()
@@ -361,10 +357,12 @@ const MyComponent = (imageName: string) => {
     
     // TODO: if image has not already been imported...
     async function importImage() {
+        console.log(`../../../eventsync-backend/uploads/${imageName}.jpg`);
         const imageImport = await import(`../../../eventsync-backend/uploads/${imageName}.jpg`);
             // setImageRef(imageImport);
             // .catch(() => console.log(`I could not import this`)); // TODO: an image when no image is found
         setImageRef(imageImport.default);
+        console.log(imageImport.default);
     }
     
 
@@ -377,7 +375,7 @@ const MyComponent = (imageName: string) => {
           maxHeight: { xs: 200, md: 167 },
           maxWidth: { xs: 350, md: 250 },
         }}
-        // alt="The house from the offer."
+        alt="Image in chat"
         src={imageRef ? imageRef : ""}
       />
     

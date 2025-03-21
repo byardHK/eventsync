@@ -2687,24 +2687,24 @@ def upload():
     if file.filename == '':
         return jsonify({'message': 'No selected file'}), 400
     if file:
-        # filename = secure_filename(file.filename)
-        filename = 'image.jpg'
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
-
         data = request.form
         try:
             conn = mysql.connector.connect(**db_config)
             mycursor = conn.cursor()
             mycursor.execute(f""" 
                 INSERT INTO Message (chatId, senderId, imagePath, timeSent) 
-                    VALUES ({data.get('chatId')}, "{data.get("senderId")}", "{filename}", "{data.get("timeSent")}");
+                    VALUES ({data.get('chatId')}, "{data.get("senderId")}", "{file.filename}", "{data.get("timeSent")}");
             """)
+
+            messageId = mycursor.lastrowid
+            filename = str(messageId) + '.jpg'
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
             conn.commit()
             mycursor.close()
             conn.close()
-            # pusher_client.trigger(f'chat-{request.form.get("chatId")}', 'new-message', {'messageContent': data['messageContent'], 'senderId': request.form.get('senderId'),
-            #                             'chatId': request.form.get('chatId'), 'timeSent': request.form.get('timeSent'), 'id': -1}) # TODO: change id
+            pusher_client.trigger(f'chat-{data.get("chatId")}', 'new-message', {'imagePath': file.filename, 'senderId': request.form.get('senderId'),
+                    'chatId': request.form.get('chatId'), 'timeSent': request.form.get('timeSent'), 'id': messageId}) # TODO: change id
             return jsonify({'message': 'File uploaded successfully', 'filename': filename}), 200
 
         except mysql.connector.Error as err:
