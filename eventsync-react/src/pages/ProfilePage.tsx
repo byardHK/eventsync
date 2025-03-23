@@ -219,7 +219,7 @@ function ProfilePage() {
                         </Typography>
                         <Box display="flex" flexWrap="wrap" gap={1} paddingTop={3}>
                             {userTags.map((tag, index) => (
-                                <Chip sx={{backgroundColor: 'rgba(82, 113, 255, 0.5)', color: "black" }} key={index} label={tag.name} />
+                                <Chip sx={{backgroundColor: 'rgba(133, 156, 249, 0.5)', color: "black" }} key={index} label={tag.name} />
                             ))}
                         </Box>
                         <br />
@@ -376,7 +376,7 @@ function ProfilePage() {
                 <Box display="flex" flexDirection="row" justifyContent="space-between" width="100%">
                     <BackButton></BackButton>
                     <IconButton onClick={()=>setReportModalOpen(true)}>
-                        <FlagIcon style={{ color: 'red'}}></FlagIcon>
+                        <FlagIcon style={{ color: '#ad1f39'}}></FlagIcon>
                     </IconButton>
                 </Box>
     
@@ -427,7 +427,7 @@ function ProfilePage() {
                         </h3>
                         <Box display="flex" flexWrap="wrap" gap={1}>
                             {userTags.map((tag, index) => (
-                                <Chip key={index} label={tag.name} />
+                                <Chip key={index} label={tag.name} sx={{backgroundColor: "rgba(133, 156, 249, 0.5)"}}/>
                             ))}
                         </Box>
                         <br />

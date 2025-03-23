@@ -185,7 +185,7 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
                         <div>
                             <Box display="flex" justifyContent="flex-end">
                                 <IconButton onClick={()=>setReportModalOpen(true)}>
-                                    <FlagIcon style={{ color: 'red'}}></FlagIcon>
+                                    <FlagIcon style={{ color: '#ad1f39'}}></FlagIcon>
                                 </IconButton>
                             </Box>
                             <ListItemText>{message.messageContent}</ListItemText>

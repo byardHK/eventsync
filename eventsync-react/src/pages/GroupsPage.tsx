@@ -60,29 +60,29 @@ function GroupsPage(){
 
     const [newGroupsModalOpen, setNewGroupsModalOpen] = useState<boolean>(false);
 
-    return(
+    return<>
+        <Box display="flex" flexDirection="row">
+            <Button 
+                variant={isFriendsPage ? "contained" : "outlined"} 
+                fullWidth
+                onClick={() => {toggleFriendsGroupPages(true)}}
+            >
+                Friends
+            </Button>
+            <Button 
+                variant={!isFriendsPage ? "contained" : "outlined"} 
+                fullWidth
+                onClick={() => {toggleFriendsGroupPages(false)}}
+            >
+                Groups
+            </Button>
+        </Box>
         <Box
             display="flex"
             flexDirection="column"
             alignItems="center"
             justifyContent="center"
         >
-            <Box display="flex" flexDirection="row" padding={2} sx={{width: "100%"}}>
-                <Button 
-                    variant={isFriendsPage ? "contained" : "outlined"} 
-                    fullWidth
-                    onClick={() => {toggleFriendsGroupPages(true)}}
-                >
-                    Friends
-                </Button>
-                <Button 
-                    variant={!isFriendsPage ? "contained" : "outlined"} 
-                    fullWidth
-                    onClick={() => {toggleFriendsGroupPages(false)}}
-                >
-                    Groups
-                </Button>
-            </Box>
             <GroupModal open={newGroupsModalOpen} onClose={() => setNewGroupsModalOpen(false)} onSave={reloadMyGroups}/>
             <Grid2
                 container spacing={3}
@@ -116,15 +116,15 @@ function GroupsPage(){
                 justifyContent="flex-end"
                 style={{ position: 'fixed', bottom: '40px' }}
             >
-                <Box display="flex" justifyContent="flex-end" alignItems="flex-end">
-                    <Button onClick={()=>setNewGroupsModalOpen(true)}>
+                <Box display="flex" justifyContent="flex-end" alignItems="flex-end" sx={{width: "100%", position: 'fixed', bottom: '75px'}} paddingRight={3}>
+                    <Button variant="contained" sx={{ minWidth: '50px', minHeight: '50px'}} onClick={()=>setNewGroupsModalOpen(true)}>
                         <AddIcon></AddIcon>
                     </Button>
                 </Box>
             </Box>
             <BottomNavBar userId={currentUserId!}/>
         </Box>
-    );
+    </>
 }   
 
 type SplitButtonProps = {
@@ -226,29 +226,28 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
                 <Typography variant="h5">{group.groupName}</Typography>
                 <Box display="flex" flexDirection="row">
                     <ReportModal input={group} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="group"/>
-                    <Box display="flex" alignItems="right" justifyContent="right">
-                        <IconButton onClick={()=>setReportModalOpen(true)}>
-                            <FlagIcon style={{ color: 'red'}}></FlagIcon>
-                        </IconButton>
-                    </Box>
                     <IconButton onClick={()=>navigate(`/viewChat/${group.chatId}`)}>
-                        <ChatIcon style={{color: "blue"}}></ChatIcon>
+                        <ChatIcon style={{color: "#04227a"}}></ChatIcon>
                     </IconButton>
                     <IconButton onClick={() => setEditing(true)}>
-                        <EditIcon style={{color: "blue"}}></EditIcon>
+                        <EditIcon style={{color: "#04227a"}}></EditIcon>
                     </IconButton>
-                    {/* {currentUserId === group.creatorId ? ( */}
+                    <Box display="flex" alignItems="right" justifyContent="right">
+                        <IconButton onClick={()=>setReportModalOpen(true)}>
+                            <FlagIcon style={{ color: '#ad1f39'}}></FlagIcon>
+                        </IconButton>
+                    </Box>
                     {true ? (
                         <IconButton onClick={() => setDeleteGroupModalOpen(true)}>
-                            <DeleteIcon style={{color: "red"}}></DeleteIcon>
+                            <DeleteIcon style={{color: "#ad1f39"}}></DeleteIcon>
                         </IconButton>
                     ) :
                     (
                         <IconButton onClick={() => setLeavingGroupModalOpen(true)}>
-                            <LogoutIcon style={{color: "red"}}></LogoutIcon>
+                            <LogoutIcon style={{color: "#ad1f39"}}></LogoutIcon>
                         </IconButton>
                     )}
-                    
+                    {/* {currentUserId === group.creatorId ? ( */}
                 </Box>
             </Card>
             <Button

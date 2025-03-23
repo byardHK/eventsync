@@ -116,15 +116,14 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                 />
                 <Typography>Choose friends to add to group: </Typography>
                 <TextField 
-                    sx={{input: {backgroundColor: 'white'}}}
-                    id="outlined-basic" 
-                    label="Search" 
+                    sx={{backgroundColor: 'white'}}
+                    id="outlined-basic"
                     onChange={(e) => setSearchKeyword(e.target.value)}
                     slotProps={{
                         input: {
                         startAdornment: (
                             <InputAdornment position="start">
-                                <SearchIcon/>
+                                <SearchIcon sx={{color: "#04227a"}}/>
                             </InputAdornment>
                             ),
                         },

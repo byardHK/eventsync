@@ -44,7 +44,7 @@ function MyEventsPage() {
                 <Box 
                     display="flex" 
                     flexDirection="row" 
-                    padding={2}
+                    padding={1}
                 >
                     <Button 
                         variant={showingAttending ? "contained" : "outlined"} 
@@ -61,24 +61,24 @@ function MyEventsPage() {
                         Hosting
                     </Button>
                 </Box>
-                <Box
+            </Box>
+            <EventLists showingAttending={showingAttending}/>
+            <Box
                     display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                    gap={2}
+                    justifyContent="right"
+                    alignItems="right"
+                    sx={{width: "100%", position: 'fixed', bottom: '75px'}}
+                    paddingRight={3}
                 >
                     {showingAttending ?
-                        <Typography variant="h3">Attending</Typography> :
+                        <></>:
                         <>
-                            <Typography variant="h3">Hosting</Typography>
-                            <Button title="Add Event Button" variant="contained" onClick={handleCreatEventClick}>
+                            <Button sx={{ minWidth: '50px', minHeight: '50px'}} title="Add Event Button" variant="contained" onClick={handleCreatEventClick}>
                                 <AddIcon/>
                             </Button>
                         </>
                     }
                 </Box>
-            </Box>
-            <EventLists showingAttending={showingAttending}/>
             <BottomNavBar userId={currentUserId!}/>
         </Box>
     </>;
@@ -128,7 +128,7 @@ function EventLists({showingAttending}: EventListsProps) {
                 display="flex"
                 justifyContent="center"
                 alignItems="center"
-                paddingTop={18}
+                paddingTop={8}
                 paddingBottom={8}
             >
                 {showingAttending ?
