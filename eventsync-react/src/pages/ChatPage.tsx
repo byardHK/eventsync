@@ -36,7 +36,7 @@ function ChatPage() {
 	useEffect(() => {
         const fetchChat = async () => {
             try {
-                const response = await axios.get<{chat: chatResponse, users: User[]}>(`http://localhost:5000/get_chat/${chatId}`, {
+                const response = await axios.get<{chat: chatResponse, users: User[]}>(`${BASE_URL}/get_chat/${chatId}`, {
                     headers: {
                         'Authorization': `Bearer ${userDetails.token}`,
                         'Content-Type': 'application/json'
