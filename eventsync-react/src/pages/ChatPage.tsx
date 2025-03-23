@@ -35,7 +35,8 @@ function ChatPage() {
     const currentUserId = userDetails.email ? userDetails.email : "";
     const channelName = `chat-${chatId}`;
     const [nonGroupOtherUser, setNonGroupOtherUser] = useState<User | null>(null);
-    const [importedImages, setImportedImages] = useState<string[]>([])
+    const [importedImages, setImportedImages] = useState<string[]>([]);
+    const [newImage, setNewImage] = useState<boolean>(false);
 
 	useEffect(() => {
         const fetchChat = async () => {
@@ -65,6 +66,10 @@ function ChatPage() {
 		const channel = pusher.subscribe(channelName);
 		channel.bind('new-message', function(data: Message) {
             setMsg(data);
+            if(data.imagePath != null) {
+                setNewImage(true);
+                console.log(`should have reloaded`);
+            }
             console.log(data);
 		});
         channel.bind("pusher:subscription_succeeded", retrieveHistory);
@@ -72,7 +77,7 @@ function ChatPage() {
 		return (() => {
 			pusher.unsubscribe(channelName)
 		})
-	}, []);
+	}, [newImage]);
 
     function stringToEnum(value: String): chatType {
         if (value === "Individual") {
@@ -357,8 +362,9 @@ const ImageComponent = ({id, fileExtension} : {id: number, fileExtension: string
     
     // TODO: if image has not already been imported...
     async function importImage() {
-        console.log(`../../../eventsync-backend/uploads/${imageName}.jpg`);
-        const imageImport = await import(`../../../eventsync-backend/uploads/${imageName}.jpg`);
+        // console.log(`../../../eventsync-backend/uploads/${imageName}.jpg`);
+        // const imageImport = await import(`../../../eventsync-backend/uploads/${imageName}.jpg`);
+        const imageImport = await import(`./uploads/${imageName}.jpg`);
             // setImageRef(imageImport);
             // .catch(() => console.log(`I could not import this`)); // TODO: an image when no image is found
         setImageRef(imageImport.default);

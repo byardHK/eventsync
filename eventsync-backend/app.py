@@ -15,6 +15,7 @@ app = Flask(__name__)
 app.config["DEBUG"] = True
 app.config["PROPAGATE_EXCEPTIONS"] = True  # Ensure exceptions are raised
 UPLOAD_FOLDER = 'uploads'
+# UPLOAD_FOLDER = '../eventsync-react/src/pages/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
