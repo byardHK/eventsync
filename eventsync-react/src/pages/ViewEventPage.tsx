@@ -11,7 +11,7 @@ import AddIcon from '@mui/icons-material/Add';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css";
-import { timeToString2 } from '../StyledCard';
+import { timeToString2Time, timeToString2Date } from '../StyledCard';
 import dayjs from 'dayjs';
 import Tag from '../types/Tag';
 import FlagIcon from '@mui/icons-material/Flag';
@@ -109,20 +109,6 @@ function ViewEventPage() {
                 <Button variant="outlined" onClick={isRsvped ? handleUnrsvp : handleRsvp} sx={{ width: "100px", height: "60px" }}>
                     {isRsvped ? 'Un-RSVP' : 'RSVP'}
                 </Button>
-                {/* <Dialog onClose={handleClose} open={open}>
-                    <Box
-                        display="flex"
-                        flexDirection="column"
-                        alignItems="center"
-                        justifyContent="center"
-                        sx={{ width: "100%" }}
-                        minWidth={300}
-                    >
-                        <Button variant="outlined" fullWidth onClick={handleClose}>No</Button>
-                        <Button variant="outlined" fullWidth onClick={handleClose}>Yes</Button>
-                    </Box> 
-                    <Button variant="outlined" fullWidth onClick={handleClose}>Close</Button>
-                </Dialog> */}
         </>
         )
     }
@@ -166,7 +152,7 @@ function ViewEventPage() {
                         sx={{ width: "100%" }}
                         minWidth={300}
                     >
-                        <h2>RSVP List</h2>
+                        <Typography variant="h4">RSVP List</Typography>
                         <ul style={{ listStyleType: 'none', padding: 0 }}>
                             {rsvpList.map(user => (
                                 <li key={user.userId} style={{ marginBottom: '10px' }}>{user.fname} {user.lname}</li>
@@ -238,7 +224,7 @@ function ViewEventPage() {
             {event ? (
                 <GetEvent event={event} initialItems={event.items} expanded={expanded} handleChange={handleChange} isRsvped={isRsvped}/>
             ) : (
-                <p>Loading Event {eventId}</p>
+                <Typography>Loading Event {eventId}</Typography>
             )}
             <Box
                 display="flex"
@@ -281,7 +267,7 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
                 <Box 
                     key={index}
                 >    
-                    <Chip label={tag.name}></Chip>
+                    <Chip label={tag.name} sx={{backgroundColor: 'rgba(133, 156, 249, 0.5)', color: "black" }}></Chip>
                 </Box>
             )}
             </Box>
@@ -335,14 +321,15 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
             <ReportModal input={event} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="event"/>
             <Box display="flex" alignItems="right" justifyContent="right">
                 <IconButton onClick={()=>setReportModalOpen(true)}>
-                    <FlagIcon style={{ color: 'red'}}></FlagIcon>
+                    <FlagIcon style={{ color: '#ad1f39'}}></FlagIcon>
                 </IconButton>
             </Box>
-            <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight={250} minWidth={250} gap={1} padding={2}>
-                <p>{event.title}</p>
-                <p>{timeToString2(dayjs(event.startTime), dayjs(event.endTime))}</p>
-                <p>{`Where?: ${event.locationName}`}</p>
-                <p>{"Created By: "}<Link to={`/profile/${event.creatorId}`}>{event.creatorName}</Link></p>
+            <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight={250} minWidth={250} gap={4} padding={2}>
+                <Typography>{event.title}</Typography>
+                <Typography>{timeToString2Date(dayjs(event.startTime), dayjs(event.endTime))}</Typography>
+                <Typography>{timeToString2Time(dayjs(event.startTime), dayjs(event.endTime))}</Typography>
+                <Typography>{`Where?: ${event.locationName}`}</Typography>
+                <Typography>{"Created By: "}<Link to={`/profile/${event.creatorId}`}>{event.creatorName}</Link></Typography>
                 <ListTags></ListTags>
             </Box>
             {event.description && (

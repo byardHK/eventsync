@@ -105,7 +105,7 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
             open={deleteReportModalOpen}
         >
             <Box sx={{padding : 3}}>
-                <h2>Delete Report?</h2>
+                <Typography variant="h3">Delete Report?</Typography>
                 <Box display="flex" flexDirection="row" justifyContent="space-between">
                     <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setDeleteReportModalOpen(false)}}>Cancel</Button>
                     <Button fullWidth sx={{marginTop: "auto"}} onClick={deleteReport}>Yes</Button>
@@ -327,21 +327,20 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         <DeleteReportModal></DeleteReportModal>
         <ViewReportModal></ViewReportModal>
         <ReportCard elevation={10} square={false} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '200px'}}>
-            <h1>{ReportType(report)} Report</h1>
-            <p>{report.details}</p>
-            <Box display="flex" flexDirection="row" gap={2} >
-                <Button variant="contained" onClick={() => { setViewReportModalOpen(true) }}>
-                    <RemoveRedEyeIcon/>
-                </Button>
-                <Button variant="contained" onClick={() => { setDeleteReportModalOpen(true) }}>
-                    <DeleteIcon/>
-                </Button>
-                <Button variant="contained" onClick={() => { setWarnUserModalOpen(true) }}>
-                    <WarningIcon/>
-                </Button>
-                {/* <Button variant="contained">
-                    <BlockIcon/>
-                </Button> */}
+            <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" gap={3}>
+                <Typography variant="h4">{ReportType(report)} Report</Typography>
+                <Typography>{report.details}</Typography>
+                <Box display="flex" flexDirection="row" gap={2} >
+                    <Button variant="contained" onClick={() => { setViewReportModalOpen(true) }}>
+                        <RemoveRedEyeIcon/>
+                    </Button>
+                    <Button variant="contained" onClick={() => { setDeleteReportModalOpen(true) }}>
+                        <DeleteIcon/>
+                    </Button>
+                    <Button variant="contained" onClick={() => { setWarnUserModalOpen(true) }}>
+                        <WarningIcon/>
+                    </Button>
+                </Box>
             </Box>
         </ReportCard>
     </Box>

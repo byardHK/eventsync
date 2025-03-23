@@ -86,29 +86,29 @@ function FriendsPage() {
         setRefreshTrigger(!refreshTrigger);
     };
 
-    return (
+    return <>
+        <Box display="flex" flexDirection="row">
+            <Button 
+                variant={isFriendsPage ? "contained" : "outlined"} 
+                fullWidth
+                onClick={() => {toggleFriendsGroupPages(true)}}
+            >
+                Friends
+            </Button>
+            <Button 
+                variant={!isFriendsPage ? "contained" : "outlined"} 
+                fullWidth
+                onClick={() => {toggleFriendsGroupPages(false)}}
+            >
+                Groups
+            </Button>
+        </Box>
         <Box
             display="flex"
             flexDirection="column"
             alignItems="center"
             justifyContent="center"
         >
-            <Box display="flex" flexDirection="row" padding={2} sx={{width: "100%"}}>
-                <Button 
-                    variant={isFriendsPage ? "contained" : "outlined"} 
-                    fullWidth
-                    onClick={() => {toggleFriendsGroupPages(true)}}
-                >
-                    Friends
-                </Button>
-                <Button 
-                    variant={!isFriendsPage ? "contained" : "outlined"} 
-                    fullWidth
-                    onClick={() => {toggleFriendsGroupPages(false)}}
-                >
-                    Groups
-                </Button>
-            </Box>
         
             <Typography variant="h4" gutterBottom>Friends</Typography>
             <FriendsList friends={friends} refreshData={() => userDetails.email && refreshData(userDetails.email)} />
@@ -119,14 +119,23 @@ function FriendsPage() {
             <Typography variant="h4" gutterBottom>Pending Friends</Typography>
             <PendingList pending={pending} refreshData={() => userDetails.email && refreshData(userDetails.email)}/>
 
-            <Fab 
+            <Box
+                sx={{width: "100%", position: 'fixed', bottom: '75px'}}
+                paddingRight={3}
+                display="flex"
+                justifyContent="right"
+                alignItems="right"
+            >
+                <Button 
                 color="primary" 
                 aria-label="add" 
-                style={{ position: 'fixed', bottom: '70px', right: '16px', width: '56px', height: '56px', borderRadius: '8px' }}
+                variant="contained"
+                sx={{ minWidth: '50px', minHeight: '50px'}}
                 onClick={handleOpenDialog}
             >
                 <AddIcon />
-            </Fab>
+            </Button>
+            </Box>
             <Dialog open={OpenDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm" scroll='body'>
                 <Box
                     alignItems="center"
@@ -158,7 +167,7 @@ function FriendsPage() {
             </Dialog>
             <BottomNavBar userId={userDetails.email!} key={refreshTrigger.toString()} />
         </Box>
-    );
+    </>
 }
 
 function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refreshData: () => void }) {
@@ -191,8 +200,8 @@ function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refre
                             alignItems="center"
                             width="300px"
                             padding="10px"
-                            border="1px solid #ccc"
-                            borderRadius="5px"
+                            // border="1px solid #ccc"
+                            // borderRadius="5px"
                             margin="5px 0"
                             bgcolor="white"
                         >
@@ -245,8 +254,8 @@ function UserList({ users, refreshData, onAddFriend }: { users: EventSyncUser[];
                             alignItems="center"
                             width="240px"
                             padding="10px"
-                            border="1px solid #ccc"
-                            borderRadius="5px"
+                            // border="1px solid #ccc"
+                            // borderRadius="5px"
                             margin="5px 0"
                             bgcolor="white"
                         >
@@ -313,8 +322,8 @@ function RequestsList({ requests, refreshData, onRequestAction }: { requests: Ev
                             alignItems="center"
                             width="300px"
                             padding="10px"
-                            border="1px solid #ccc"
-                            borderRadius="5px"
+                            // border="1px solid #ccc"
+                            // borderRadius="5px"
                             margin="5px 0"
                             bgcolor="white"
                         >
@@ -369,8 +378,8 @@ function PendingList({ pending, refreshData }: { pending: EventSyncUser[]; refre
                             alignItems="center"
                             width="300px"
                             padding="10px"
-                            border="1px solid #ccc"
-                            borderRadius="5px"
+                            // border="1px solid #ccc"
+                            // borderRadius="5px"
                             margin="5px 0"
                             bgcolor="white"
                         >

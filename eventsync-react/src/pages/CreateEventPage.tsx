@@ -22,9 +22,6 @@ import BackButton from '../components/BackButton';
 function CreateEventPage() {
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
-    // console.log("home page: ") for debugging
-    // console.log(currentUserId);
-        
     const { eventId } = useParams<{ eventId: string }>();
     const [eventInfoId, setEventInfoId] = useState<number | null>(null);
     const [titleText, setTitleText] = useState<String>("");    
@@ -62,7 +59,7 @@ function CreateEventPage() {
                 <Box 
                     key={index}
                 >    
-                    <Chip label={tag.name}></Chip>
+                    <Chip sx={{margin: 1, backgroundColor: 'rgba(133, 156, 249, 0.5)', color: "black"}} label={tag.name}></Chip>
                 </Box>
             )}
             </Box>
@@ -229,12 +226,12 @@ function CreateEventPage() {
             <Box display="flex" alignItems="center" justifyContent="center">
                 <BackButton></BackButton>
                 <Box display="flex" flexDirection="column">
-                    <Typography variant="body1">
+                    <Typography variant="h4">
                         {eventId ? "Edit Event" : "Create Event"}
                     </Typography>
                     {eventId && (
                         <FormControlLabel
-                            label={<Typography variant="body1">Edit all events in this group</Typography>}
+                            label={<Typography>Edit all events in this group</Typography>}
                             control={
                                 <Checkbox
                                     checked={editAllEvents}
@@ -273,7 +270,6 @@ function CreateEventPage() {
                             setEndDateTime(newValue ? newValue.add(1, "hour") : null);
                         }}
                     />
-                                        
                     <MobileDateTimePicker
                         sx={{input: {backgroundColor: 'white'}}}
                         label="End"
@@ -281,9 +277,9 @@ function CreateEventPage() {
                         onChange={(newValue) => setEndDateTime(newValue)} 
                     />
                     <Box display="flex" alignItems="center" margin={5}>
-                        <Typography variant="body1">Tags:</Typography>
+                        <Typography>Tags:</Typography>
                         <TagModal savedTags={tags} handleSave={handleSave}></TagModal>
-                        <Typography variant="body1">Items to Bring:</Typography>
+                        <Typography>Items to Bring:</Typography>
                         <ItemModal itemsToParent={itemsToParent} />
                     </Box>
                     <ListTags></ListTags>
@@ -413,16 +409,16 @@ function CreateEventPage() {
             </Box>
             <Box display="flex" justifyContent="space-between" mt={2}>
                 <Button 
-                    variant="outlined" 
+                    variant="contained" 
                     sx={{ minWidth: '40px', minHeight: '40px', padding: 0, 
-                        color: "#000000"}}
+                        color: "white"}}
                     onClick={handleBackClick}
                     title="cancel"
                 >
                     Cancel
                 </Button>
                 <Button 
-                    variant="outlined" 
+                    variant="contained" 
                     sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
                     onClick={handleSubmit}
                     title="submit"

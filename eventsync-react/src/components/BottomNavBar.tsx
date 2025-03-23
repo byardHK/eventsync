@@ -37,7 +37,7 @@ function BottomNavBar({ userId }: { userId: string }) {
         width="100%"
         paddingBottom={2}
         paddingTop={2}
-        sx={{backgroundColor: "rgb(160, 160, 160)"}}
+        sx={{backgroundColor: "rgb(175, 175, 175)"}}
         justifyContent="space-around"
         style={{ position: 'fixed', bottom: '0' }}
     >
@@ -47,7 +47,7 @@ function BottomNavBar({ userId }: { userId: string }) {
             </Button>
         </Link>
         <Link title="Link to My Events Page" to="/myEvents">
-            <Button title="My EVents Page Button" variant="contained">
+            <Button title="My Events Page Button" variant="contained">
                 <CalendarMonthIcon/>
             </Button>
         </Link>
