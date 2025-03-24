@@ -1,4 +1,4 @@
-import { Card, Box, Button, Chip, TextField, Switch, Select, MenuItem, FormControl, InputLabel, IconButton } from "@mui/material";
+import { Card, Box, Button, Chip, TextField, Switch, Select, MenuItem, FormControl, InputLabel, IconButton, Typography } from "@mui/material";
 import TagModal from "../components/TagModal";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import axios from "axios";
@@ -58,7 +58,7 @@ function ProfilePage() {
     if (!userDetails || !userDetails.email) {
         return <div className="loading-container">
         <img src={logo} alt="EventSync Logo" className="logo" />
-        <p className="loading-text">Loading...</p>
+        <Typography className="loading-text">Loading...</Typography>
         </div>;
     }
     const userId = userDetails.email;
@@ -192,12 +192,12 @@ function ProfilePage() {
                             {/* Placeholder Profile Picture */}
                             <span style={{ fontSize: '2rem' }}>🧑</span>
                         </Box>
-                        <h2 style={{ marginTop: '0.5rem' }}>{userDetails.firstName} {userDetails.lastName}</h2>
+                        <Typography variant="h4" style={{ marginTop: '0.5rem' }}>{userDetails.firstName} {userDetails.lastName}</Typography>
                     </Box>
 
                     {/* About Me */}
                     <Box width="100%" mt={2}>
-                        <h3>Bio</h3>
+                        <Typography variant="h5">Bio</Typography>
                         <TextField
                             fullWidth
                             multiline
@@ -211,15 +211,15 @@ function ProfilePage() {
 
                     {/* Interests (Tags) */}
                     <Box width="100%" mt={2}>
-                        <h3 style={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography variant="h5" style={{ display: 'flex', alignItems: 'center'}}>
                             Interests
                             <div style={{ marginLeft: '10px' }}>
                                 <TagModal savedTags={userTags} handleSave={handleSave} />
                             </div>
-                        </h3>
-                        <Box display="flex" flexWrap="wrap" gap={1}>
+                        </Typography>
+                        <Box display="flex" flexWrap="wrap" gap={1} paddingTop={3}>
                             {userTags.map((tag, index) => (
-                                <Chip key={index} label={tag.name} />
+                                <Chip sx={{backgroundColor: 'rgba(133, 156, 249, 0.5)', color: "black" }} key={index} label={tag.name} />
                             ))}
                         </Box>
                         <br />
@@ -228,11 +228,11 @@ function ProfilePage() {
 
                     {/* Settings */}
                     <Box width="100%" mt={2}>
-                        <h3>Settings</h3>
+                        <Typography variant="h5">Settings</Typography>
 
                         {/* Privacy Toggle */}
-                        <Box display="flex" alignItems="center" justifyContent="space-between">
-                            <span>Keep info private?</span>
+                        <Box display="flex" alignItems="center" justifyContent="space-between" paddingTop={3}>
+                            <Typography>Keep info private?</Typography>
                             <Switch checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} onBlur={handleSaveChanges} />
                         </Box>
 
@@ -257,10 +257,10 @@ function ProfilePage() {
 
                         {/* Instant Notifications */}
                         <Box mt={2}>
-                            <h4>Instant Notifications</h4>
+                            <Typography variant="h5">Instant Notifications</Typography>
                             <Box display="flex" flexDirection="column" gap={1}>
-                                <Box display="flex" justifyContent="space-between">
-                                    <span>Receive friend request</span>
+                                <Box display="flex" justifyContent="space-between" paddingTop={3}>
+                                    <Typography>Receive friend request</Typography>
                                     <Switch
                                         checked={receiveFriendRequest}
                                         onChange={(e) => setReceiveFriendRequest(e.target.checked)}
@@ -268,7 +268,7 @@ function ProfilePage() {
                                     />
                                 </Box>
                                 <Box display="flex" justifyContent="space-between">
-                                    <span>Invited to Event</span>
+                                    <Typography>Invited to Event</Typography>
                                     <Switch
                                         checked={invitedToEvent}
                                         onChange={(e) => setInvitedToEvent(e.target.checked)}
@@ -276,7 +276,7 @@ function ProfilePage() {
                                     />
                                 </Box>
                                 <Box display="flex" justifyContent="space-between">
-                                    <span>Event Cancelled</span>
+                                    <Typography>Event Cancelled</Typography>
                                     <Switch
                                         checked={eventCancelled}
                                         onChange={(e) => setEventCancelled(e.target.checked)}
@@ -376,7 +376,7 @@ function ProfilePage() {
                 <Box display="flex" flexDirection="row" justifyContent="space-between" width="100%">
                     <BackButton></BackButton>
                     <IconButton onClick={()=>setReportModalOpen(true)}>
-                        <FlagIcon style={{ color: 'red'}}></FlagIcon>
+                        <FlagIcon style={{ color: '#ad1f39'}}></FlagIcon>
                     </IconButton>
                 </Box>
     
@@ -427,7 +427,7 @@ function ProfilePage() {
                         </h3>
                         <Box display="flex" flexWrap="wrap" gap={1}>
                             {userTags.map((tag, index) => (
-                                <Chip key={index} label={tag.name} />
+                                <Chip key={index} label={tag.name} sx={{backgroundColor: "rgba(133, 156, 249, 0.5)"}}/>
                             ))}
                         </Box>
                         <br />

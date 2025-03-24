@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import axios from "axios";
-import { Button, Grid2, InputAdornment, TextField, Autocomplete, Checkbox, FormControlLabel, Collapse } from '@mui/material';
+import { Button, Grid2, InputAdornment, TextField, Autocomplete, Checkbox, FormControlLabel, Collapse, Typography, IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PersonIcon from '@mui/icons-material/Person';
 import BottomNavBar from '../components/BottomNavBar';
@@ -21,13 +21,14 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import ReplayIcon from '@mui/icons-material/Replay';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import FilterListIcon from '@mui/icons-material/FilterList';
 
 function HomePage() {
     const { userDetails } = useUser();
     if (!userDetails || !userDetails.email) {
         return <div className="loading-container">
-        <img src={logo} alt="EventSync Logo" className="logo" />
-        <p className="loading-text">Loading...</p>
+            <img src={logo} alt="EventSync Logo" className="logo" />
+            <Typography className="loading-text">Loading...</Typography>
         </div>;
     }
     console.log("home page user details: ", userDetails);
@@ -101,7 +102,7 @@ function HomePage() {
     
     return <>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Box style={{ position: 'fixed', top: '0', backgroundColor: "rgb(160, 160, 160)", width: "100%"}}>
+            <Box style={{ position: 'fixed', top: '0', backgroundColor: "rgb(175, 175, 175)", width: "100%", right: 0, left: 0, marginRight: "0", marginLeft: "auto"}}>
                 <Box
                     display="flex"
                     alignItems="right" 
@@ -132,36 +133,41 @@ function HomePage() {
                     gap={2}
                     sx={{height: "80px"}}
                 >
-                    {/* <h3 className="card-title">Welcome {userDetails.firstName}!</h3> */}
-                    <TextField 
-                        sx={{input: {backgroundColor: 'white'}}}
-                        id="outlined-basic" 
-                        label="Search" 
-                        onChange={(e) => setSearchKeyword(e.target.value)}
-                        slotProps={{
-                            input: {
-                                startAdornment: (
-                                <InputAdornment position="start">
-                                    <SearchIcon/>
-                                </InputAdornment>
-                                ),
-                            },
-                        }}
-                        variant="outlined"
-                    />
-                    <Button sx={{height: "8px"}} onClick={() => setFiltersVisible(!filtersVisible)}>
+                    {/* <Typography variant="h5">Welcome {userDetails.firstName}!</Typography> */}
+                    <Box>
+                        <TextField 
+                            sx={{backgroundColor: 'white'}}
+                            id="outlined-basic" 
+                            onChange={(e) => setSearchKeyword(e.target.value)}
+                            slotProps={{
+                                input: {
+                                    startAdornment: (
+                                    <InputAdornment position="start">
+                                        <SearchIcon style={{ color: '#04227a'}}/>
+                                    </InputAdornment>
+                                    ),
+                                },
+                            }}
+                            variant="outlined"
+                        />
+                        <IconButton sx={{paddingRight: 0, paddingLeft: "auto"}} onClick={() => setFiltersVisible(!filtersVisible)}>
+                            <FilterListIcon fontSize="large" style={{ color: '#04227a'}} />
+                        </IconButton>
+                    </Box>
+                    {/* <Button sx={{height: "8px"}} onClick={() => setFiltersVisible(!filtersVisible)}>
                         {filtersVisible ? "Close Filters" : "Open Filters"}
                         {filtersVisible ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                    </Button>
-                    <Box sx={{width: "100%", position: 'fixed', top: '200px'}}>
+                    </Button> */}
+                    <Box sx={{width: "95%", position: 'fixed', top: '150px', "z-index": 10, border: filtersVisible ? 2 : undefined, borderColor: "#04227a" }}>
                         <Collapse in={filtersVisible} sx={{width: "100%"}} >
                             <Box 
-                            sx={{backgroundColor: "rgb(160, 160, 160)"}} 
-                            display="flex"
-                            flexDirection="column"
-                            justifyContent="center"
-                            alignItems="center"
-                        >
+                                paddingTop={3}
+                                sx={{backgroundColor: 'white'}}
+                                display="flex"
+                                flexDirection="column"
+                                justifyContent="center"
+                                alignItems="center"
+                            >
                                 <Autocomplete
                                     multiple
                                     id="multiple-limit-tags"
