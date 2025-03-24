@@ -19,7 +19,7 @@ import BackButton from "../components/BackButton";
 export const FetchExistingUserTS = async (email: string, setUserDetails: Dispatch<SetStateAction<UserDetails>>) => {
     const { userDetails } = useUser();
     try {
-        const res = await axios.get(`${BASE_URL}/get_user_tags/${email}/`,{
+        const res = await axios.get(`${BASE_URL}/api/get_user/${email}`,{
             headers: { 'Authorization': `Bearer ${userDetails.token}`, 
             "Content-Type": "application/json",   
             }
@@ -55,6 +55,7 @@ export const FetchExistingUserTS = async (email: string, setUserDetails: Dispatc
 function ProfilePage() {
     const { id: profileId } = useParams();
     const { userDetails, setUserDetails } = useUser();
+    const navigate = useNavigate();
     if (!userDetails || !userDetails.email) {
         return <div className="loading-container">
         <img src={logo} alt="EventSync Logo" className="logo" />
@@ -62,7 +63,9 @@ function ProfilePage() {
         </div>;
     }
     const userId = userDetails.email;
+    //FetchExistingUserTS(userId, setUserDetails);
     console.log("profile page user details: ", userDetails);
+
 
     if (profileId == userId) {
         const [userTags, setUserTags] = useState<Tag[]>([]);
@@ -85,32 +88,52 @@ function ProfilePage() {
                 invitedToEvent: invitedToEvent,
                 eventCancelled: eventCancelled
             };
-            console.log("data  sending: ", data)
-            
-            const response = await axios.post(`${BASE_URL}/api/update_user_profile`, data,{
+
+            // update the db
+            await axios.post(`${BASE_URL}/api/update_user_profile`, data,{
                 headers: {'Authorization': `Bearer ${userDetails.token}`,
                     'Content-Type': 'application/json',
                 }
             });
 
+                        
+            // grab the info you just set from the database
+            const res = await axios.get(`${BASE_URL}/api/get_user/${userId}`,{
+                headers: { 'Authorization': `Bearer ${userDetails.token}`, 
+                "Content-Type": "application/json",   
+                }
+             });
+    
+            // set the details
+            setUserDetails((prevDetails: any) => {
+                const updatedDetails = {
+                    ...prevDetails,
+                    firstName: res.data[0].fname,
+                    lastName: res.data[0].lname,
+                    email: res.data[0].id,
+                    isAdmin: res.data[0].isAdmin,
+                    isBanned: res.data[0].isBanned,
+                    isPublic: res.data[0].isPublic,
+                    bio: res.data[0].bio,
+                    notificationFrequency: res.data[0].notificationFrequency,
+                    notificationId: res.data[0].notificationId,
+                    numTimesReported: res.data[0].numTimesReported,
+                    profilePicture: res.data[0].profilePicture,
+                    friendRequest: res.data[0].friendRequest,
+                    eventInvite: res.data[0].eventInvite,
+                    eventCancelled: res.data[0].eventCancelled,
+                };
+                return updatedDetails;
+            });
 
-            if (response.status === 200) {
-                console.log("Profile updated successfully!");
-            }
-
-            try {
-                await FetchExistingUserTS(userId, setUserDetails);  
-                console.log("PROFILE PAGE Updated userDetails:");
-                console.log(userDetails);
-            } catch (error) {
-                console.error("Error fetching profile:", error);
-            }
-
-
+            console.log(userDetails);
+            
             } catch (error) {
                 console.error("Error updating profile:", error);
             }
+        
         };
+        
 
         const handleSave = async (tagsToAdd: Tag[], tagsToDelete: Tag[]) => {
             try {
@@ -157,8 +180,6 @@ function ProfilePage() {
                     },
                  });
                 setUserTags(response.data);
-
-                await FetchExistingUserTS(userId, setUserDetails);  
 
             } catch (error) {
                 console.error("Error fetching tags:", error);
@@ -289,8 +310,8 @@ function ProfilePage() {
                                         color="primary"
                                         onClick={() => {
                                             handleSaveChanges();
-                                            handleSave([], []); // Adjust if there are changes in the tags as well
-                                        }}
+                                            handleSave([], []);// Adjust if there are changes in the tags as well
+                                            navigate("/home"); }}
                                     >
                                         Save Changes
                                     </Button>
