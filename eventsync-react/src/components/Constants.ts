@@ -6,7 +6,7 @@ export const BASE_URL: string = "https://eventsync.gcc.edu:5000";
 export const REDIRECT_URI: string = "https://eventsync.gcc.edu:3000";
 
 //Testing
-export const BASE_URL: string = "http://localhost:5000";
+//export const BASE_URL: string = "http://localhost:5000";
 
 // export const REDIRECT_URI: string = "http://localhost:5000";
 
