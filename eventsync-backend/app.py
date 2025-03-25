@@ -1,6 +1,6 @@
 import jwt
 import requests
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, send_file
 # INSTALL THESE:
 # pip install mysql-connector-python
 import mysql.connector
@@ -2711,3 +2711,25 @@ def upload():
         except mysql.connector.Error as err:
             print(f"Error: {err}")
     return {}
+
+@app.route('/get_image/<int:message_id>/', methods=['GET'])
+def get_image(message_id: int):
+
+    # user_email, error_response, status_code = get_authenticated_user()
+    # if error_response:
+    #     return error_response, status_code  
+
+    # body = request.json
+    # if not body or "senderId" not in body:
+    #     return jsonify({"error": "Missing required fields in request body"}), 400
+
+    # if body["senderId"].lower() != user_email.lower():
+    #     return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
+   
+    try:
+        
+        return send_file(f"uploads/{message_id}.jpg", mimetype='image/jpeg'), 200
+    except Exception as  e:
+        print(f"Error: {e}")
+        return {}, 404

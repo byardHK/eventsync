@@ -37,6 +37,7 @@ function ChatPage() {
     const [nonGroupOtherUser, setNonGroupOtherUser] = useState<User | null>(null);
     const [importedImages, setImportedImages] = useState<string[]>([]);
     const [newImage, setNewImage] = useState<boolean>(false);
+    const [imageURL, setImageURL] = useState<Blob>();
 
 	useEffect(() => {
         const fetchChat = async () => {
@@ -64,13 +65,32 @@ function ChatPage() {
 			cluster: 'us2'
 		})
 		const channel = pusher.subscribe(channelName);
-		channel.bind('new-message', function(data: Message) {
-            setMsg(data);
-            if(data.imagePath != null) {
+		channel.bind('new-message', async function(newMsg: Message) {
+            setMsg(newMsg);
+            if(newMsg.imagePath != null) {
                 setNewImage(true);
                 console.log(`should have reloaded`);
             }
-            console.log(data);
+            console.log(newMsg);
+            if(newMsg.imagePath) {
+                try {
+
+                const response = await axios.get<string>(`${BASE_URL}/get_image/${newMsg.id}/`,  {
+                    responseType: 'blob',
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                    }
+                });
+                console.log(response);
+                const blob = new Blob([response.data], { type: 'image/jpeg' });
+                const url = URL.createObjectURL(blob).substring(5);
+                console.log(`image url: ${url}`);
+                setImageURL(blob);
+            }catch (error) {
+                console.error('Error retrieving image:', error);
+                // Handle error (e.g., display error message)
+            }
+        } 
 		});
         channel.bind("pusher:subscription_succeeded", retrieveHistory);
 		
@@ -155,6 +175,7 @@ function ChatPage() {
                     currentUserId={currentUserId} 
                     groupChat={!(chat?.chatType == chatType.INDIVIDUAL)!} 
                     getName={getName}
+                    imageURL={imageURL ?? new Blob() }
                 >
                 </ChatList>
             </Box>
@@ -165,7 +186,7 @@ function ChatPage() {
 	)
 }
 
-const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Message[], currentUserId: String, groupChat: Boolean, getName: (userId: String) => String | null }) => {
+const ChatList = ({messages, currentUserId, groupChat, getName, imageURL}: { messages: Message[], currentUserId: String, groupChat: Boolean, getName: (userId: String) => String | null , imageURL: Blob}) => {
     const [flagVisible, setFlagVisible] = useState<boolean>(false);
     const [open, setOpen] = useState(false);
     const handleClose = () => setOpen(false);
@@ -185,7 +206,7 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
         
     }
 
-    function otherChat(message : Message){
+    function otherChat(message : Message, imageURL: Blob){
         return <ListItemButton onClick={() => setFlagVisible(!flagVisible)} className="other">
                 <div className="msg">
                     <ReportModal input={message} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="message"/>
@@ -213,9 +234,10 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
 
     return (       
         <div className="chatWindow">
-            {/* <ul className='chat' id='chatList'>
-                {MyComponent('0')} */}
-            {messages.map((message, index) => (
+            {/* <ul className='chat' id='chatList'> */}
+                <ImageComponent imageURL={imageURL}
+                                id={120} fileExtension={"jpeg"}/>
+            {/* {messages.map((message, index) => (
                 <div key={index}>
                 {currentUserId === message.senderId ? (
                 <ListItemButton className="self">
@@ -223,7 +245,7 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
                         <ListItemText className="message">{message.messageContent}</ListItemText>
                         {message.id && message.imagePath &&
                         <div>
-                            <ImageComponent 
+                            <ImageComponent imageURL={imageURL}
                                 id={message.id} fileExtension={message.imagePath}/>
                         </div>
                         }
@@ -232,10 +254,10 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
                     </div>
                 </ListItemButton>
                 ) : (
-                    otherChat(message)
+                    otherChat(message, imageURL)
                 )}
                 </div>
-            ))}
+            ))} */}
         </div>
         )
         }
@@ -287,6 +309,7 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
         try {
             const response = await axios.post('http://localhost:5000/upload', formData, {
               headers: {
+                'Authorization': `Bearer ${userDetails.token}`,
                 'Content-Type': 'multipart/form-data',
               },
             });
@@ -347,31 +370,34 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
     );
 };
 
-const ImageComponent = ({id, fileExtension} : {id: number, fileExtension: string}) => {
+const ImageComponent = ({id, fileExtension, imageURL} : {id: number, fileExtension: string, imageURL: Blob}) => {
     // const fullPath = `../../../uploads/${imagePath}`;
     // const fullPath = '../../../eventsync-backend/uploads/0.jpg';
     // const fullPath = '../uploads/0.jpg';
     const [imageRef, setImageRef] = useState<string>();
     const imageName = id.toString();
 
-    useEffect(() => {
-        importImage()
-      }, []);
+    const url = URL.createObjectURL(imageURL);
+                console.log(`image url: ${url}`);
 
-//   console.log(fs.existsSync(fullPath));
-    
-    // TODO: if image has not already been imported...
-    async function importImage() {
-        // console.log(`../../../eventsync-backend/uploads/${imageName}.jpg`);
-        // const imageImport = await import(`../../../eventsync-backend/uploads/${imageName}.jpg`);
-        const imageImport = await import(`./uploads/${imageName}.jpg`);
-            // setImageRef(imageImport);
-            // .catch(() => console.log(`I could not import this`)); // TODO: an image when no image is found
-        setImageRef(imageImport.default);
-        console.log(imageImport.default);
-    }
-    
+//     useEffect(() => {
+//         importImage()
+//       }, []);
 
+// //   console.log(fs.existsSync(fullPath));
+    
+//     // TODO: if image has not already been imported...
+//     async function importImage() {
+//         // console.log(`../../../eventsync-backend/uploads/${imageName}.jpg`);
+//         // const imageImport = await import(`../../../eventsync-backend/uploads/${imageName}.jpg`);
+//         const imageImport = await import(`./uploads/${imageName}.jpg`);
+//             // setImageRef(imageImport);
+//             // .catch(() => console.log(`I could not import this`)); // TODO: an image when no image is found
+//         setImageRef(imageImport.default);
+//         console.log(imageImport.default);
+//     }
+    
+    console.log(imageURL);
     return (
       <Box
         component="img"
@@ -382,7 +408,8 @@ const ImageComponent = ({id, fileExtension} : {id: number, fileExtension: string
           maxWidth: { xs: 350, md: 250 },
         }}
         alt="Image in chat"
-        src={imageRef ? imageRef : ""}
+        src={url}
+        // src={"data:image/jpeg;base64," + imageURL}
       />
     
     );
