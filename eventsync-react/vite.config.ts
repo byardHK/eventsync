@@ -15,7 +15,7 @@ export default defineConfig({
     port: 443,
     proxy: {
       '/api': {
-        target: 'https://eventsync.gcc.edu', // Ensure backend is running HTTPS
+        target: 'https://eventsync.gcc.edu:5000', // Ensure backend is running HTTPS
         changeOrigin: true,
         secure: false,  // Ignore SSL issues in dev mode
       },
