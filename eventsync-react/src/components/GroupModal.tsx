@@ -123,7 +123,7 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                         input: {
                         startAdornment: (
                             <InputAdornment position="start">
-                                <SearchIcon sx={{color: "#04227a"}}/>
+                                <SearchIcon sx={{color: "#1c284c"}}/>
                             </InputAdornment>
                             ),
                         },
@@ -132,7 +132,7 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                 />
                 {friends.filter((friend) => friend.id.toLowerCase().includes(searchKeyword.toLowerCase())).map((friend) =>
                     <Box key={friend.id}>
-                        <FormControlLabel control={<Checkbox disabled={friend.id === userDetails.email} checked={!!group.users.find((user) => { return user.id === friend.id; })} onChange={(event) => {
+                        <FormControlLabel control={<Checkbox style={{color: "#1c284c"}} disabled={friend.id === userDetails.email} checked={!!group.users.find((user) => { return user.id === friend.id; })} onChange={(event) => {
                             const updatedGroup : Group = {...group};
                             if(event.target.checked){
                                 updatedGroup.users.push(friend);
@@ -144,8 +144,8 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                     </Box>
                 )}
                 <Box display="flex" flexDirection="row" gap={2} sx={{"margin-top": "auto", width:"100%"}}>
-                    <Button variant="contained" fullWidth onClick={onClose}>Cancel</Button>
-                    <Button variant="contained" fullWidth onClick={handleSave}>Save</Button>
+                    <Button variant="contained" sx={{backgroundColor: "#1c284c"}} fullWidth onClick={onClose}>Cancel</Button>
+                    <Button variant="contained" sx={{backgroundColor: "#1c284c"}} fullWidth onClick={handleSave}>Save</Button>
                 </Box>
             </Box>
         </Dialog>

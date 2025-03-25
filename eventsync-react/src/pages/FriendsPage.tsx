@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react';
 import BottomNavBar from '../components/BottomNavBar';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../sso/UserContext';
-import "../styles/style.css";
-import { Button, Typography, Paper, Box, Dialog, DialogTitle, DialogContent, Fab, TextField } from '@mui/material';
+import { Button, Typography, Paper, Box, Dialog, DialogTitle, DialogContent, Fab, TextField, Grid2, Accordion, AccordionSummary, AccordionDetails, Card } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AddIcon from '@mui/icons-material/Add';
 import { BASE_URL } from '../components/Constants';
 
@@ -87,85 +87,153 @@ function FriendsPage() {
     };
 
     return <>
-        <Box display="flex" flexDirection="row">
-            <Button 
-                variant={isFriendsPage ? "contained" : "outlined"} 
-                fullWidth
-                onClick={() => {toggleFriendsGroupPages(true)}}
-            >
-                Friends
-            </Button>
-            <Button 
-                variant={!isFriendsPage ? "contained" : "outlined"} 
-                fullWidth
-                onClick={() => {toggleFriendsGroupPages(false)}}
-            >
-                Groups
-            </Button>
-        </Box>
         <Box
             display="flex"
             flexDirection="column"
-            alignItems="center"
+            alignItems="center" 
             justifyContent="center"
         >
-        
-            <Typography variant="h4" gutterBottom>Friends</Typography>
-            <FriendsList friends={friends} refreshData={() => userDetails.email && refreshData(userDetails.email)} />
-            
-            <Typography variant="h4" gutterBottom>Friend Requests</Typography>
-            <RequestsList requests={requests} refreshData={() => userDetails.email && refreshData(userDetails.email)} onRequestAction={handleRequestAction} />
-
-            <Typography variant="h4" gutterBottom>Pending Friends</Typography>
-            <PendingList pending={pending} refreshData={() => userDetails.email && refreshData(userDetails.email)}/>
-
-            <Box
-                sx={{width: "100%", position: 'fixed', bottom: '75px'}}
-                paddingRight={3}
-                display="flex"
-                justifyContent="right"
-                alignItems="right"
-            >
-                <Button 
-                color="primary" 
-                aria-label="add" 
-                variant="contained"
-                sx={{ minWidth: '50px', minHeight: '50px'}}
-                onClick={handleOpenDialog}
-            >
-                <AddIcon />
-            </Button>
-            </Box>
-            <Dialog open={OpenDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm" scroll='body'>
-                <Box
-                    alignItems="center"
-                    width="300px"
-                    height="500px"
-                    bgcolor="white"
-                >
-                    <DialogTitle>
-                        <TextField
-                            sx={{ width: '250px' }}
-                            value={searchInput}
-                            onChange={handleSearchChange}
-                            label="Search Users"
-                            variant="outlined"
-                            fullWidth
-                        />
-                        <Button
-                            aria-label="close"
-                            onClick={handleCloseDialog}
-                            style={{ position: 'absolute', right: '-12px', top: '8px' }}
-                        >
-                            <CloseIcon />
-                        </Button>
-                    </DialogTitle>
-                    <DialogContent>
-                        <UserList users={filteredUsers} refreshData={() => userDetails.email && refreshData(userDetails.email)} onAddFriend={handleCloseDialog} />
-                    </DialogContent>
+            <Box sx={{width: "96%", position: 'fixed', top: '0px', paddingBottom: "10px", paddingTop: "10px", backgroundColor: "#1c284c",  "z-index": 10}}>
+                <Box display="flex" flexDirection="row">
+                    <Button 
+                        variant={isFriendsPage ? "contained" : "outlined"} 
+                        fullWidth
+                        onClick={() => {toggleFriendsGroupPages(true)}}
+                        sx={{
+                            color: isFriendsPage
+                            ? 'black'
+                            : 'white'
+                        }}
+                    >
+                        Friends
+                    </Button>
+                    <Button 
+                        variant={!isFriendsPage ? "contained" : "outlined"} 
+                        fullWidth
+                        onClick={() => {toggleFriendsGroupPages(false)}}
+                        sx={{
+                            color: !isFriendsPage
+                            ? 'black'
+                            : 'white'
+                        }}
+                    >
+                        Groups
+                    </Button>
                 </Box>
-            </Dialog>
-            <BottomNavBar userId={userDetails.email!} key={refreshTrigger.toString()} />
+                {!isFriendsPage ?
+                    <></>:
+                    <>
+                        <Button sx={{ width:"100%", marginTop: "15px", color: "black"}} title="Add Event Button" variant="contained" onClick={handleOpenDialog}>
+                            <AddIcon sx={{color: "black", paddingRight: 1}}/>
+                            Add Friend
+                        </Button>
+                    </>
+                }
+            </Box>
+            <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center"
+                justifyContent="center"
+                paddingBottom={10}
+                paddingTop={13}
+            >
+                <Accordion defaultExpanded disableGutters sx={{backgroundColor: "#1c284c", width: "100%", border: "1px solid #FFF"}}>
+                    <AccordionSummary
+                        expandIcon={<ExpandMoreIcon style={{color: "white"}}/>}
+                        aria-controls="panel1-content"
+                        id="panel1-header"
+                    >
+                        <Typography sx={{color: "white"}} variant="h4" component="span">Friends</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        {friends.length > 0 ?
+                            <FriendsList friends={friends} refreshData={() => userDetails.email && refreshData(userDetails.email)} />
+                            :
+                            <Typography sx={{color: "white"}}>No Friends</Typography>
+                        }
+                    </AccordionDetails>
+                </Accordion>
+                <Accordion disableGutters sx={{backgroundColor: "#1c284c", width: "100%", border: "1px solid #FFF"}}>
+                    <AccordionSummary
+                        expandIcon={<ExpandMoreIcon style={{color: "white"}}/>}
+                        aria-controls="panel2-content"
+                        id="panel2-header"
+                    >
+                        <Typography sx={{color: "white"}} variant="h4" component="span">Friend Requests</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        {requests.length > 0 ?
+                            <RequestsList requests={requests} refreshData={() => userDetails.email && refreshData(userDetails.email)} onRequestAction={handleRequestAction} />
+                            :
+                            <Typography sx={{color: "white"}}>No Friend Requests</Typography>
+                        }
+                    </AccordionDetails>
+                </Accordion>
+                <Accordion disableGutters sx={{backgroundColor: "#1c284c", width: "100%", border: "1px solid #FFF"}}>
+                    <AccordionSummary
+                    expandIcon={<ExpandMoreIcon style={{color: "white"}}/>}
+                    aria-controls="panel3-content"
+                    id="panel3-header"
+                >
+                    <Typography sx={{color: "white"}} variant="h4" component="span">Pending Friends</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        {pending.length > 0 ?
+                            <PendingList pending={pending} refreshData={() => userDetails.email && refreshData(userDetails.email)}/>
+                            :
+                            <Typography sx={{color: "white"}}>No Pending Friend Requests</Typography>
+                        }
+                    </AccordionDetails>
+                </Accordion>
+                <Box
+                    sx={{width: "100%", position: 'fixed', bottom: '75px'}}
+                    paddingRight={3}
+                    display="flex"
+                    justifyContent="right"
+                    alignItems="right"
+                >
+                    {/* <Button 
+                    color="primary" 
+                    aria-label="add" 
+                    variant="contained"
+                    sx={{ minWidth: '50px', minHeight: '50px'}}
+                    onClick={handleOpenDialog}
+                >
+                    <AddIcon />
+                </Button> */}
+                </Box>
+                <Dialog open={OpenDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm" scroll='body'>
+                    <Box
+                        alignItems="center"
+                        width="300px"
+                        height="500px"
+                        bgcolor="white"
+                    >
+                        <DialogTitle>
+                            <TextField
+                                sx={{ width: '250px' }}
+                                value={searchInput}
+                                onChange={handleSearchChange}
+                                label="Search Users"
+                                variant="outlined"
+                                fullWidth
+                            />
+                            <Button
+                                aria-label="close"
+                                onClick={handleCloseDialog}
+                                style={{ position: 'absolute', right: '-12px', top: '8px' }}
+                            >
+                                <CloseIcon />
+                            </Button>
+                        </DialogTitle>
+                        <DialogContent>
+                            <UserList users={filteredUsers} refreshData={() => userDetails.email && refreshData(userDetails.email)} onAddFriend={handleCloseDialog} />
+                        </DialogContent>
+                    </Box>
+                </Dialog>
+                <BottomNavBar userId={userDetails.email!} key={refreshTrigger.toString()} />
+            </Box>
         </Box>
     </>
 }
@@ -188,40 +256,35 @@ function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refre
         }
     };
 
-    return (
-        <ul style={{ listStyleType: 'none', padding: 0 }}>
+    return (<Box>
             {Array.isArray(friends) && friends.map((friend, index) => (
-                <li key={index}>
-                    <Paper elevation={3}>
-                        <Box
-                            onClick={() => {navigate(`/profile/${friend.id}`);}}
-                            display="flex"
-                            justifyContent="space-between"
-                            alignItems="center"
-                            width="300px"
-                            padding="10px"
-                            // border="1px solid #ccc"
-                            // borderRadius="5px"
-                            margin="5px 0"
-                            bgcolor="white"
-                        >
-                            <Button 
-                                variant="contained" 
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    userDetails.email && removeFriend(userDetails.email, friend.id);
-                                }}
-                            >
-                                <CloseIcon/>
-                            </Button>
-                            <Box flexGrow={1} textAlign="left" marginLeft={5}>
-                                    {`${friend.fname} ${friend.lname}`}
-                            </Box>
-                        </Box>
-                    </Paper>
-                </li>
+                <Box key={index}
+                    onClick={() => {navigate(`/profile/${friend.id}`);}}
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    width="300px"
+                    padding="10px"
+                    // border="1px solid #ccc"
+                    // borderRadius="5px"
+                    margin="5px 0"
+                    bgcolor="white"
+                >
+                    <Button 
+                        variant="contained" 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            userDetails.email && removeFriend(userDetails.email, friend.id);
+                        }}
+                    >
+                        <CloseIcon/>
+                    </Button>
+                    <Box flexGrow={1} textAlign="left" marginLeft={5}>
+                            {`${friend.fname} ${friend.lname}`}
+                    </Box>
+                </Box>
             ))}
-        </ul>
+        </Box>
     );
 }
 
@@ -244,36 +307,34 @@ function UserList({ users, refreshData, onAddFriend }: { users: EventSyncUser[];
     };
 
     return (
-        <ul style={{ listStyleType: 'none', padding: 0 }}>
+        <Box>
             {Array.isArray(users) && users.map((user, index) => (
-                <li key={index}>
-                    <Paper elevation={3}>
-                        <Box
-                            display="flex"
-                            justifyContent="space-between"
-                            alignItems="center"
-                            width="240px"
-                            padding="10px"
-                            // border="1px solid #ccc"
-                            // borderRadius="5px"
-                            margin="5px 0"
-                            bgcolor="white"
-                        >
-                            {`${user.fname} ${user.lname}`}
-                            <Button 
-                                variant="contained" 
-                                onClick={() => {
-                                    userDetails.email && addFriend(userDetails.email, user.id)
-                                    onAddFriend();
-                                }}
-                            >
-                                <AddIcon/>
-                            </Button>
-                        </Box>
-                    </Paper>
-                </li>
+                <Card
+                    key={index}
+                    sx={{
+                        width: "300px", 
+                        padding: "10px", 
+                        backgroundColor: "white", 
+                        display: "flex", 
+                        justifyContent: "space-between", 
+                        alignItems: "center", 
+                        margin: "5px 0"
+                    }}
+                    square={false}
+                >
+                    {`${user.fname} ${user.lname}`}
+                    <Button 
+                        variant="contained" 
+                        onClick={() => {
+                            userDetails.email && addFriend(userDetails.email, user.id)
+                            onAddFriend();
+                        }}
+                    >
+                        <AddIcon/>
+                    </Button>
+                </Card>
             ))}
-        </ul>
+        </Box>
     );
 }
 
@@ -312,41 +373,39 @@ function RequestsList({ requests, refreshData, onRequestAction }: { requests: Ev
     };
 
     return (
-        <ul style={{ listStyleType: 'none', padding: 0 }}>
+        <Box>
             {Array.isArray(requests) && requests.map((user, index) => (
-                <li key={index}>
-                    <Paper elevation={3}>
-                        <Box
-                            display="flex"
-                            justifyContent="space-between"
-                            alignItems="center"
-                            width="300px"
-                            padding="10px"
-                            // border="1px solid #ccc"
-                            // borderRadius="5px"
-                            margin="5px 0"
-                            bgcolor="white"
-                        >
-                            <Button 
-                                variant="contained" 
-                                color="primary" 
-                                onClick={() => userDetails.email && removeRequest(userDetails.email, user.id)}
-                            >
-                                <CloseIcon/>
-                            </Button>
-                            {`${user.fname} ${user.lname}`}
-                            <Button 
-                                variant="contained" 
-                                color="primary" 
-                                onClick={() => userDetails.email && acceptFriend(userDetails.email, user.id)}
-                            >
-                                <CheckIcon/>
-                            </Button>
-                        </Box>
-                    </Paper>
-                </li>
+                <Card
+                    key={index}
+                    sx={{
+                        width: "300px", 
+                        padding: "10px", 
+                        backgroundColor: "white", 
+                        display: "flex", 
+                        justifyContent: "space-between", 
+                        alignItems: "center", 
+                        margin: "5px 0"
+                    }}
+                    square={false}
+                >
+                    <Button 
+                        variant="contained" 
+                        color="primary" 
+                        onClick={() => userDetails.email && removeRequest(userDetails.email, user.id)}
+                    >
+                        <CloseIcon/>
+                    </Button>
+                    {`${user.fname} ${user.lname}`}
+                    <Button 
+                        variant="contained" 
+                        color="primary" 
+                        onClick={() => userDetails.email && acceptFriend(userDetails.email, user.id)}
+                    >
+                        <CheckIcon/>
+                    </Button>
+                </Card>
             ))}
-        </ul>
+        </Box>
     );
 }
 
@@ -368,36 +427,34 @@ function PendingList({ pending, refreshData }: { pending: EventSyncUser[]; refre
     };
 
     return (
-        <ul style={{ listStyleType: 'none', padding: 0 }}>
+        <Box>
             {Array.isArray(pending) && pending.map((user, index) => (
-                <li key={index}>
-                    <Paper elevation={3}>
-                        <Box
-                            display="flex"
-                            justifyContent="space-between"
-                            alignItems="center"
-                            width="300px"
-                            padding="10px"
-                            // border="1px solid #ccc"
-                            // borderRadius="5px"
-                            margin="5px 0"
-                            bgcolor="white"
-                        >
-                            <Button 
-                                variant="contained" 
-                                color="primary" 
-                                onClick={() => userDetails.email && removeRequest(userDetails.email, user.id)}
-                            >
-                                <CloseIcon/>
-                            </Button>
-                            <Box flexGrow={1} textAlign="left" marginLeft={5}>
-                                {`${user.fname} ${user.lname}`}
-                            </Box>
-                        </Box>
-                    </Paper>
-                </li>
+                <Card
+                    key={index}
+                    sx={{
+                        width: "300px", 
+                        padding: "10px", 
+                        backgroundColor: "white", 
+                        display: "flex", 
+                        justifyContent: "space-between", 
+                        alignItems: "center", 
+                        margin: "5px 0"
+                    }}
+                    square={false}
+                >
+                    <Button 
+                        variant="contained" 
+                        color="primary" 
+                        onClick={() => userDetails.email && removeRequest(userDetails.email, user.id)}
+                    >
+                        <CloseIcon/>
+                    </Button>
+                    <Box flexGrow={1} textAlign="left" marginLeft={5}>
+                        {`${user.fname} ${user.lname}`}
+                    </Box>
+                </Card>
             ))}
-        </ul>
+        </Box>
     );
 }
 
