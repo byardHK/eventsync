@@ -51,24 +51,30 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, heigh
     return (
         <Box display="flex" justifyContent="center" alignItems="center">
             <EventCard elevation={10} sx={{padding:2}}>
-                <div onClick={() => viewEvent(event)} style={{ cursor: "pointer" }}>
+                <Box onClick={() => viewEvent(event)} style={{ cursor: "pointer"}}>
                     <Typography variant="h5" fontWeight="bold">{event.eventName}</Typography>
+                    <br></br>
                     {start.isSame(end, "date") ? (
-                        <h3>{`${timeToString2(start, end)}`}</h3>
+                        <>
+                            <Typography>{`${timeToString2Date(start, end)}`}</Typography>
+                            <Typography>{`${timeToString2Time(start, end)}`}</Typography>
+                        </>
                     ) : (
                         <>
-                            <p>{`Start: ${timeToString(start)}`}</p>
-                            <p>{`End: ${timeToString(end)}`}</p>
+                            <Typography>{`${timeToStringDate(start)} ${timeToStringTime(start)}`}</Typography>
+                            <Typography>to</Typography>
+                            <Typography>{`${timeToStringDate(end)} ${timeToStringTime(end)}`}</Typography>
                         </>
                     )}
+                    <br></br>
                     {showTags && (
                         <Box display="flex" flexWrap="wrap" justifyContent="center">
                             {event.tags.map((tag, index) => (
-                                <Chip key={index} label={tag.name} style={{ margin: 2, backgroundColor: 'rgba(82, 113, 255, 0.5)' }}  />
+                                <Chip key={index} label={tag.name} style={{ margin: 2, backgroundColor: 'rgba(133, 156, 249, 0.5)', color:"black" }}  />
                             ))}
                         </Box>
                     )}
-                </div>
+                </Box>
 
                 {/* Share Button */}
                 <Box display="flex" flexDirection="row" justifyContent="space-between">
@@ -119,12 +125,20 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, heigh
 }
 
 // Helper functions for formatting time
-export function timeToString(dayjsTime: Dayjs): string {
-    return `${dayjsTime.format("dddd (M/D)")} at ${dayjsTime.format("h:mm A")}`;
+export function timeToStringDate(dayjsTime: Dayjs): string {
+    return `${dayjsTime.format("dddd (M/D)")}`;
 }
 
-export function timeToString2(startTime: Dayjs, endTime: Dayjs): string {
-    return `${startTime.format("dddd (M/D)")} from ${startTime.format("h:mm A")} - ${endTime.format("h:mm A")}`;
+export function timeToStringTime(dayjsTime: Dayjs): string {
+    return `${dayjsTime.format("h:mm A")}`;
+}
+
+export function timeToString2Date(startTime: Dayjs, endTime: Dayjs): string {
+    return `${startTime.format("dddd (M/D)")}`;
+}
+
+export function timeToString2Time(startTime: Dayjs, endTime: Dayjs): string {
+    return `${startTime.format("h:mm A")} - ${endTime.format("h:mm A")}`;
 }
 
 export default StyledCard;

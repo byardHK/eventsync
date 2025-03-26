@@ -1,4 +1,4 @@
-import { Card, Box, Button, Chip, TextField, Switch, Select, MenuItem, FormControl, InputLabel, IconButton } from "@mui/material";
+import { Card, Box, Button, Chip, TextField, Switch, Select, MenuItem, FormControl, InputLabel, IconButton, Typography } from "@mui/material";
 import TagModal from "../components/TagModal";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import axios from "axios";
@@ -19,7 +19,7 @@ import BackButton from "../components/BackButton";
 export const FetchExistingUserTS = async (email: string, setUserDetails: Dispatch<SetStateAction<UserDetails>>) => {
     const { userDetails } = useUser();
     try {
-        const res = await axios.get(`${BASE_URL}/get_user_tags/${email}/`,{
+        const res = await axios.get(`${BASE_URL}/api/get_user/${email}`,{
             headers: { 'Authorization': `Bearer ${userDetails.token}`, 
             "Content-Type": "application/json",   
             }
@@ -55,14 +55,17 @@ export const FetchExistingUserTS = async (email: string, setUserDetails: Dispatc
 function ProfilePage() {
     const { id: profileId } = useParams();
     const { userDetails, setUserDetails } = useUser();
+    const navigate = useNavigate();
     if (!userDetails || !userDetails.email) {
         return <div className="loading-container">
         <img src={logo} alt="EventSync Logo" className="logo" />
-        <p className="loading-text">Loading...</p>
+        <Typography className="loading-text">Loading...</Typography>
         </div>;
     }
     const userId = userDetails.email;
+    //FetchExistingUserTS(userId, setUserDetails);
     console.log("profile page user details: ", userDetails);
+
 
     if (profileId == userId) {
         const [userTags, setUserTags] = useState<Tag[]>([]);
@@ -85,32 +88,52 @@ function ProfilePage() {
                 invitedToEvent: invitedToEvent,
                 eventCancelled: eventCancelled
             };
-            console.log("data  sending: ", data)
-            
-            const response = await axios.post(`${BASE_URL}/api/update_user_profile`, data,{
+
+            // update the db
+            await axios.post(`${BASE_URL}/api/update_user_profile`, data,{
                 headers: {'Authorization': `Bearer ${userDetails.token}`,
                     'Content-Type': 'application/json',
                 }
             });
 
+                        
+            // grab the info you just set from the database
+            const res = await axios.get(`${BASE_URL}/api/get_user/${userId}`,{
+                headers: { 'Authorization': `Bearer ${userDetails.token}`, 
+                "Content-Type": "application/json",   
+                }
+             });
+    
+            // set the details
+            setUserDetails((prevDetails: any) => {
+                const updatedDetails = {
+                    ...prevDetails,
+                    firstName: res.data[0].fname,
+                    lastName: res.data[0].lname,
+                    email: res.data[0].id,
+                    isAdmin: res.data[0].isAdmin,
+                    isBanned: res.data[0].isBanned,
+                    isPublic: res.data[0].isPublic,
+                    bio: res.data[0].bio,
+                    notificationFrequency: res.data[0].notificationFrequency,
+                    notificationId: res.data[0].notificationId,
+                    numTimesReported: res.data[0].numTimesReported,
+                    profilePicture: res.data[0].profilePicture,
+                    friendRequest: res.data[0].friendRequest,
+                    eventInvite: res.data[0].eventInvite,
+                    eventCancelled: res.data[0].eventCancelled,
+                };
+                return updatedDetails;
+            });
 
-            if (response.status === 200) {
-                console.log("Profile updated successfully!");
-            }
-
-            try {
-                await FetchExistingUserTS(userId, setUserDetails);  
-                console.log("PROFILE PAGE Updated userDetails:");
-                console.log(userDetails);
-            } catch (error) {
-                console.error("Error fetching profile:", error);
-            }
-
-
+            console.log(userDetails);
+            
             } catch (error) {
                 console.error("Error updating profile:", error);
             }
+        
         };
+        
 
         const handleSave = async (tagsToAdd: Tag[], tagsToDelete: Tag[]) => {
             try {
@@ -158,8 +181,6 @@ function ProfilePage() {
                  });
                 setUserTags(response.data);
 
-                await FetchExistingUserTS(userId, setUserDetails);  
-
             } catch (error) {
                 console.error("Error fetching tags:", error);
             }
@@ -192,12 +213,12 @@ function ProfilePage() {
                             {/* Placeholder Profile Picture */}
                             <span style={{ fontSize: '2rem' }}>🧑</span>
                         </Box>
-                        <h2 style={{ marginTop: '0.5rem' }}>{userDetails.firstName} {userDetails.lastName}</h2>
+                        <Typography variant="h4" style={{ marginTop: '0.5rem' }}>{userDetails.firstName} {userDetails.lastName}</Typography>
                     </Box>
 
                     {/* About Me */}
                     <Box width="100%" mt={2}>
-                        <h3>Bio</h3>
+                        <Typography variant="h5">Bio</Typography>
                         <TextField
                             fullWidth
                             multiline
@@ -211,15 +232,15 @@ function ProfilePage() {
 
                     {/* Interests (Tags) */}
                     <Box width="100%" mt={2}>
-                        <h3 style={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography variant="h5" style={{ display: 'flex', alignItems: 'center'}}>
                             Interests
                             <div style={{ marginLeft: '10px' }}>
                                 <TagModal savedTags={userTags} handleSave={handleSave} />
                             </div>
-                        </h3>
-                        <Box display="flex" flexWrap="wrap" gap={1}>
+                        </Typography>
+                        <Box display="flex" flexWrap="wrap" gap={1} paddingTop={3}>
                             {userTags.map((tag, index) => (
-                                <Chip key={index} label={tag.name} />
+                                <Chip sx={{backgroundColor: 'rgba(133, 156, 249, 0.5)', color: "black" }} key={index} label={tag.name} />
                             ))}
                         </Box>
                         <br />
@@ -228,11 +249,11 @@ function ProfilePage() {
 
                     {/* Settings */}
                     <Box width="100%" mt={2}>
-                        <h3>Settings</h3>
+                        <Typography variant="h5">Settings</Typography>
 
                         {/* Privacy Toggle */}
-                        <Box display="flex" alignItems="center" justifyContent="space-between">
-                            <span>Keep info private?</span>
+                        <Box display="flex" alignItems="center" justifyContent="space-between" paddingTop={3}>
+                            <Typography>Keep info private?</Typography>
                             <Switch checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} onBlur={handleSaveChanges} />
                         </Box>
 
@@ -257,10 +278,10 @@ function ProfilePage() {
 
                         {/* Instant Notifications */}
                         <Box mt={2}>
-                            <h4>Instant Notifications</h4>
+                            <Typography variant="h5">Instant Notifications</Typography>
                             <Box display="flex" flexDirection="column" gap={1}>
-                                <Box display="flex" justifyContent="space-between">
-                                    <span>Receive friend request</span>
+                                <Box display="flex" justifyContent="space-between" paddingTop={3}>
+                                    <Typography>Receive friend request</Typography>
                                     <Switch
                                         checked={receiveFriendRequest}
                                         onChange={(e) => setReceiveFriendRequest(e.target.checked)}
@@ -268,7 +289,7 @@ function ProfilePage() {
                                     />
                                 </Box>
                                 <Box display="flex" justifyContent="space-between">
-                                    <span>Invited to Event</span>
+                                    <Typography>Invited to Event</Typography>
                                     <Switch
                                         checked={invitedToEvent}
                                         onChange={(e) => setInvitedToEvent(e.target.checked)}
@@ -276,7 +297,7 @@ function ProfilePage() {
                                     />
                                 </Box>
                                 <Box display="flex" justifyContent="space-between">
-                                    <span>Event Cancelled</span>
+                                    <Typography>Event Cancelled</Typography>
                                     <Switch
                                         checked={eventCancelled}
                                         onChange={(e) => setEventCancelled(e.target.checked)}
@@ -289,8 +310,8 @@ function ProfilePage() {
                                         color="primary"
                                         onClick={() => {
                                             handleSaveChanges();
-                                            handleSave([], []); // Adjust if there are changes in the tags as well
-                                        }}
+                                            handleSave([], []);// Adjust if there are changes in the tags as well
+                                            navigate("/home"); }}
                                     >
                                         Save Changes
                                     </Button>
@@ -376,7 +397,7 @@ function ProfilePage() {
                 <Box display="flex" flexDirection="row" justifyContent="space-between" width="100%">
                     <BackButton></BackButton>
                     <IconButton onClick={()=>setReportModalOpen(true)}>
-                        <FlagIcon style={{ color: 'red'}}></FlagIcon>
+                        <FlagIcon style={{ color: '#ad1f39'}}></FlagIcon>
                     </IconButton>
                 </Box>
     
@@ -427,7 +448,7 @@ function ProfilePage() {
                         </h3>
                         <Box display="flex" flexWrap="wrap" gap={1}>
                             {userTags.map((tag, index) => (
-                                <Chip key={index} label={tag.name} />
+                                <Chip key={index} label={tag.name} sx={{backgroundColor: "rgba(133, 156, 249, 0.5)"}}/>
                             ))}
                         </Box>
                         <br />

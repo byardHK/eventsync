@@ -6,7 +6,7 @@ const LoadingPage = () => {
     return (
         <div className="loading-container">
             <img src={logo} alt="EventSync Logo" className="logo" />
-            <p className="loading-text">Loading...</p>
+            <h2 className="loading-text">Loading...</h2>
         </div>
     );
 };
