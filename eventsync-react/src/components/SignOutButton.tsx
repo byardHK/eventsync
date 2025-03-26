@@ -17,7 +17,7 @@ export const SignOutButton = () => {
   const handleLogout = (logoutType: string) => {
     if (logoutType === "redirect") {
       instance.logoutRedirect({
-        postLogoutRedirectUri: "/home",
+        postLogoutRedirectUri: "/",
       });
     }
   };

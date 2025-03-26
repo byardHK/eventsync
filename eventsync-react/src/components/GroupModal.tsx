@@ -1,4 +1,4 @@
-import { Box, Button, Checkbox, Dialog, FormControlLabel, InputAdornment, TextField } from "@mui/material";
+import { Box, Button, Checkbox, Dialog, FormControlLabel, InputAdornment, TextField, Typography } from "@mui/material";
 import { Group } from "../pages/GroupsPage";
 import { useEffect, useState } from "react";
 import SearchIcon from '@mui/icons-material/Search';
@@ -102,6 +102,7 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                 display="flex"
                 flexDirection="column"
                 alignItems="center"
+                gap={2}
                 sx={{padding: 3, minHeight: "80vh", maxHeight: "80vh"}}
             >
                 <TextField 
@@ -113,17 +114,16 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                         setGroup({...group, groupName: event.target.value})
                     }}
                 />
-                <p>Choose friends to add to group: </p>
+                <Typography>Choose friends to add to group: </Typography>
                 <TextField 
-                    sx={{input: {backgroundColor: 'white'}}}
-                    id="outlined-basic" 
-                    label="Search" 
+                    sx={{backgroundColor: 'white'}}
+                    id="outlined-basic"
                     onChange={(e) => setSearchKeyword(e.target.value)}
                     slotProps={{
                         input: {
                         startAdornment: (
                             <InputAdornment position="start">
-                                <SearchIcon/>
+                                <SearchIcon sx={{color: "#1c284c"}}/>
                             </InputAdornment>
                             ),
                         },
@@ -132,7 +132,7 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                 />
                 {friends.filter((friend) => friend.id.toLowerCase().includes(searchKeyword.toLowerCase())).map((friend) =>
                     <Box key={friend.id}>
-                        <FormControlLabel control={<Checkbox disabled={friend.id === userDetails.email} checked={!!group.users.find((user) => { return user.id === friend.id; })} onChange={(event) => {
+                        <FormControlLabel control={<Checkbox style={{color: "#1c284c"}} disabled={friend.id === userDetails.email} checked={!!group.users.find((user) => { return user.id === friend.id; })} onChange={(event) => {
                             const updatedGroup : Group = {...group};
                             if(event.target.checked){
                                 updatedGroup.users.push(friend);
@@ -143,9 +143,9 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                         }}/>} label={`${friend.fname} ${friend.lname}`} />
                     </Box>
                 )}
-                <Box display="flex" flexDirection="row" justifyContent="space-between">
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={handleSave}>Save</Button>
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={onClose}>Cancel</Button>
+                <Box display="flex" flexDirection="row" gap={2} sx={{"margin-top": "auto", width:"100%"}}>
+                    <Button variant="contained" sx={{backgroundColor: "#1c284c"}} fullWidth onClick={onClose}>Cancel</Button>
+                    <Button variant="contained" sx={{backgroundColor: "#1c284c"}} fullWidth onClick={handleSave}>Save</Button>
                 </Box>
             </Box>
         </Dialog>

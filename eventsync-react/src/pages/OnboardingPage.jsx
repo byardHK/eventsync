@@ -75,15 +75,15 @@ const OnboardingPage = () => {
 
     return (
         <Box
-    display="flex"
-    justifyContent="center" // Centers content horizontally
-    alignItems="center" // Centers content vertically
-    flexDirection="column"
-    bgcolor="rgb(66, 135, 245)"
-    padding="20px"
-    minHeight="100vh" // Ensure full page height
-    width="100vw" // Full width
->
+            display="flex"
+            justifyContent="center" // Centers content horizontally
+            alignItems="center" // Centers content vertically
+            flexDirection="column"
+            bgcolor="rgb(66, 135, 245)"
+            padding="20px"
+            minHeight="100vh" // Ensure full page height
+            width="100vw" // Full width
+        >
     <Card
         sx={{
             width: "90%",

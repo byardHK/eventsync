@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import { Box, Button, Grid2, Input, IconButton, ListItemButton, ListItemText, TextField, FormControl } from "@mui/material";
+import { Box, Button, Grid2, IconButton, FormControl, Input, ListItemButton, ListItemText, TextField, Typography } from "@mui/material";
 import axios from "axios";
 import Message from '../types/Message';
 import Chat from '../types/Chat';
@@ -38,7 +38,7 @@ function ChatPage() {
 	useEffect(() => {
         const fetchChat = async () => {
             try {
-                const response = await axios.get<{chat: chatResponse, users: User[]}>(`http://localhost:5000/get_chat/${chatId}`, {
+                const response = await axios.get<{chat: chatResponse, users: User[]}>(`${BASE_URL}/get_chat/${chatId}`, {
                     headers: {
                         'Authorization': `Bearer ${userDetails.token}`,
                         'Content-Type': 'application/json'
@@ -119,14 +119,14 @@ function ChatPage() {
         if (!chat) return <div></div>;
         if (chat.chatType == chatType.INDIVIDUAL && nonGroupOtherUser) {
             return (
-                <h1>
-                <Link to={`/profile/${nonGroupOtherUser.id}`}>
-                    {getName(nonGroupOtherUser.id)}
-                </Link>
-                </h1>
+                <Typography variant="h3">
+                    <Link to={`/profile/${nonGroupOtherUser.id}`}>
+                        {getName(nonGroupOtherUser.id)}
+                    </Link>
+                </Typography>
             )
         }
-        return <h2>{chat.name}</h2>;
+        return <Typography variant="h4">{chat.name}</Typography>;
     }
 
     function getName(userId: String) {
@@ -191,7 +191,7 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
                         <div>
                             <Box display="flex" justifyContent="flex-end">
                                 <IconButton onClick={()=>setReportModalOpen(true)}>
-                                    <FlagIcon style={{ color: 'red'}}></FlagIcon>
+                                    <FlagIcon style={{ color: '#ad1f39'}}></FlagIcon>
                                 </IconButton>
                             </Box>
                             <ListItemText>{message.messageContent}</ListItemText>

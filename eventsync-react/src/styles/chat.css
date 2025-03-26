@@ -30,7 +30,7 @@
 
 .chat-input-container button {
   border: none;
-  background-color: #04227a;
+  background-color: #1c284c;
   color: white;
   border-radius: 5px;
   cursor: pointer;
@@ -69,7 +69,7 @@
 .self .msg {
   order: 1;
   border-bottom-right-radius: 0px;
-  background-color: #04227a;
+  background-color: #1c284c;
   color: white;
   margin-left: auto; 
   margin-right: 0;

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import BottomNavBar from '../components/BottomNavBar';
 import Box from '@mui/material/Box';
-import {InputAdornment, Paper, styled, TextField } from '@mui/material';
+import {InputAdornment, Paper, styled, TextField, Typography } from '@mui/material';
 import axios from 'axios';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css"
@@ -24,18 +24,20 @@ function ChatHomePage() {
             flexDirection="column"
             alignItems="center" 
             justifyContent="center"
+            paddingBottom={2}
+            style={{ position: 'fixed', top: '0', width: "100%", backgroundColor: "#1c284c"}}
         >
           <Box
             display="flex"
             alignItems="center" 
             justifyContent="center"
-        >
-            <h1 className="card-title">My Chats</h1>
-        </Box>
+            padding={2}
+          >
+            <Typography variant="h3">My Chats</Typography>
+          </Box>
               <TextField 
-                sx={{input: {backgroundColor: 'white'}}}
-                id="outlined-basic" 
-                label="Search" 
+                sx={{backgroundColor: 'white'}}
+                id="outlined-basic"
                 onChange={(e) => setSearchKeyword(e.target.value)}
                 slotProps={{
                     input: {
@@ -98,11 +100,13 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
       navigate(`/viewChat/${chat.id}`);
   }
 
-    return (<ul>
-      {filteredChats.map((chat, index) => (
-        <StyledCard key={index} chat={chat} viewChat={viewChat} chatName={chat.name}></StyledCard>
-      ))}
-  </ul>);
+    return (
+      <Box display="flex" flexDirection="column" paddingBottom={10} paddingTop={20}>
+        {filteredChats.map((chat, index) => (
+          <StyledCard key={index} chat={chat} viewChat={viewChat} chatName={chat.name}></StyledCard>
+        ))}
+      </Box>
+  );
 }
 
 function StyledCard({chat, viewChat, chatName} : {chat: Chat, viewChat: (chat:Chat) => void, chatName: String}){
@@ -112,14 +116,17 @@ function StyledCard({chat, viewChat, chatName} : {chat: Chat, viewChat: (chat:Ch
       padding: theme.spacing(2),
       ...theme.typography.body2,
       textAlign: 'center',
-      margin: '8px'
+      margin: '8px',
+      backgroundColor: '#1c284c',
+      color: "white"
+
     }));
 
   return (
       <Box display="flex" justifyContent="center" alignItems="center">
           <ChatCard elevation={10} square={false}>
               <div onClick={() => { viewChat(chat); }} style={{cursor: "pointer"}}>
-                  <h3>{chatName}</h3>
+                  <Typography variant="h5">{chatName}</Typography>
                 </div>
           </ChatCard>
       </Box>

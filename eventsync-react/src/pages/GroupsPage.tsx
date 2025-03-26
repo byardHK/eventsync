@@ -16,6 +16,7 @@ import ReportModal from "../components/ReportModal";
 import { BASE_URL } from "../components/Constants";
 import DeleteIcon from '@mui/icons-material/Delete';
 import LogoutIcon from '@mui/icons-material/Logout';
+import GroupIcon from '@mui/icons-material/Group';
 
 export type Group = {
     id: number;
@@ -60,37 +61,58 @@ function GroupsPage(){
 
     const [newGroupsModalOpen, setNewGroupsModalOpen] = useState<boolean>(false);
 
-    return(
+    return<>
+    <Box sx={{paddingBottom: "10px"}}>
+        <Box display="flex" flexDirection="row">
+            <Button 
+                variant={isFriendsPage ? "contained" : "outlined"} 
+                fullWidth
+                onClick={() => {toggleFriendsGroupPages(true)}}
+                sx={{
+                    color: isFriendsPage
+                       ? 'black'
+                       : 'white'
+                  }}
+            >
+                Friends
+            </Button>
+            <Button 
+                variant={!isFriendsPage ? "contained" : "outlined"} 
+                fullWidth
+                onClick={() => {toggleFriendsGroupPages(false)}}
+                sx={{
+                    color: !isFriendsPage
+                       ? 'black'
+                       : 'white'
+                  }}
+            >
+                Groups
+            </Button>
+        </Box>
+            {isFriendsPage ?
+                <></>:
+                <>
+                    <Button sx={{color: "black", width:"100%", marginTop: "15px"}} title="Add Event Button" variant="contained" onClick={()=>setNewGroupsModalOpen(true)}>
+                        <AddIcon sx={{color: "black", paddingRight: 1}}/>
+                        Add Group
+                    </Button>
+                </>
+            }
+        </Box>
         <Box
             display="flex"
             flexDirection="column"
             alignItems="center"
             justifyContent="center"
         >
-            <Box display="flex" flexDirection="row" padding={2} sx={{width: "100%"}}>
-                <Button 
-                    variant={isFriendsPage ? "contained" : "outlined"} 
-                    fullWidth
-                    onClick={() => {toggleFriendsGroupPages(true)}}
-                >
-                    Friends
-                </Button>
-                <Button 
-                    variant={!isFriendsPage ? "contained" : "outlined"} 
-                    fullWidth
-                    onClick={() => {toggleFriendsGroupPages(false)}}
-                >
-                    Groups
-                </Button>
-            </Box>
             <GroupModal open={newGroupsModalOpen} onClose={() => setNewGroupsModalOpen(false)} onSave={reloadMyGroups}/>
             <Grid2
                 container spacing={3}
                 display="flex"
                 alignItems="center" 
                 justifyContent="center"
-                style={{maxHeight: '84vh', overflow: 'auto'}}
-                padding={2}
+                style={{maxHeight: '82vh', overflow: 'auto'}}
+                paddingBottom={8}
             >
                 {groups ? 
                     groups.map(group =>
@@ -107,7 +129,7 @@ function GroupsPage(){
                     </Box>
                 }
             </Grid2>
-            <Box
+            {/* <Box
                 display="flex"
                 flexDirection="row"
                 width="100%"
@@ -116,15 +138,15 @@ function GroupsPage(){
                 justifyContent="flex-end"
                 style={{ position: 'fixed', bottom: '40px' }}
             >
-                <Box display="flex" justifyContent="flex-end" alignItems="flex-end">
-                    <Button onClick={()=>setNewGroupsModalOpen(true)}>
+                <Box display="flex" justifyContent="flex-end" alignItems="flex-end" sx={{width: "100%", position: 'fixed', bottom: '75px'}} paddingRight={3}>
+                    <Button variant="contained" sx={{ minWidth: '50px', minHeight: '50px'}} onClick={()=>setNewGroupsModalOpen(true)}>
                         <AddIcon></AddIcon>
                     </Button>
                 </Box>
-            </Box>
+            </Box> */}
             <BottomNavBar userId={currentUserId!}/>
         </Box>
-    );
+    </>
 }   
 
 type SplitButtonProps = {
@@ -139,20 +161,21 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
     const [editing, setEditing] = useState<boolean>(false);
     const [leavingGroupModalOpen, setLeavingGroupModalOpen] = useState<boolean>(false); 
     const [deleteGroupModalOpen, setDeleteGroupModalOpen] = useState<boolean>(false); 
+    const [viewGroupMembersModalOpen, setViewGroupMembersModalOpen] = useState<boolean>(false);
 
     function LeaveGroupModal(){
         return <Dialog
-            onClose={()=> {setLeavingGroupModalOpen(false)}}
-            open={leavingGroupModalOpen}
-        >
-            <Box sx={{padding : 3}}>fconsole.log
-                <h2>Leave group?</h2>
-                <Box display="flex" flexDirection="row" justifyContent="space-between">
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setLeavingGroupModalOpen(false)}}>Cancel</Button>
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={leaveGroup}>Yes</Button>
-                </Box>
+        onClose={()=> {setLeavingGroupModalOpen(false)}}
+        open={leavingGroupModalOpen}
+    >
+        <Box sx={{padding: 3}} gap={2} display="flex" flexDirection="column" justifyContent="center" alignItems="center">
+            <Typography variant="h5">Leave group?</Typography>
+            <Box sx={{padding:3}} display="flex" flexDirection="row" gap={3}>
+                <Button variant="contained" fullWidth sx={{backgroundColor: "#1c284c", marginTop: "auto"}} onClick={()=> {setLeavingGroupModalOpen(false)}}>Cancel</Button>
+                <Button variant="contained" fullWidth sx={{backgroundColor: "#1c284c", marginTop: "auto"}} onClick={leaveGroup}>Yes</Button>
             </Box>
-        </Dialog>
+        </Box>
+    </Dialog>
     }
 
     async function leaveGroup(){
@@ -173,12 +196,33 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
             onClose={()=> {setDeleteGroupModalOpen(false)}}
             open={deleteGroupModalOpen}
         >
-            <Box sx={{padding : 3}}>
-                <h2>Delete group?</h2>
-                <Box display="flex" flexDirection="row" justifyContent="space-between">
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setDeleteGroupModalOpen(false)}}>Cancel</Button>
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={deleteGroup}>Yes</Button>
+            <Box sx={{padding: 3}} gap={2} display="flex" flexDirection="column" justifyContent="center" alignItems="center">
+                <Typography variant="h5">Delete group?</Typography>
+                <Box sx={{padding:3}} display="flex" flexDirection="row" gap={3}>
+                    <Button variant="contained" fullWidth sx={{backgroundColor: "#1c284c", marginTop: "auto"}} onClick={()=> {setDeleteGroupModalOpen(false)}}>Cancel</Button>
+                    <Button variant="contained" fullWidth sx={{backgroundColor: "#1c284c", marginTop: "auto"}} onClick={deleteGroup}>Yes</Button>
                 </Box>
+            </Box>
+        </Dialog>
+    }
+    function ViewMembersModal(){
+        return <Dialog
+            onClose={()=> {setViewGroupMembersModalOpen(false)}}
+            open={viewGroupMembersModalOpen}
+        >
+            <Box sx={{padding : 5}}>
+                <Typography variant="h5" fontWeight="bold">Group Members</Typography>
+                <br></br>
+                {group.users.map((user) => (
+                    <MenuItem
+                      key={user.id}
+                      onClick={() => {navigate(`/profile/${user.id}`)}}
+                    >
+                      {`${user.fname} ${user.lname}`}
+                    </MenuItem>
+                  ))}
+                  <br></br>
+                  <Button variant="contained" fullWidth sx={{marginTop: "auto", backgroundColor:"#1c284c"}} onClick={()=> {setViewGroupMembersModalOpen(false)}}>Cancel</Button>
             </Box>
         </Dialog>
     }
@@ -216,42 +260,45 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
     <>
         <LeaveGroupModal></LeaveGroupModal>
         <DeleteGroupModal></DeleteGroupModal>
+        <ViewMembersModal></ViewMembersModal>
         <GroupModal groupId={group.id} open={editing} onClose={() => setEditing(false)} onSave={onSave}/>
         <ButtonGroup
             variant="contained"
             ref={anchorRef}
             aria-label="Button group with a nested menu"
         >
-            <Card sx={{padding: 3, maxWidth: "25vh"}} >
-                <h2>{group.groupName}</h2>
-                <Box display="flex" flexDirection="row">
+            <Card sx={{padding: 4, maxWidth: "35vh", minWidth: "35vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center"}} >
+                <Typography variant="h5" fontWeight="bold">{group.groupName}</Typography>
+                <Box display="flex" flexDirection="row" gap={2}>
                     <ReportModal input={group} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="group"/>
-                    <Box display="flex" alignItems="right" justifyContent="right">
+                    <Box paddingTop={4} display="flex" flexDirection="row" gap={2}>
+                        {currentUserId === group.creatorId ? (
+                            <IconButton onClick={() => setDeleteGroupModalOpen(true)}>
+                                <DeleteIcon style={{color: "#ad1f39"}}></DeleteIcon>
+                            </IconButton>
+                        ) :
+                        (
+                            <IconButton onClick={() => setLeavingGroupModalOpen(true)}>
+                                <LogoutIcon style={{color: "#ad1f39"}}></LogoutIcon>
+                            </IconButton>
+                        )}
                         <IconButton onClick={()=>setReportModalOpen(true)}>
-                            <FlagIcon style={{ color: 'red'}}></FlagIcon>
+                            <FlagIcon style={{ color: '#ad1f39'}}></FlagIcon>
+                        </IconButton>
+                        <IconButton onClick={() => setEditing(true)}>
+                            <EditIcon style={{color: "#1c284c"}}></EditIcon>
+                        </IconButton>
+                        <IconButton onClick={()=>navigate(`/viewChat/${group.chatId}`)}>
+                            <ChatIcon style={{color: "#1c284c"}}></ChatIcon>
+                        </IconButton>
+                        <IconButton onClick={()=>setViewGroupMembersModalOpen(true)}>
+                            <GroupIcon style={{color: "#1c284c"}}></GroupIcon>
                         </IconButton>
                     </Box>
-                    <IconButton onClick={()=>navigate(`/viewChat/${group.chatId}`)}>
-                        <ChatIcon style={{color: "blue"}}></ChatIcon>
-                    </IconButton>
-                    <IconButton onClick={() => setEditing(true)}>
-                        <EditIcon style={{color: "blue"}}></EditIcon>
-                    </IconButton>
                     {/* {currentUserId === group.creatorId ? ( */}
-                    {true ? (
-                        <IconButton onClick={() => setDeleteGroupModalOpen(true)}>
-                            <DeleteIcon style={{color: "red"}}></DeleteIcon>
-                        </IconButton>
-                    ) :
-                    (
-                        <IconButton onClick={() => setLeavingGroupModalOpen(true)}>
-                            <LogoutIcon style={{color: "red"}}></LogoutIcon>
-                        </IconButton>
-                    )}
-                    
                 </Box>
             </Card>
-            <Button
+            {/* <Button
                 size="small"
                 aria-controls={open ? 'split-button-menu' : undefined}
                 aria-expanded={open ? 'true' : undefined}
@@ -261,9 +308,9 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
                 onClick={handleToggle}
             >
                 <ArrowDropDownIcon sx={{color: "blue"}}/>
-            </Button>
+            </Button> */}
         </ButtonGroup>
-        <Popper
+        {/* <Popper
             sx={{ zIndex: 1 }}
             open={open}
             anchorEl={anchorRef.current}
@@ -295,7 +342,7 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
             </Paper>
           </Grow>
         )}
-      </Popper>
+      </Popper> */}
     </>
   );
 }
