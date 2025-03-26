@@ -2728,7 +2728,6 @@ def get_image(message_id: int):
 
    
     try:
-        
         return send_file(f"uploads/{message_id}.jpg", mimetype='image/jpeg'), 200
     except Exception as  e:
         print(f"Error: {e}")
