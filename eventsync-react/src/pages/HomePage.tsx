@@ -102,7 +102,7 @@ function HomePage() {
     
     return <>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Box style={{ position: 'fixed', top: '0', backgroundColor: "rgb(175, 175, 175)", width: "100%", right: 0, left: 0, marginRight: "0", marginLeft: "auto"}}>
+            <Box style={{ position: 'fixed', top: '0', backgroundColor: "#1c284c", width: "100%", right: 0, left: 0, marginRight: "0", marginLeft: "auto"}}>
                 <Box
                     display="flex"
                     alignItems="right" 
@@ -113,14 +113,14 @@ function HomePage() {
                     {userDetails.isAdmin ?
                         <Link to="/admin">
                             <Button variant="contained">
-                                <FlagIcon/>
+                                <FlagIcon style={{ color: 'black'}}/>
                             </Button>
                         </Link> :
                     <></>
                     }
                     <Link to={`/profile/${currentUserId}`}>
                         <Button variant="contained">
-                            <PersonIcon/>
+                            <PersonIcon style={{ color: 'black'}}/>
                         </Button>
                     </Link>
                     
@@ -143,7 +143,7 @@ function HomePage() {
                                 input: {
                                     startAdornment: (
                                     <InputAdornment position="start">
-                                        <SearchIcon style={{ color: '#04227a'}}/>
+                                        <SearchIcon style={{ color: '#1c284c'}}/>
                                     </InputAdornment>
                                     ),
                                 },
@@ -151,14 +151,14 @@ function HomePage() {
                             variant="outlined"
                         />
                         <IconButton sx={{paddingRight: 0, paddingLeft: "auto"}} onClick={() => setFiltersVisible(!filtersVisible)}>
-                            <FilterListIcon fontSize="large" style={{ color: '#04227a'}} />
+                            <FilterListIcon fontSize="large" style={{ color: '#71A9F7'}} />
                         </IconButton>
                     </Box>
                     {/* <Button sx={{height: "8px"}} onClick={() => setFiltersVisible(!filtersVisible)}>
                         {filtersVisible ? "Close Filters" : "Open Filters"}
                         {filtersVisible ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                     </Button> */}
-                    <Box sx={{width: "95%", position: 'fixed', top: '150px', "z-index": 10, border: filtersVisible ? 2 : undefined, borderColor: "#04227a" }}>
+                    <Box sx={{width: "95%", position: 'fixed', top: '150px', "z-index": 10, border: filtersVisible ? 2 : undefined, borderColor: "#1c284c" }}>
                         <Collapse in={filtersVisible} sx={{width: "100%"}} >
                             <Box 
                                 paddingTop={3}
@@ -242,7 +242,12 @@ function HomePage() {
                     padding={1}
                 >
                 <Button 
-                        variant={isComingSoon ? "contained" : "outlined"} 
+                        variant={isComingSoon ? "contained": "outlined"} 
+                        sx={{
+                            color: isComingSoon
+                               ? 'black'
+                               : 'white',
+                          }}
                         fullWidth
                         onClick={() => {setIsComingSoon(true)}}
                     >
@@ -250,6 +255,11 @@ function HomePage() {
                     </Button>
                     <Button 
                         variant={!isComingSoon ? "contained" : "outlined"} 
+                        sx={{
+                            color: !isComingSoon
+                               ? 'black'
+                               : 'white',
+                          }}
                         fullWidth
                         onClick={() => {setIsComingSoon(false)}}
                     >

@@ -25,7 +25,7 @@ function ChatHomePage() {
             alignItems="center" 
             justifyContent="center"
             paddingBottom={2}
-            style={{ position: 'fixed', top: '0', width: "100%", backgroundColor: "rgb(175, 175, 175)"}}
+            style={{ position: 'fixed', top: '0', width: "100%", backgroundColor: "#1c284c"}}
         >
           <Box
             display="flex"
@@ -117,7 +117,7 @@ function StyledCard({chat, viewChat, chatName} : {chat: Chat, viewChat: (chat:Ch
       ...theme.typography.body2,
       textAlign: 'center',
       margin: '8px',
-      backgroundColor: '#04227a',
+      backgroundColor: '#1c284c',
       color: "white"
 
     }));

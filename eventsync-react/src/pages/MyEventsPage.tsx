@@ -39,7 +39,7 @@ function MyEventsPage() {
             justifyContent="center"
         >
             <Box
-                sx={{width: "100%", position: 'fixed', top: '0px', backgroundColor: "rgb(175, 175, 175)",  "z-index": 10}}
+                sx={{width: "100%", position: 'fixed', top: '0px', paddingBottom: "10px", backgroundColor: "#1c284c",  "z-index": 10}}
             >
                 <Box 
                     display="flex" 
@@ -61,24 +61,16 @@ function MyEventsPage() {
                         Hosting
                     </Button>
                 </Box>
+                {showingAttending ?
+                <></>:
+                    <>
+                        <Button sx={{ width:"100%", marginTop: "5px"}} title="Add Event Button" variant="contained" onClick={handleCreatEventClick}>
+                            <AddIcon sx={{color: "white"}}/>
+                        </Button>
+                    </>
+                }
             </Box>
             <EventLists showingAttending={showingAttending}/>
-            <Box
-                    display="flex"
-                    justifyContent="right"
-                    alignItems="right"
-                    sx={{width: "100%", position: 'fixed', bottom: '75px'}}
-                    paddingRight={3}
-                >
-                    {showingAttending ?
-                        <></>:
-                        <>
-                            <Button sx={{ minWidth: '50px', minHeight: '50px'}} title="Add Event Button" variant="contained" onClick={handleCreatEventClick}>
-                                <AddIcon/>
-                            </Button>
-                        </>
-                    }
-                </Box>
             <BottomNavBar userId={currentUserId!}/>
         </Box>
     </>;
@@ -128,7 +120,11 @@ function EventLists({showingAttending}: EventListsProps) {
                 display="flex"
                 justifyContent="center"
                 alignItems="center"
-                paddingTop={8}
+                sx={{
+                    paddingTop: showingAttending
+                       ? 8
+                       : 14
+                  }}
                 paddingBottom={8}
             >
                 {showingAttending ?
