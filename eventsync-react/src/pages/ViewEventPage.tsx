@@ -29,9 +29,11 @@ function ViewEventPage() {
     const [expanded, setExpanded] = useState<string | false>(false);
     const intEventId = parseInt(eventId || '-1');
     const [open, setOpen] = useState(false);
+    console.log(open);
     const [isRsvped, setIsRsvped] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
+    console.log(handleClose);
 
     const navigate = useNavigate();
   
