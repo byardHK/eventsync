@@ -120,6 +120,7 @@ function StyledCard({chat, viewChat, chatName} : {chat: Chat, viewChat: (chat:Ch
           <ChatCard elevation={10} square={false}>
               <div onClick={() => { viewChat(chat); }} style={{cursor: "pointer"}}>
                   <h3>{chatName}</h3>
+                  <h3>{chat.chatType}</h3>
                 </div>
           </ChatCard>
       </Box>

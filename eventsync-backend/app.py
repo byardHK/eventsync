@@ -789,7 +789,7 @@ def accept_friend_request(userId, friendId):
 
         # Create chat for friend
         createChat = f"""
-            INSERT INTO Chat (name, chatType) VALUES ("", 'Event');
+            INSERT INTO Chat (name, chatType) VALUES ("", 'Individual');
         """
         mycursor.execute(createChat)
         chatId = mycursor.lastrowid
@@ -939,9 +939,9 @@ def delete_one_event(eventId):
         mycursor.execute("DELETE FROM EventToItem WHERE eventId = %s", (eventId,))
         mycursor.execute("DELETE FROM EventToUser WHERE eventId = %s", (eventId,))
         mycursor.execute("DELETE FROM Event WHERE id = %s", (eventId,))
-        mycursor.execute
 
         deleteEventInfo = f"DELETE FROM EventInfo WHERE id = @eventInfoId"
+        mycursor.execute(deleteEventInfo)
 
         conn.commit()
         rowCount: int = mycursor.rowcount
@@ -1014,6 +1014,8 @@ def delete_mult_event(eventId):
         
         mycursor.execute("""DELETE FROM Event
                         WHERE eventInfoId = @eventInfoId;""")
+        deleteEventInfo = f"DELETE FROM EventInfo WHERE id = @eventInfoId"
+        mycursor.execute(deleteEventInfo)
         conn.commit()
 
         success: int = mycursor.rowcount
