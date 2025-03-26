@@ -19,7 +19,6 @@ import { useRef } from 'react';
 
 dayjs.extend(isToday);
 
-//Pusher
 import Pusher from 'pusher-js';
 import { BASE_URL } from '../components/Constants';
 import ReportModal from '../components/ReportModal';
@@ -35,7 +34,6 @@ function ChatPage() {
     const channelName = `chat-${chatId}`;
     const [nonGroupOtherUser, setNonGroupOtherUser] = useState<User | null>(null);
     const [newImage, setNewImage] = useState<boolean>(false);
-    const [imageURL, setImageURL] = useState<Blob>();
 
 	useEffect(() => {
         const fetchChat = async () => {
@@ -283,7 +281,7 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
         formData.append('timeSent', getCurDate());
 
         try {
-            const response = await axios.post('http://localhost:5000/upload', formData, {
+            const response = await axios.post('http://localhost:5000/upload/', formData, {
               headers: {
                 'Authorization': `Bearer ${userDetails.token}`,
                 'Content-Type': 'multipart/form-data',
@@ -346,13 +344,14 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
 
 const ImageComponent = ({id} : {id: number}) => {
     const [imageURL, setImageURL] = useState<string>();
+    const { userDetails } = useUser();
 
     async function importImage() {
         try {
             const response = await axios.get<string>(`${BASE_URL}/get_image/${id}/`,  {
                 responseType: 'blob',
                 headers: {
-                    // 'Authorization': `Bearer ${userDetails.token}`,
+                    'Authorization': `Bearer ${userDetails.token}`,
                 }
             });
             console.log(response);

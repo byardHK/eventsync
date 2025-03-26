@@ -2671,9 +2671,9 @@ def get_event_chat_id(event_id: int):
 @app.route('/upload/', methods=['POST'])
 def upload():
 
-    # user_email, error_response, status_code = get_authenticated_user()
-    # if error_response:
-    #     return error_response, status_code  
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
 
     # body = request.json
     # if not body or "senderId" not in body:
@@ -2715,9 +2715,9 @@ def upload():
 @app.route('/get_image/<int:message_id>/', methods=['GET'])
 def get_image(message_id: int):
 
-    # user_email, error_response, status_code = get_authenticated_user()
-    # if error_response:
-    #     return error_response, status_code  
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
 
     # body = request.json
     # if not body or "senderId" not in body:
