@@ -15,43 +15,6 @@ import User from "../types/User";
 import logo from '../images/logo.png'; 
 import BackButton from "../components/BackButton";
 
-
-export const FetchExistingUserTS = async (email: string, setUserDetails: Dispatch<SetStateAction<UserDetails>>) => {
-    const { userDetails } = useUser();
-    try {
-        const res = await axios.get(`${BASE_URL}/api/get_user/${email}`,{
-            headers: { 'Authorization': `Bearer ${userDetails.token}`, 
-            "Content-Type": "application/json",   
-            }
-         });
-        console.log("PROFILE PAGE TSX FUNCTION", res.data);
-
-        setUserDetails((prevDetails: any) => {
-            const updatedDetails = {
-                ...prevDetails,
-                firstName: res.data[0].fname,
-                lastName: res.data[0].lname,
-                email: res.data[0].id,
-                isAdmin: res.data[0].isAdmin,
-                isBanned: res.data[0].isBanned,
-                isPublic: res.data[0].isPublic,
-                bio: res.data[0].bio,
-                notificationFrequency: res.data[0].notificationFrequency,
-                notificationId: res.data[0].notificationId,
-                numTimesReported: res.data[0].numTimesReported,
-                profilePicture: res.data[0].profilePicture,
-                friendRequest: res.data[0].friendRequest,
-                eventInvite: res.data[0].eventInvite,
-                eventCancelled: res.data[0].eventCancelled,
-            };
-            return updatedDetails;
-        });
-        
-    } catch (error) {
-        console.error("Error retrieving user details from database or setting them internally:", error);
-    }
-  };
-
 function ProfilePage() {
     const { id: profileId } = useParams();
     const { userDetails, setUserDetails } = useUser();
@@ -63,7 +26,6 @@ function ProfilePage() {
         </div>;
     }
     const userId = userDetails.email;
-    //FetchExistingUserTS(userId, setUserDetails);
     console.log("profile page user details: ", userDetails);
 
 
