@@ -141,8 +141,8 @@ function ReportModal({input, open, onClose, type}: ReportModalProps){
                     flexDirection="row"
                     gap={3}
                 >
-                    <Button variant="outlined" fullWidth onClick={onClose}>Cancel</Button>
-                    <Button variant="outlined" fullWidth onClick={onSubmit}>Save</Button>
+                    <Button variant="contained" sx={{backgroundColor: "#1c284c"}} fullWidth onClick={onClose}>Cancel</Button>
+                    <Button variant="contained" sx={{backgroundColor: "#1c284c"}} fullWidth onClick={onSubmit}>Save</Button>
                 </Box>
             </Box>
         </Dialog>

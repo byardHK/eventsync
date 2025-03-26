@@ -37,29 +37,29 @@ function BottomNavBar({ userId }: { userId: string }) {
         width="100%"
         paddingBottom={2}
         paddingTop={2}
-        sx={{backgroundColor: "rgb(175, 175, 175)"}}
+        sx={{backgroundColor: "#1c284c"}}
         justifyContent="space-around"
         style={{ position: 'fixed', bottom: '0' }}
     >
         <Link title="Link to Home Page" to="/home">
             <Button title="Home Page Button" variant="contained">
-                <HomeIcon/>
+                <HomeIcon style={{ color: 'black'}}/>
             </Button>
         </Link>
         <Link title="Link to My Events Page" to="/myEvents">
             <Button title="My Events Page Button" variant="contained">
-                <CalendarMonthIcon/>
+                <CalendarMonthIcon style={{ color: 'black'}}/>
             </Button>
         </Link>
         <Link to="/chatHome">
             <Button variant="contained">
-                <ChatIcon/>
+                <ChatIcon style={{ color: 'black'}}/>
             </Button>
         </Link>
         <Link to="/friends">
             <Badge badgeContent={friendRequests} color="secondary">
                 <Button variant="contained">
-                    <GroupIcon />
+                    <GroupIcon  style={{ color: 'black'}}/>
                 </Button>
             </Badge>
         </Link>

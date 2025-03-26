@@ -19,8 +19,6 @@ import { Dayjs } from 'dayjs';
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import ReplayIcon from '@mui/icons-material/Replay';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import FilterListIcon from '@mui/icons-material/FilterList';
 
 function HomePage() {
@@ -102,7 +100,7 @@ function HomePage() {
     
     return <>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Box style={{ position: 'fixed', top: '0', backgroundColor: "rgb(175, 175, 175)", width: "100%", right: 0, left: 0, marginRight: "0", marginLeft: "auto"}}>
+            <Box style={{ position: 'fixed', top: '0', backgroundColor: "#1c284c", width: "100%", right: 0, left: 0, marginRight: "0", marginLeft: "auto"}}>
                 <Box
                     display="flex"
                     alignItems="right" 
@@ -113,14 +111,14 @@ function HomePage() {
                     {userDetails.isAdmin ?
                         <Link to="/admin">
                             <Button variant="contained">
-                                <FlagIcon/>
+                                <FlagIcon style={{ color: 'black'}}/>
                             </Button>
                         </Link> :
                     <></>
                     }
                     <Link to={`/profile/${currentUserId}`}>
                         <Button variant="contained">
-                            <PersonIcon/>
+                            <PersonIcon style={{ color: 'black'}}/>
                         </Button>
                     </Link>
                     
@@ -143,7 +141,7 @@ function HomePage() {
                                 input: {
                                     startAdornment: (
                                     <InputAdornment position="start">
-                                        <SearchIcon style={{ color: '#04227a'}}/>
+                                        <SearchIcon style={{ color: '#1c284c'}}/>
                                     </InputAdornment>
                                     ),
                                 },
@@ -151,14 +149,14 @@ function HomePage() {
                             variant="outlined"
                         />
                         <IconButton sx={{paddingRight: 0, paddingLeft: "auto"}} onClick={() => setFiltersVisible(!filtersVisible)}>
-                            <FilterListIcon fontSize="large" style={{ color: '#04227a'}} />
+                            <FilterListIcon fontSize="large" style={{ color: '#71A9F7'}} />
                         </IconButton>
                     </Box>
                     {/* <Button sx={{height: "8px"}} onClick={() => setFiltersVisible(!filtersVisible)}>
                         {filtersVisible ? "Close Filters" : "Open Filters"}
                         {filtersVisible ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                     </Button> */}
-                    <Box sx={{width: "95%", position: 'fixed', top: '150px', "z-index": 10, border: filtersVisible ? 2 : undefined, borderColor: "#04227a" }}>
+                    <Box sx={{width: "95%", position: 'fixed', top: '150px', "z-index": 10, border: filtersVisible ? 2 : undefined, borderColor: "#1c284c" }}>
                         <Collapse in={filtersVisible} sx={{width: "100%"}} >
                             <Box 
                                 paddingTop={3}
@@ -242,7 +240,12 @@ function HomePage() {
                     padding={1}
                 >
                 <Button 
-                        variant={isComingSoon ? "contained" : "outlined"} 
+                        variant={isComingSoon ? "contained": "outlined"} 
+                        sx={{
+                            color: isComingSoon
+                               ? 'black'
+                               : 'white',
+                          }}
                         fullWidth
                         onClick={() => {setIsComingSoon(true)}}
                     >
@@ -250,6 +253,11 @@ function HomePage() {
                     </Button>
                     <Button 
                         variant={!isComingSoon ? "contained" : "outlined"} 
+                        sx={{
+                            color: !isComingSoon
+                               ? 'black'
+                               : 'white',
+                          }}
                         fullWidth
                         onClick={() => {setIsComingSoon(false)}}
                     >
@@ -275,6 +283,8 @@ function HomePage() {
 function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents, afterDate, beforeDate, friends}: {searchKeyword: string, tags: string[], userTags: string[], isComingSoon: boolean, hideFullEvents: boolean, afterDate: Dayjs | null, beforeDate: Dayjs | null, friends: string[]}) {
     const [events, setEvents] = useState<EventSyncEvent[]>([]);    
     const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [eventsPerPage] = useState(10);
     const {userDetails} = useUser()
     console.log("event list userDetails", userDetails);
 
@@ -298,6 +308,12 @@ function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents,
         setEventsChanged(false);
         fetchData();
     }, [eventsChanged]);
+
+    useEffect(() => {
+        // Reset pagination and scroll to top when filters change
+        setCurrentPage(1);
+        window.scrollTo(0, 0);
+    }, [searchKeyword, tags, isComingSoon, hideFullEvents, afterDate, beforeDate, friends]);
 
     const navigate = useNavigate();
 
@@ -346,20 +362,34 @@ function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents,
             const bTagMatches = b.tags ? b.tags.filter(tag => userTags.includes(tag.name)).length : 0;
             return bTagMatches - aTagMatches;
         });
-    
-    return <Grid2
-        container spacing={3}
-        display="flex"
-        alignItems="center" 
-        justifyContent="center"
-        paddingBottom={10}
-    >
-        {isComingSoon ? sortedFilteredEvents.map(event =>
-            <StyledCard key={event.id} event={event} viewEvent={viewEvent} showTags/>
-        ) : eventRecommended.map(event =>
-            <StyledCard key={event.id} event={event} viewEvent={viewEvent} showTags/>
-        )}
-    </Grid2>;
+
+    const indexOfLastEvent = currentPage * eventsPerPage;
+    const currentEvents = isComingSoon ? sortedFilteredEvents.slice(0, indexOfLastEvent) : eventRecommended.slice(0, indexOfLastEvent);
+
+    const handlePageChange = () => {
+        setCurrentPage(prevPage => prevPage + 1);
     };
+
+    return (
+        <>
+            <Grid2
+                container spacing={3}
+                display="flex"
+                alignItems="center" 
+                justifyContent="center"
+                paddingBottom={2}
+            >
+                {currentEvents.map((event, index) => (
+                    <StyledCard key={event.id} event={event} viewEvent={viewEvent} showTags/>
+                ))}
+            </Grid2>
+            {currentEvents.length < filteredEvents.length && (
+                <Button onClick={handlePageChange} variant="contained" color="primary" sx={{ marginTop: 0, marginBottom: 10 }}>
+                    Load More
+                </Button>
+            )}
+        </>
+    );
+};
 
 export default HomePage;
