@@ -15,9 +15,7 @@ app = Flask(__name__)
 app.config["DEBUG"] = True
 app.config["PROPAGATE_EXCEPTIONS"] = True  # Ensure exceptions are raised
 UPLOAD_FOLDER = 'uploads'
-# UPLOAD_FOLDER = '../eventsync-react/src/pages/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:5000"])
 
@@ -909,6 +907,8 @@ def remove_friend(userId, friendId):
             WHERE ChatToUser.userId = '{friendId}' OR ChatToUser.userId = '{friendId}');
                 """
         mycursor.execute(query)
+        mycursor.execute("DELETE FROM Chat WHERE id = @chatId")
+        mycursor.execute("DELETE FROM ChatToUser WHERE chatId = @chatId")
         mycursor.execute("SELECT id FROM Message WHERE chatId = @chatId")
         msg_ids = mycursor.fetchall()
         delete_uploads(msg_ids)
@@ -2153,7 +2153,7 @@ def remove_user_from_group():
         removeUserFromGroupChat = f"""
             DELETE ChatToUser FROM GroupOfUser JOIN ChatToUser ON GroupOfUser.chatId = ChatToUser.chatId
             WHERE ChatToUser.userId = "{currentUserId}" AND GroupOfUser.id = {groupId};
-        """
+        """ 
         mycursor.execute(removeUserFromGroupChat)
         
         conn.commit()
@@ -2207,7 +2207,7 @@ def delete_group():
         conn.commit()
         mycursor.close()
         conn.close()
-        return jsonify({"message": "creation successful", "msg_ids": msg_ids})
+        return jsonify({"message": "creation successful"})
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
@@ -2518,7 +2518,7 @@ def message():
         mycursor.close()
         conn.close()
         pusher_client.trigger(f'chat-{data["chatId"]}', 'new-message', {'messageContent': data['messageContent'], 'senderId': data['senderId'],
-                                    'chatId': data['chatId'], 'timeSent': data['timeSent'], 'id': data['id']}) # TODO: change id
+                                    'chatId': data['chatId'], 'timeSent': data['timeSent'], 'id': data['id']})
         return "message sent"
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -2717,13 +2717,6 @@ def upload():
     if error_response:
         return error_response, status_code  
 
-    # body = request.json
-    # if not body or "senderId" not in body:
-    #     return jsonify({"error": "Missing required fields in request body"}), 400
-
-    # if body["senderId"].lower() != user_email.lower():
-    #     return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
-
     if 'file' not in request.files:
         return jsonify({'message': 'No file part'}), 400
     file = request.files['file']
@@ -2747,7 +2740,7 @@ def upload():
             mycursor.close()
             conn.close()
             pusher_client.trigger(f'chat-{data.get("chatId")}', 'new-message', {'imagePath': file.filename, 'senderId': request.form.get('senderId'),
-                    'chatId': request.form.get('chatId'), 'timeSent': request.form.get('timeSent'), 'id': messageId}) # TODO: change id
+                    'chatId': request.form.get('chatId'), 'timeSent': request.form.get('timeSent'), 'id': messageId})
             return jsonify({'message': 'File uploaded successfully', 'filename': filename}), 200
 
         except mysql.connector.Error as err:

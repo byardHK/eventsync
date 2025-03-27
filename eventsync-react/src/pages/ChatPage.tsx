@@ -33,7 +33,6 @@ function ChatPage() {
     const currentUserId = userDetails.email ? userDetails.email : "";
     const channelName = `chat-${chatId}`;
     const [nonGroupOtherUser, setNonGroupOtherUser] = useState<User | null>(null);
-    const [newImage, setNewImage] = useState<boolean>(false);
 
 	useEffect(() => {
         const fetchChat = async () => {
@@ -50,7 +49,6 @@ function ChatPage() {
                     chatType: stringToEnum(response.data.chat.chatType)
                 });
                 setUsers(new Map(response.data.users.map(user => [user.id, user])));
-                console.log(response.data);
             } catch (error) {
                 console.error('Error fetching tags:', error);
             }
@@ -63,18 +61,13 @@ function ChatPage() {
 		const channel = pusher.subscribe(channelName);
 		channel.bind('new-message', async function(newMsg: Message) {
             setMsg(newMsg);
-            if(newMsg.imagePath != null) {
-                setNewImage(true);
-                console.log(`should have reloaded`);
-            }
-            console.log(newMsg);
 		});
         channel.bind("pusher:subscription_succeeded", retrieveHistory);
 		
 		return (() => {
 			pusher.unsubscribe(channelName)
 		})
-	}, [newImage]);
+	}, []);
 
     function stringToEnum(value: String): chatType {
         if (value === "Individual") {
@@ -89,20 +82,19 @@ function ChatPage() {
     useEffect(() => {
         if(msg) {
             setMessages([...messages,msg]);
-            console.log(messages.length);
         }
-      }, [msg]);
+    }, [msg]);
 
-      useEffect(() => {
-        if(chat && chat.chatType == chatType.INDIVIDUAL && users) {
-            for (const [userId, user] of users) {
-                if (userId !== currentUserId) {
-                    setNonGroupOtherUser(user);
-                    break;
-                }
+    useEffect(() => {
+    if(chat && chat.chatType == chatType.INDIVIDUAL && users) {
+        for (const [userId, user] of users) {
+            if (userId !== currentUserId) {
+                setNonGroupOtherUser(user);
+                break;
             }
         }
-      }, [chat, users]);
+    }
+    }, [chat, users]);
 
     async function retrieveHistory() {
         const response = await axios.get<MessageList>(`${BASE_URL}/get_chat_hist/${chatId}`, {
@@ -164,10 +156,6 @@ function ChatPage() {
 
 const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Message[], currentUserId: String, groupChat: Boolean, getName: (userId: String) => String | null}) => {
     const [flagVisible, setFlagVisible] = useState<boolean>(false);
-    const [open, setOpen] = useState(false);
-    const handleClose = () => setOpen(false);
-    console.log(open);
-    console.log(handleClose);
     const [reportModalOpen, setReportModalOpen] = useState<boolean>(false);
 
     function messageDateString(dateStr: string) {
@@ -210,8 +198,6 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
 
     return (       
         <div className="chatWindow">
-            {/* <ul className='chat' id='chatList'> */}
-                {/* <ImageComponent id={223} /> */}
             {messages.map((message, index) => (
                 <div key={index}>
                 {currentUserId === message.senderId ? (
@@ -287,7 +273,6 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
                 'Content-Type': 'multipart/form-data',
               },
             });
-            console.log(response.data);
         } catch (error) {
             console.error('Error uploading image:', error);
         }
@@ -354,10 +339,8 @@ const ImageComponent = ({id} : {id: number}) => {
                     'Authorization': `Bearer ${userDetails.token}`,
                 }
             });
-            console.log(response);
             const blob = new Blob([response.data], { type: 'image/jpeg' });
             setImageURL(URL.createObjectURL(blob));
-            console.log(`image url: ${imageURL}`);
         }catch (error) {
             console.error('Error retrieving image:', error);
         }
