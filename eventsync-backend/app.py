@@ -17,7 +17,7 @@ app.config["PROPAGATE_EXCEPTIONS"] = True  # Ensure exceptions are raised
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:5000"])
+CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
 
 db_config = {
     'host': '10.18.101.62',  
