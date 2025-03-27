@@ -18,6 +18,10 @@ import FlagIcon from '@mui/icons-material/Flag';
 import ReportModal from '../components/ReportModal';
 import { BASE_URL } from '../components/Constants';
 import { useNavigate } from "react-router-dom";
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import BackButton from '../components/BackButton';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import AccessAlarmIcon from '@mui/icons-material/AccessAlarm';
 
 
 function ViewEventPage() {
@@ -106,7 +110,7 @@ function ViewEventPage() {
     function RsvpModal() {
         return (
             <>
-                <Button variant="outlined" onClick={isRsvped ? handleUnrsvp : handleRsvp} sx={{ width: "100px", height: "60px" }}>
+                <Button variant="contained" onClick={isRsvped ? handleUnrsvp : handleRsvp} sx={{ width: "100px", height: "60px",backgroundColor: "#71A9F7", color: "black" }}>
                     {isRsvped ? 'Un-RSVP' : 'RSVP'}
                 </Button>
         </>
@@ -142,7 +146,7 @@ function ViewEventPage() {
     
         return (
             <>
-                <Button variant="outlined" onClick={handleOpenRsvpList} sx={{ width: "140px", height: "60px" }}>View RSVP List</Button>
+                <Button variant="contained" onClick={handleOpenRsvpList} sx={{ width: "140px", height: "60px", backgroundColor: "#71A9F7", color: "black" }}>View RSVP List</Button>
                 <Dialog onClose={handleCloseRsvpList} open={openRsvpList}>
                     <Box
                         display="flex"
@@ -205,40 +209,30 @@ function ViewEventPage() {
     return <>
         <Box
             display="flex"
-            alignItems="right" 
-            justifyContent="right"
-            padding={2}
-        >
-            <Link to={`/profile/${currentUserId}`}>
-                <Button variant="contained">
-                    <PersonIcon/>
-                </Button>
-            </Link>
-        </Box>
-        <Box
-            display="flex"
             flexDirection="column"
             alignItems="center" 
             justifyContent="center"
+            height="100%"
         >
             {event ? (
                 <GetEvent event={event} initialItems={event.items} expanded={expanded} handleChange={handleChange} isRsvped={isRsvped}/>
             ) : (
-                <Typography>Loading Event {eventId}</Typography>
+                <Typography color='white'>Loading Event</Typography>
             )}
             <Box
                 display="flex"
                 flexDirection="row"
-                alignItems="center" 
-                justifyContent= "space-evenly"
-                margin={2}
-                gap={1}
+                width="100%"
+                paddingBottom={2}
+                paddingTop={2}
+                sx={{backgroundColor: "#1c284c"}}
+                justifyContent="space-around"
+                style={{ position: 'fixed', bottom: '0' }}
             >
                 <RsvpModal/>     
                 <RsvpListModal eventId={intEventId}/>  
-                <Button variant="outlined" onClick={navigateToChat} sx={{ width: "100px", height: "60px" }}>Event Chat</Button>
+                <Button variant="contained" onClick={navigateToChat} sx={{ width: "100px", height: "60px", backgroundColor: "#71A9F7", color: "black"}}>Event Chat</Button>
             </Box>
-            <BottomNavBar userId={currentUserId!}/>
         </Box>
     </>;
 };
@@ -262,12 +256,13 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
                 alignItems="center"
                 justifyContent="center"
                 flexWrap="wrap"
+                gap={1}
             >
                 {event.tags.map((tag, index) =>
                 <Box 
                     key={index}
                 >    
-                    <Chip label={tag.name} sx={{backgroundColor: 'rgba(133, 156, 249, 0.5)', color: "black" }}></Chip>
+                    <Chip label={tag.name} sx={{backgroundColor:'#71A9F7', color: "black" }}></Chip>
                 </Box>
             )}
             </Box>
@@ -317,83 +312,208 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
     const [reportModalOpen, setReportModalOpen] = useState<boolean>(false);
 
     return (
-        <Card variant="outlined">
+        <>
             <ReportModal input={event} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="event"/>
-            <Box display="flex" alignItems="right" justifyContent="right">
+            <Box display="flex" justifyContent="space-between" flexDirection="row" sx={{width: "100%", position: 'fixed', paddingTop: 2, top: '0px', backgroundColor: "#1c284c",  "z-index": 10}}>
+                <BackButton></BackButton>
+                <Typography align="center" color="white" fontWeight="bold" variant="h4">{event.title}</Typography>
                 <IconButton onClick={()=>setReportModalOpen(true)}>
                     <FlagIcon style={{ color: '#ad1f39'}}></FlagIcon>
                 </IconButton>
             </Box>
-            <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight={250} minWidth={250} gap={4} padding={2}>
-                <Typography>{event.title}</Typography>
-                <Typography>{timeToString2Date(dayjs(event.startTime), dayjs(event.endTime))}</Typography>
-                <Typography>{timeToString2Time(dayjs(event.startTime), dayjs(event.endTime))}</Typography>
-                <Typography>{`Where?: ${event.locationName}`}</Typography>
-                <Typography>{"Created By: "}<Link to={`/profile/${event.creatorId}`}>{event.creatorName}</Link></Typography>
-                <ListTags></ListTags>
+            <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center"
+                justifyContent="center"
+                width="100%"
+                paddingTop={12}
+                paddingBottom={18}
+            >
+                <Accordion defaultExpanded disableGutters sx={{backgroundColor: "#1c284c", width: "100%", border: "1px solid #FFF"}}>
+                    <AccordionSummary
+                        expandIcon={<ExpandMoreIcon style={{color: "white"}}/>}
+                        aria-controls="panel1-content"
+                        id="panel1-header"
+                    >
+                        <Typography sx={{color: "white"}} variant="h4" component="span">Summary</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <Box display="flex" flexDirection="row" gap={1}>
+                            <AccessAlarmIcon style={{color:"white"}}></AccessAlarmIcon>
+                            <Typography sx={{color: "white"}}>{timeToString2Date(dayjs(event.startTime), dayjs(event.endTime))}</Typography>
+                            <Typography sx={{color: "white"}}>{timeToString2Time(dayjs(event.startTime), dayjs(event.endTime))}</Typography>
+                        </Box>
+                        <br></br>
+                        <Box display="flex" flexDirection="row" gap={1}>
+                            <LocationOnIcon style={{color:"white"}}></LocationOnIcon>
+                            <Typography sx={{color: "white"}}>{event.locationName}</Typography>
+                        </Box>
+                        <br></br>
+                        {event.creatorName ?
+                            <Typography sx={{color: "white"}}>{"Created By: "}<Link style={{color:"#71A9F7"}} to={`/profile/${event.creatorId}`}>{event.creatorName}</Link></Typography>
+                            :
+                            <></>
+                        }
+                        <br></br>
+                        <ListTags></ListTags>
+                    </AccordionDetails>
+                </Accordion>
+                {event.description ?
+                    <Accordion disableGutters sx={{backgroundColor: "#1c284c", width: "100%", border: "1px solid #FFF"}}>
+                        <AccordionSummary
+                            expandIcon={<ExpandMoreIcon style={{color: "white"}}/>}
+                            aria-controls="panel2-content"
+                            id="panel2-header"
+                        >
+                            <Typography sx={{color: "white"}} variant="h4" component="span">Description</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <Typography sx={{color: "white"}}>{event.description}</Typography>
+                        </AccordionDetails>
+                    </Accordion>
+                    :
+                    <></>
+                    }
+                {items && items.length > 0 ?
+                    <Accordion disableGutters sx={{backgroundColor: "#1c284c", width: "100%", border: "1px solid #FFF"}}>
+                            <AccordionSummary expandIcon={<ExpandMoreIcon style={{color: "white"}}/>}>
+                                <Typography variant="h4" sx={{color: "white"}}>Items to Bring</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                                    {items.map((item, index) => (
+                                        <Typography sx={{color: "white"}} key={index} style={{ display: 'flex', flexDirection: 'row', alignItems: "center" }}>
+                                        <div >{`${item.name}: ${item.othersQuantitySignedUpFor + item.myQuantitySignedUpFor}/${item.amountNeeded}`}</div>
+                                        {isRsvped && (
+                                        <div style={{display: 'flex', flexDirection: 'row' }}>
+                                            <Button sx={{ m: 1 }} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="contained" onClick={() => changeItemQuantity(-1, index)}>
+                                                <RemoveIcon style={{ fontSize: 15 }}></RemoveIcon>
+                                            </Button>
+                                            <Box display="flex" alignItems="center">
+                                            {item.myQuantitySignedUpFor}
+                                            </Box>
+                                            <Button sx={{ m: 1 }} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="contained" onClick={() => changeItemQuantity(1, index)}>
+                                                <AddIcon style={{ fontSize: 15 }}></AddIcon> 
+                                            </Button>
+                                            <Button style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="text"
+                                                onClick={() => postItemSignedUpFor(item, index)}
+                                                sx={{
+                                                    m: 1,
+                                                    "&.Mui-disabled": {
+                                                      color: "#c0c0c0"
+                                                    }
+                                                  }}
+                                                disabled={!itemSignUpChanged[index]}>
+                                                <CheckCircleOutlineRoundedIcon style={{ fontSize: 30 }}></CheckCircleOutlineRoundedIcon>
+                                            </Button>
+                                        </div>
+                                    )}
+                                    </Typography>))
+                                }
+                            </AccordionDetails>
+                        </Accordion> :
+                        <></>
+                    }
+                    {event.venmo ?
+                    <Accordion disableGutters sx={{backgroundColor: "#1c284c", width: "100%", border: "1px solid #FFF"}}>
+                    <AccordionSummary
+                        expandIcon={<ExpandMoreIcon style={{color: "white"}}/>}
+                        aria-controls="panel2-content"
+                        id="panel2-header"
+                    >
+                        <Typography sx={{color: "white"}} variant="h4" component="span">Payment</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <Typography sx={{color: "white"}}>{event.venmo}</Typography>
+                    </AccordionDetails>
+                </Accordion>
+                :
+                <></>
+                }
             </Box>
-            {event.description && (
-                <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
+            {/* <Typography align="center" color="white" variant="h3">{event.title}</Typography>
+            <Box sx={{backgroundColor: "white", width: "100%", height: "100%"}}>
+                <ReportModal input={event} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="event"/>
+                <Box display="flex" alignItems="right" justifyContent="right">
+                    <IconButton onClick={()=>setReportModalOpen(true)}>
+                        <FlagIcon style={{ color: '#ad1f39'}}></FlagIcon>
+                    </IconButton>
+                </Box>
+                <Accordion defaultExpanded disableGutters>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography>Description</Typography>
+                        <Typography>Overview</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
-                        <Typography>{event.description}</Typography>
+                        <Typography>{timeToString2Date(dayjs(event.startTime), dayjs(event.endTime))}</Typography>
+                        <Typography>{timeToString2Time(dayjs(event.startTime), dayjs(event.endTime))}</Typography>
+                        <Typography>{`Where?: ${event.locationName}`}</Typography>
+                        <Typography>{"Created By: "}<Link to={`/profile/${event.creatorId}`}>{event.creatorName}</Link></Typography>
+                        <ListTags></ListTags>
                     </AccordionDetails>
                 </Accordion>
-            )}
-            {items && items.length > 0 && (
-                <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography>Items to Bring</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                        {items.map((item, index) => (
-                            <Typography key={index} style={{ display: 'flex', flexDirection: 'row', alignItems: "center" }}>
-                            <div style={{ width: '50%' }}>{`${item.name}: ${item.othersQuantitySignedUpFor + item.myQuantitySignedUpFor}/${item.amountNeeded}`}</div>
-                            {isRsvped && (
-                            <div style={{ width: '50%', display: 'flex', flexDirection: 'row' }}>
-                                <Button sx={{ m: 1 }} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="contained" onClick={() => changeItemQuantity(-1, index)}>
-                                    <RemoveIcon style={{ fontSize: 15 }}></RemoveIcon>
-                                </Button>
-                                <Box display="flex" alignItems="center">
-                                {item.myQuantitySignedUpFor}
-                                </Box>
-                                <Button sx={{ m: 1 }} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="contained" onClick={() => changeItemQuantity(1, index)}>
-                                    <AddIcon style={{ fontSize: 15 }}></AddIcon> 
-                                </Button>
-                                <Button sx={{ m: 1 }} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="text"
-                                    onClick={() => postItemSignedUpFor(item, index)}
-                                    disabled={!itemSignUpChanged[index]}>
-                                    <CheckCircleOutlineRoundedIcon style={{ fontSize: 30 }}></CheckCircleOutlineRoundedIcon>
-                                </Button>
-                            </div>
-                            )}
-                            </Typography>))}
-                    </AccordionDetails>
-                </Accordion>
-            )}
-            {event.files && event.files.length > 0 && (
-                <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography>Files</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                        <Typography>Files placeholder</Typography>
-                    </AccordionDetails>
-                </Accordion>
-            )}
-            {event.venmo && (
-                <Accordion expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography>Payments</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                        <Typography>{event.venmo}</Typography>
-                    </AccordionDetails>
-                </Accordion>
-            )}
-        </Card>
+                {event.description && (
+                    <Accordion disableGutters expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <Typography>Description</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <Typography>{event.description}</Typography>
+                        </AccordionDetails>
+                    </Accordion>
+                )}
+                {items && items.length > 0 && (
+                    <Accordion disableGutters expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <Typography>Items to Bring</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            {items.map((item, index) => (
+                                <Typography key={index} style={{ display: 'flex', flexDirection: 'row', alignItems: "center" }}>
+                                <div >{`${item.name}: ${item.othersQuantitySignedUpFor + item.myQuantitySignedUpFor}/${item.amountNeeded}`}</div>
+                                {isRsvped && (
+                                <div style={{display: 'flex', flexDirection: 'row' }}>
+                                    <Button sx={{ m: 1 }} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="contained" onClick={() => changeItemQuantity(-1, index)}>
+                                        <RemoveIcon style={{ fontSize: 15 }}></RemoveIcon>
+                                    </Button>
+                                    <Box display="flex" alignItems="center">
+                                    {item.myQuantitySignedUpFor}
+                                    </Box>
+                                    <Button sx={{ m: 1 }} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="contained" onClick={() => changeItemQuantity(1, index)}>
+                                        <AddIcon style={{ fontSize: 15 }}></AddIcon> 
+                                    </Button>
+                                    <Button sx={{ m: 1 }} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="text"
+                                        onClick={() => postItemSignedUpFor(item, index)}
+                                        disabled={!itemSignUpChanged[index]}>
+                                        <CheckCircleOutlineRoundedIcon style={{ fontSize: 30 }}></CheckCircleOutlineRoundedIcon>
+                                    </Button>
+                                </div>
+                                )}
+                                </Typography>))}
+                        </AccordionDetails>
+                    </Accordion>
+                )}
+                {event.files && event.files.length > 0 && (
+                    <Accordion disableGutters expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <Typography>Files</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <Typography>Files placeholder</Typography>
+                        </AccordionDetails>
+                    </Accordion>
+                )}
+                {event.venmo && (
+                    <Accordion disableGutters expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <Typography>Payments</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <Typography>{event.venmo}</Typography>
+                        </AccordionDetails>
+                    </Accordion>
+                )}
+            </Box> */}
+        </>
     );
 }
 

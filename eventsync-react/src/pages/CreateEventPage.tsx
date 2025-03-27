@@ -59,7 +59,7 @@ function CreateEventPage() {
                 <Box 
                     key={index}
                 >    
-                    <Chip sx={{margin: 1, backgroundColor: 'rgba(133, 156, 249, 0.5)', color: "black"}} label={tag.name}></Chip>
+                    <Chip sx={{margin: 1, backgroundColor: '#71A9F7', color: "black"}} label={tag.name}></Chip>
                 </Box>
             )}
             </Box>

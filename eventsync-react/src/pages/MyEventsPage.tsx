@@ -50,6 +50,11 @@ function MyEventsPage() {
                         variant={showingAttending ? "contained" : "outlined"} 
                         fullWidth
                         onClick={() => {setShowingAttending(true)}}
+                        sx={{
+                            color: showingAttending
+                               ? 'black'
+                               : 'white'
+                        }}
                     >
                         Attending
                     </Button>
@@ -57,6 +62,11 @@ function MyEventsPage() {
                         variant={!showingAttending ? "contained" : "outlined"} 
                         fullWidth
                         onClick={() => {setShowingAttending(false)}}
+                        sx={{
+                            color: !showingAttending
+                               ? 'black'
+                               : 'white'
+                        }}
                     >
                         Hosting
                     </Button>

@@ -218,7 +218,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                     <Box 
                         key={index} 
                     >    
-                        <Chip sx={{margin:1, backgroundColor: 'rgba(133, 156, 249, 0.5)', color: "black" }} label={tag.name} onDelete={() => {
+                        <Chip sx={{margin:1, backgroundColor: '#71A9F7', color: "black" }} label={tag.name} onDelete={() => {
                             setSelectedTags(selectedTags.filter((_tag) => { return _tag.id !== tag.id; }))
                         }
                         }></Chip>

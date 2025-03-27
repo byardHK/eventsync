@@ -10,7 +10,7 @@ function BackButton() {
     };
 
     return (<Button onClick={handleBackClick}>
-                <ArrowBackIcon />
+                <ArrowBackIcon fontSize="large"/>
             </Button>
         )
 }
