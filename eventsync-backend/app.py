@@ -17,6 +17,7 @@ app.config["DEBUG"] = True
 app.config["PROPAGATE_EXCEPTIONS"] = True  # Ensure exceptions are raised
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
 

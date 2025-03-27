@@ -267,7 +267,7 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
         formData.append('timeSent', getCurDate());
 
         try {
-            const response = await axios.post('http://localhost:5000/upload/', formData, {
+            await axios.post('http://localhost:5000/upload/', formData, {
               headers: {
                 'Authorization': `Bearer ${userDetails.token}`,
                 'Content-Type': 'multipart/form-data',
