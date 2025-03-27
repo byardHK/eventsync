@@ -931,7 +931,8 @@ def delete_one_event(eventId):
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
 
-       
+        # send an email to all rsvps
+        send_event_cancellation(eventId)
 
         
         setEventInfoId = f"SET @eventInfoId = (SELECT eventInfoId FROM Event WHERE id = {eventId});"
@@ -976,52 +977,8 @@ def delete_one_recurring_event(eventId):
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
 
-         # Fetch RSVP'd user emails
-        mycursor.execute(f"""
-                        SELECT User.id
-                        FROM User
-                        JOIN EventToUser ON User.id = EventToUser.userId
-                        WHERE EventToUser.eventId = {eventId}
-                    """)      
-        rsvp_emails = [row[0] for row in mycursor.fetchall()]
-
-        # Fetch the event
-        mycursor.execute("""
-            SELECT EventInfo.title, Event.startTime, Event.endTime
-            FROM Event
-            JOIN EventInfo ON Event.eventInfoId = EventInfo.id
-            WHERE Event.id = %s
-        """, (eventId,))
-
-        response = mycursor.fetchone()
-
-        if not response:
-            return jsonify({"error": "Event not found"}), 404
-
-        headers = [x[0] for x in mycursor.description]
-        event = dict(zip(headers, response))
-
-        # send the event specific email
-        subject = "EventSync: Event Cancelled"
-        event_start_time = event['startTime'] 
-        formatted_time = event_start_time.strftime("%A, %B %d, %Y at %I:%M %p")  # Example: "Monday, February 24, 2025 at 11:16 AM"
-
-        # Email Body
-        body = f"""
-        Dear attendee,
-
-        This is a notification to let you know that '**{event['title']}' originally scheduled for {formatted_time} has been cancelled. 
-        
-        We apologize for any inconvenience.
-
-        Best regards,  
-        EventSync Team
-        """
-
-        # Send email to all RSVP'd users
-        yag = yagmail.SMTP("noreplyeventsync@gmail.com", "ktlo jynx tzpy jxok")
-        for email in rsvp_emails:
-            yag.send(email, subject, body)
+        # send an email to all rsvps
+        send_event_cancellation(eventId)
 
         # delete event
         mycursor.execute("DELETE FROM EventToItem WHERE eventId = %s", (eventId,))
@@ -1056,10 +1013,22 @@ def delete_mult_event(eventId):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+
+       
+
         mycursor.execute(f"""
                         SET @eventInfoId = (SELECT eventInfoId FROM Event WHERE id = {eventId});
                         
                      """)
+        
+        # send email notifications
+        mycursor.execute(f"""
+                        Select id FROM Event WHERE eventInfoId = @eventInfoId;
+                    """)
+        eventIds = [row[0] for row in mycursor.fetchall()]
+        for eventId in eventIds:
+            send_event_cancellation(eventId)
+        
         setChatId = "SET @chatId = (SELECT chatId FROM EventInfoToChat WHERE eventInfoId = @eventInfoId);"
         deleteEventInfoToChat = f"DELETE FROM EventInfoToChat WHERE eventInfoId = @eventInfoId"
         deleteChat = f"DELETE FROM Chat WHERE id = @chatId"
@@ -2721,3 +2690,65 @@ def get_event_chat_id(event_id: int):
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
+
+
+def send_event_cancellation(event_id):
+    conn = mysql.connector.connect(**db_config)
+    mycursor = conn.cursor()
+    
+    # Fetch RSVP'd users
+    mycursor.execute("""
+        SELECT User.id
+        FROM User
+        JOIN EventToUser ON User.id = EventToUser.userId
+        WHERE EventToUser.eventId = %s
+    """, (event_id,))      
+    rsvp_emails = [row[0] for row in mycursor.fetchall()]
+    
+    # Fetch event details
+    mycursor.execute("""
+        SELECT EventInfo.title, Event.startTime, Event.endTime
+        FROM Event
+        JOIN EventInfo ON Event.eventInfoId = EventInfo.id
+        WHERE Event.id = %s
+    """, (event_id,))
+    
+    response = mycursor.fetchone()
+    
+    if not response:
+        return jsonify({"error": "Event not found"}), 404
+    
+    headers = [x[0] for x in mycursor.description]
+    event = dict(zip(headers, response))
+    
+    yag = yagmail.SMTP("noreplyeventsync@gmail.com", "ktlo jynx tzpy jxok")
+    for email in rsvp_emails:
+
+        # get first name
+        mycursor.execute("""
+        select fname from User where id = %s
+        """, (email,))
+    
+        first_name = mycursor.fetchone()
+
+        subject = "Event Cancelled"
+        event_start_time = event['startTime'] 
+        formatted_time = event_start_time.strftime("%A, %B %d, %Y at %I:%M %p")
+        
+        # Email Body
+        body = f"""
+        Dear {first_name[0]},
+
+        This is a notification to let you know that {event['title']}, originally scheduled for {formatted_time}, has been cancelled.
+        
+        We apologize for any inconvenience.
+        
+        Best regards,
+
+        EventSync Team
+        """
+        
+        # Send emails
+        yag.send(email, subject, body)
+        
+           
