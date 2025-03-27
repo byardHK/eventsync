@@ -2557,7 +2557,7 @@ def get_my_chats(user_id: str):
                                 WHERE ChatToUser.userId != '{user_id}'
                                 ) AS otherUser
                             ON ChatToUser.chatId = otherUser.chatId
-                            WHERE ChatToUser.userId = 'harnlyam20@gcc.edu' AND Chat.chatType = 'Individual')""")
+                            WHERE ChatToUser.userId = '{user_id}' AND Chat.chatType = 'Individual')""")
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
