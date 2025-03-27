@@ -901,6 +901,22 @@ def remove_friend(userId, friendId):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+
+        query = f"""SET @chatId = (SELECT ChatToUser.chatId FROM ChatToUser 
+            JOIN (SELECT * FROM ChatToUser WHERE
+                userId = '{userId}' OR userId = '{userId}' ) AS table2
+            ON ChatToUser.chatId = table2.chatId
+            WHERE ChatToUser.userId = '{friendId}' OR ChatToUser.userId = '{friendId}');
+                """
+        mycursor.execute(query)
+        mycursor.execute("SELECT id FROM Message WHERE chatId = @chatId")
+        msg_ids = mycursor.fetchall()
+        delete_uploads(msg_ids)
+        removeMessages = f"""
+            DELETE FROM Message WHERE chatId = @chatId;
+        """
+        mycursor.execute(removeMessages)
+
         query = """
                 DELETE FROM UserToUser
                 WHERE (user1Id = %s AND user2Id = %s) OR (user1Id = %s AND user2Id = %s);
@@ -2585,7 +2601,7 @@ def get_my_chats(user_id: str):
                                 WHERE ChatToUser.userId != '{user_id}'
                                 ) AS otherUser
                             ON ChatToUser.chatId = otherUser.chatId
-                            WHERE ChatToUser.userId = 'harnlyam20@gcc.edu' AND Chat.chatType = 'Individual')""")
+                            WHERE ChatToUser.userId = '{user_id}' AND Chat.chatType = 'Individual')""")
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
