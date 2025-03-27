@@ -70,7 +70,7 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, heigh
                     {showTags && (
                         <Box display="flex" flexWrap="wrap" justifyContent="center">
                             {event.tags.map((tag, index) => (
-                                <Chip key={index} label={tag.name} style={{ margin: 2, backgroundColor: 'rgba(133, 156, 249, 0.5)', color:"black" }}  />
+                                <Chip key={index} label={tag.name} style={{ margin: 2, backgroundColor: '#71A9F7', color:"black" }}  />
                             ))}
                         </Box>
                     )}

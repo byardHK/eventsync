@@ -274,7 +274,7 @@ function HomePage() {
                 sx={{paddingTop: "200px"}}
             >
                 <EventList searchKeyword={searchKeyword} tags={tags} userTags={userTags} isComingSoon={isComingSoon} hideFullEvents={hideFullEvents} afterDate={afterDate} beforeDate={beforeDate} friends={friends}/>   
-            <BottomNavBar userId={currentUserId!}/>
+                <BottomNavBar userId={currentUserId!}/>
             </Box>
         </LocalizationProvider>
     </>;
