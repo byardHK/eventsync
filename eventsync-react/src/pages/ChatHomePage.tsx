@@ -127,6 +127,7 @@ function StyledCard({chat, viewChat, chatName} : {chat: Chat, viewChat: (chat:Ch
           <ChatCard elevation={10} square={false}>
               <div onClick={() => { viewChat(chat); }} style={{cursor: "pointer"}}>
                   <Typography variant="h5">{chatName}</Typography>
+                  <Typography variant="h5">{chat.chatType}</Typography>
                 </div>
           </ChatCard>
       </Box>

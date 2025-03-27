@@ -789,7 +789,7 @@ def accept_friend_request(userId, friendId):
 
         # Create chat for friend
         createChat = f"""
-            INSERT INTO Chat (name, chatType) VALUES ("", 'Event');
+            INSERT INTO Chat (name, chatType) VALUES ("", 'Individual');
         """
         mycursor.execute(createChat)
         chatId = mycursor.lastrowid
@@ -939,9 +939,9 @@ def delete_one_event(eventId):
         mycursor.execute("DELETE FROM EventToItem WHERE eventId = %s", (eventId,))
         mycursor.execute("DELETE FROM EventToUser WHERE eventId = %s", (eventId,))
         mycursor.execute("DELETE FROM Event WHERE id = %s", (eventId,))
-        mycursor.execute
 
         deleteEventInfo = f"DELETE FROM EventInfo WHERE id = @eventInfoId"
+        mycursor.execute(deleteEventInfo)
 
         conn.commit()
         rowCount: int = mycursor.rowcount
@@ -1014,6 +1014,8 @@ def delete_mult_event(eventId):
         
         mycursor.execute("""DELETE FROM Event
                         WHERE eventInfoId = @eventInfoId;""")
+        deleteEventInfo = f"DELETE FROM EventInfo WHERE id = @eventInfoId"
+        mycursor.execute(deleteEventInfo)
         conn.commit()
 
         success: int = mycursor.rowcount
@@ -2534,19 +2536,19 @@ def get_my_chats(user_id: str):
                             JOIN GroupOfUserToUser ON GroupOfUserToChat.groupOfUserId = GroupOfUserToUser.groupId
                             JOIN GroupOfUser ON GroupOfUserToChat.groupOfUserId = GroupOfUser.id
                             WHERE GroupOfUserToUser.userId = '{user_id}') AS groupStuff
-                            ON Chat.id = groupStuff.chatId)
+                            ON Chat.id = groupStuff.chatId WHERE Chat.chatType = 'Group')
                             UNION 
                             (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
                             JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
                             JOIN Event ON Event.eventInfoId = EventInfoToChat.eventInfoId
                             JOIN EventToUser ON EventToUser.eventId = Event.id
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            WHERE EventToUser.userId = "{user_id}")
+                            WHERE EventToUser.userId = "{user_id}" AND Chat.chatType = 'Event')
                             UNION
                             (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
                             JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            WHERE EventInfo.creatorId = "{user_id}")
+                            WHERE EventInfo.creatorId = "{user_id}" AND Chat.chatType = 'Event')
                             UNION
                             (SELECT Chat.id, CONCAT(otherUser.fname, " ", otherUser.lname) AS name, Chat.chatType FROM Chat 
                             JOIN ChatToUser ON Chat.id = ChatToUser.chatId
@@ -2555,7 +2557,7 @@ def get_my_chats(user_id: str):
                                 WHERE ChatToUser.userId != '{user_id}'
                                 ) AS otherUser
                             ON ChatToUser.chatId = otherUser.chatId
-                            WHERE ChatToUser.userId = '{user_id}')""")
+                            WHERE ChatToUser.userId = 'harnlyam20@gcc.edu' AND Chat.chatType = 'Individual')""")
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
