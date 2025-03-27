@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import *
 import pusher
 import os
+import yagmail
 
 
 app = Flask(__name__)
@@ -923,9 +924,15 @@ def delete_one_event(eventId):
 
     if not user_email:
         return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
+   
+    
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+
+       
+
         
         setEventInfoId = f"SET @eventInfoId = (SELECT eventInfoId FROM Event WHERE id = {eventId});"
         setChatId = "SET @chatId = (SELECT chatId FROM EventInfoToChat WHERE eventInfoId = @eventInfoId);"
@@ -968,6 +975,26 @@ def delete_one_recurring_event(eventId):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+
+        yag = yagmail.SMTP("noreplyeventsync@gmail.com", "ktlo jynx tzpy jxok")
+
+        mycursor.execute(f"""
+                        SELECT 
+                        EventInfo.title, 
+                        Event.startTime, 
+                        Event.endTime,
+                        FROM Event
+                        JOIN EventInfo ON Event.eventInfoId = EventInfo.id
+                        WHERE Event.id = {eventId}
+                     """)
+        response = mycursor.fetchall()
+        headers = [x[0] for x in mycursor.description]
+        event = dict(zip(headers, response[0]))
+
+
+        body = "This is a notification to let you know that {event.title} originally scheduled for {event.startTime} has been cancelled. We apologize for any inconvienences."
+
+        yag.send("jminnich23@gmail.com", "Test Subject", "Hello, this is a test email!")
 
         mycursor.execute("DELETE FROM EventToItem WHERE eventId = %s", (eventId,))
         mycursor.execute("DELETE FROM EventToUser WHERE eventId = %s", (eventId,))
