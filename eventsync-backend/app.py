@@ -940,6 +940,14 @@ def delete_one_event(eventId):
         mycursor.execute(deleteEventInfoToChat)
         mycursor.execute(deleteChat)
 
+        mycursor.execute("SELECT id FROM Message WHERE chatId = @chatId")
+        msg_ids = mycursor.fetchall()
+        delete_uploads(msg_ids)
+        removeMessages = f"""
+            DELETE FROM Message WHERE chatId = @chatId;
+        """
+        mycursor.execute(removeMessages)
+
         mycursor.execute("DELETE FROM EventToItem WHERE eventId = %s", (eventId,))
         mycursor.execute("DELETE FROM EventToUser WHERE eventId = %s", (eventId,))
         mycursor.execute("DELETE FROM Event WHERE id = %s", (eventId,))
@@ -1015,6 +1023,14 @@ def delete_mult_event(eventId):
         mycursor.execute(setChatId)
         mycursor.execute(deleteEventInfoToChat)
         mycursor.execute(deleteChat)
+
+        mycursor.execute("SELECT id FROM Message WHERE chatId = @chatId")
+        msg_ids = mycursor.fetchall()
+        delete_uploads(msg_ids)
+        removeMessages = f"""
+            DELETE FROM Message WHERE chatId = @chatId;
+        """
+        mycursor.execute(removeMessages)
         
         mycursor.execute("""DELETE FROM Event
                         WHERE eventInfoId = @eventInfoId;""")
