@@ -1,6 +1,6 @@
 import jwt
 import requests
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, send_file
 # INSTALL THESE:
 # pip install mysql-connector-python
 import mysql.connector
@@ -15,6 +15,9 @@ import yagmail
 app = Flask(__name__)
 app.config["DEBUG"] = True
 app.config["PROPAGATE_EXCEPTIONS"] = True  # Ensure exceptions are raised
+UPLOAD_FOLDER = 'uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
 
@@ -899,6 +902,24 @@ def remove_friend(userId, friendId):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+
+        query = f"""SET @chatId = (SELECT ChatToUser.chatId FROM ChatToUser 
+            JOIN (SELECT * FROM ChatToUser WHERE
+                userId = '{userId}' OR userId = '{userId}' ) AS table2
+            ON ChatToUser.chatId = table2.chatId
+            WHERE ChatToUser.userId = '{friendId}' OR ChatToUser.userId = '{friendId}');
+                """
+        mycursor.execute(query)
+        mycursor.execute("DELETE FROM Chat WHERE id = @chatId")
+        mycursor.execute("DELETE FROM ChatToUser WHERE chatId = @chatId")
+        mycursor.execute("SELECT id FROM Message WHERE chatId = @chatId")
+        msg_ids = mycursor.fetchall()
+        delete_uploads(msg_ids)
+        removeMessages = f"""
+            DELETE FROM Message WHERE chatId = @chatId;
+        """
+        mycursor.execute(removeMessages)
+
         query = """
                 DELETE FROM UserToUser
                 WHERE (user1Id = %s AND user2Id = %s) OR (user1Id = %s AND user2Id = %s);
@@ -944,6 +965,14 @@ def delete_one_event(eventId):
         mycursor.execute(setChatId)
         mycursor.execute(deleteEventInfoToChat)
         mycursor.execute(deleteChat)
+
+        mycursor.execute("SELECT id FROM Message WHERE chatId = @chatId")
+        msg_ids = mycursor.fetchall()
+        delete_uploads(msg_ids)
+        removeMessages = f"""
+            DELETE FROM Message WHERE chatId = @chatId;
+        """
+        mycursor.execute(removeMessages)
 
         mycursor.execute("DELETE FROM EventToItem WHERE eventId = %s", (eventId,))
         mycursor.execute("DELETE FROM EventToUser WHERE eventId = %s", (eventId,))
@@ -1036,6 +1065,14 @@ def delete_mult_event(eventId):
         mycursor.execute(setChatId)
         mycursor.execute(deleteEventInfoToChat)
         mycursor.execute(deleteChat)
+
+        mycursor.execute("SELECT id FROM Message WHERE chatId = @chatId")
+        msg_ids = mycursor.fetchall()
+        delete_uploads(msg_ids)
+        removeMessages = f"""
+            DELETE FROM Message WHERE chatId = @chatId;
+        """
+        mycursor.execute(removeMessages)
         
         mycursor.execute("""DELETE FROM Event
                         WHERE eventInfoId = @eventInfoId;""")
@@ -2143,7 +2180,7 @@ def remove_user_from_group():
         removeUserFromGroupChat = f"""
             DELETE ChatToUser FROM GroupOfUser JOIN ChatToUser ON GroupOfUser.chatId = ChatToUser.chatId
             WHERE ChatToUser.userId = "{currentUserId}" AND GroupOfUser.id = {groupId};
-        """
+        """ 
         mycursor.execute(removeUserFromGroupChat)
         
         conn.commit()
@@ -2185,6 +2222,14 @@ def delete_group():
             DELETE FROM Chat WHERE id = @chatId;
         """
         mycursor.execute(removeChat)
+        
+        mycursor.execute("SELECT id FROM Message WHERE chatId = @chatId")
+        msg_ids = mycursor.fetchall()
+        delete_uploads(msg_ids)
+        removeMessages = f"""
+            DELETE FROM Message WHERE chatId = @chatId;
+        """
+        mycursor.execute(removeMessages)
         
         conn.commit()
         mycursor.close()
@@ -2500,7 +2545,7 @@ def message():
         mycursor.close()
         conn.close()
         pusher_client.trigger(f'chat-{data["chatId"]}', 'new-message', {'messageContent': data['messageContent'], 'senderId': data['senderId'],
-                                    'chatId': data['chatId'], 'timeSent': data['timeSent'], 'id': data['id']}) # TODO: change id
+                                    'chatId': data['chatId'], 'timeSent': data['timeSent'], 'id': data['id']})
         return "message sent"
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -2692,6 +2737,62 @@ def get_event_chat_id(event_id: int):
         print(f"Error: {err}")
     return {}
 
+@app.route('/upload/', methods=['POST'])
+def upload():
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if 'file' not in request.files:
+        return jsonify({'message': 'No file part'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'message': 'No selected file'}), 400
+    if file:
+        data = request.form
+        try:
+            conn = mysql.connector.connect(**db_config)
+            mycursor = conn.cursor()
+            mycursor.execute(f""" 
+                INSERT INTO Message (chatId, senderId, imagePath, timeSent) 
+                    VALUES ({data.get('chatId')}, "{data.get("senderId")}", "{file.filename}", "{data.get("timeSent")}");
+            """)
+
+            messageId = mycursor.lastrowid
+            filename = str(messageId) + '.jpg'
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            conn.commit()
+            mycursor.close()
+            conn.close()
+            pusher_client.trigger(f'chat-{data.get("chatId")}', 'new-message', {'imagePath': file.filename, 'senderId': request.form.get('senderId'),
+                    'chatId': request.form.get('chatId'), 'timeSent': request.form.get('timeSent'), 'id': messageId})
+            return jsonify({'message': 'File uploaded successfully', 'filename': filename}), 200
+
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+    return {}
+
+@app.route('/get_image/<int:message_id>/', methods=['GET'])
+def get_image(message_id: int):
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+   
+    try:
+        return send_file(f"uploads/{message_id}.jpg", mimetype='image/jpeg'), 200
+    except Exception as  e:
+        print(f"Error: {e}")
+        return {}, 404
+    
+def delete_uploads(msg_ids):
+    for msg_arr in msg_ids:
+        msg_id = msg_arr[0]
+        img_path = f"uploads/{msg_id}.jpg"
+        if os.path.exists(img_path):
+            os.remove(img_path)
 
 def send_event_cancellation(event_id):
     conn = mysql.connector.connect(**db_config)

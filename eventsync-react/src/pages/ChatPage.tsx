@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import { Box, Button, Grid2, IconButton, ListItemButton, ListItemText, TextField, Typography } from "@mui/material";
+import { Box, Button, Grid2, IconButton, FormControl, Input, ListItemButton, ListItemText, TextField, Typography } from "@mui/material";
 import axios from "axios";
 import Message from '../types/Message';
 import Chat from '../types/Chat';
@@ -14,10 +14,11 @@ import FlagIcon from '@mui/icons-material/Flag';
 import chatType from '../types/chatType';
 import { Link } from 'react-router-dom';
 import BackButton from '../components/BackButton';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import { useRef } from 'react';
 
 dayjs.extend(isToday);
 
-//Pusher
 import Pusher from 'pusher-js';
 import { BASE_URL } from '../components/Constants';
 import ReportModal from '../components/ReportModal';
@@ -48,7 +49,6 @@ function ChatPage() {
                     chatType: stringToEnum(response.data.chat.chatType)
                 });
                 setUsers(new Map(response.data.users.map(user => [user.id, user])));
-                console.log(response.data);
             } catch (error) {
                 console.error('Error fetching tags:', error);
             }
@@ -59,9 +59,8 @@ function ChatPage() {
 			cluster: 'us2'
 		})
 		const channel = pusher.subscribe(channelName);
-		channel.bind('new-message', function(data: Message) {
-            setMsg(data);
-            console.log(data);
+		channel.bind('new-message', async function(newMsg: Message) {
+            setMsg(newMsg);
 		});
         channel.bind("pusher:subscription_succeeded", retrieveHistory);
 		
@@ -83,20 +82,19 @@ function ChatPage() {
     useEffect(() => {
         if(msg) {
             setMessages([...messages,msg]);
-            console.log(messages.length);
         }
-      }, [msg]);
+    }, [msg]);
 
-      useEffect(() => {
-        if(chat && chat.chatType == chatType.INDIVIDUAL && users) {
-            for (const [userId, user] of users) {
-                if (userId !== currentUserId) {
-                    setNonGroupOtherUser(user);
-                    break;
-                }
+    useEffect(() => {
+    if(chat && chat.chatType == chatType.INDIVIDUAL && users) {
+        for (const [userId, user] of users) {
+            if (userId !== currentUserId) {
+                setNonGroupOtherUser(user);
+                break;
             }
         }
-      }, [chat, users]);
+    }
+    }, [chat, users]);
 
     async function retrieveHistory() {
         const response = await axios.get<MessageList>(`${BASE_URL}/get_chat_hist/${chatId}`, {
@@ -156,12 +154,8 @@ function ChatPage() {
 	)
 }
 
-const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Message[], currentUserId: String, groupChat: Boolean, getName: (userId: String) => String | null }) => {
+const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Message[], currentUserId: String, groupChat: Boolean, getName: (userId: String) => String | null}) => {
     const [flagVisible, setFlagVisible] = useState<boolean>(false);
-    const [open, setOpen] = useState(false);
-    const handleClose = () => setOpen(false);
-    console.log(open);
-    console.log(handleClose);
     const [reportModalOpen, setReportModalOpen] = useState<boolean>(false);
 
     function messageDateString(dateStr: string) {
@@ -204,30 +198,35 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
 
     return (       
         <div className="chatWindow">
-            <ul className='chat' id='chatList'>
             {messages.map((message, index) => (
-            <div key={index}>
+                <div key={index}>
                 {currentUserId === message.senderId ? (
                 <ListItemButton className="self">
                     <div className="msg">
                         <ListItemText className="message">{message.messageContent}</ListItemText>
+                        {message.id && message.imagePath &&
+                        <div>
+                            <ImageComponent id={message.id} />
+                        </div>
+                        }
                         <div className="date">{messageDateString(message.timeSent)}</div>
 
                     </div>
                 </ListItemButton>
-              ) : (
-                otherChat(message)
-              )}
-            </div>
+                ) : (
+                    otherChat(message)
+                )}
+                </div>
             ))}
-            </ul>
-        </div>)
-};
+        </div>
+        )
+        }
 
 
-const ChatInput = (props: { channelName: String, currentUserId: String, chatId: string }) => {
+const ChatInput = (props: { channelName: String, currentUserId: string, chatId: string }) => {
     const [message, setMessage] = useState<string>("");
     const {userDetails} = useUser();
+    const [selectedImage, setSelectedImage] = useState<File | undefined>();
 
     const sendMessage = () => {
         if (message.trim().length > 0) {
@@ -248,21 +247,127 @@ const ChatInput = (props: { channelName: String, currentUserId: String, chatId: 
         }
     };
 
+    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if(!event.target.files) {
+            return;
+        }
+        
+        setSelectedImage(event.target.files[0]);
+    }
+
+    const handleUpload = async () => {
+        if(!selectedImage) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', selectedImage);
+        formData.append('senderId', props.currentUserId);
+        formData.append('chatId', props.chatId);
+        formData.append('timeSent', getCurDate());
+
+        try {
+            await axios.post('http://localhost:5000/upload/', formData, {
+              headers: {
+                'Authorization': `Bearer ${userDetails.token}`,
+                'Content-Type': 'multipart/form-data',
+              },
+            });
+        } catch (error) {
+            console.error('Error uploading image:', error);
+        }
+    };
+
+    const onSend = () => {
+        sendMessage();
+        handleUpload();
+    }
+
+    const hiddenFileInput = useRef<HTMLDivElement>(null);
+
+    const handleClick = () => {
+        if (hiddenFileInput.current) {
+            hiddenFileInput.current.click();
+        }
+    }
+
+
     return (
         <div>
-            <div className="chat-input-container">
-            <TextField 
-                type="text" 
-                value={message} 
-                onChange={(event) => setMessage(event.target.value)}  
+        <div className="chat-input-container">
+
+        <Button onClick={handleClick}>
+            <AttachFileIcon></AttachFileIcon>
+        </Button>
+        <FormControl>
+            <Input 
+                type="file" 
+                onChange={handleImageChange}
+                inputRef={hiddenFileInput}
+                style={{display:'none'}}
+                inputProps={{accept: "image/*" }}
             />
-            <Button onClick={sendMessage}>
-                <SendIcon></SendIcon>
-            </Button>
+        </FormControl>
+        <TextField 
+            type="text" 
+            // multiline
+            // maxRows={2}
+            value={message} 
+            onChange={(event) => setMessage(event.target.value)}  
+        />
+        <Button onClick={onSend}>
+            <SendIcon></SendIcon>
+        </Button>
+        
+        <div>
+            
+        </div>
         </div>
       </div>
     );
 };
+
+const ImageComponent = ({id} : {id: number}) => {
+    const [imageURL, setImageURL] = useState<string>();
+    const { userDetails } = useUser();
+
+    async function importImage() {
+        try {
+            const response = await axios.get<string>(`${BASE_URL}/get_image/${id}/`,  {
+                responseType: 'blob',
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                }
+            });
+            const blob = new Blob([response.data], { type: 'image/jpeg' });
+            setImageURL(URL.createObjectURL(blob));
+        }catch (error) {
+            console.error('Error retrieving image:', error);
+        }
+    }
+
+    useEffect(() => {
+        importImage()
+
+        return () => {
+            if (imageURL) {
+              URL.revokeObjectURL(imageURL);
+            }
+          };
+      }, []);
+
+    return (
+      <Box
+        component="img"
+        sx={{
+          maxHeight: '100%',
+          maxWidth: '100%',
+        }}
+        alt="Image in chat"
+        src={imageURL}
+      />    
+    );
+  };
 
 export function getCurDate() {
     const now = new Date();
