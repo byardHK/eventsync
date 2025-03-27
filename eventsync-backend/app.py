@@ -2164,10 +2164,18 @@ def delete_group():
         """
         mycursor.execute(removeChat)
         
+        mycursor.execute("SELECT id FROM Message WHERE chatId = @chatId")
+        msg_ids = mycursor.fetchall()
+        delete_uploads(msg_ids)
+        removeMessages = f"""
+            DELETE FROM Message WHERE chatId = @chatId;
+        """
+        mycursor.execute(removeMessages)
+        
         conn.commit()
         mycursor.close()
         conn.close()
-        return jsonify({"message": "creation successful"})
+        return jsonify({"message": "creation successful", "msg_ids": msg_ids})
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
@@ -2726,3 +2734,10 @@ def get_image(message_id: int):
     except Exception as  e:
         print(f"Error: {e}")
         return {}, 404
+    
+def delete_uploads(msg_ids):
+    for msg_arr in msg_ids:
+        msg_id = msg_arr[0]
+        img_path = f"uploads/{msg_id}.jpg"
+        if os.path.exists(img_path):
+            os.remove(img_path)
