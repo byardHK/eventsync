@@ -12,6 +12,7 @@ import EventInfo from "../types/EventInfo";
 import { UserDetails, useUser } from "../sso/UserContext";
 import BackButton from "../components/BackButton";
 import { getCurDate } from "./ChatPage";
+import BlockIcon from '@mui/icons-material/Block';
 
 type Report = {
     id: number;
@@ -89,6 +90,7 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
     const [deleteReportModalOpen, setDeleteReportModalOpen] = useState<boolean>(false);
     const [viewReportModalOpen, setViewReportModalOpen] = useState<boolean>(false);
     const [warnUserModalOpen, setWarnUserModalOpen] = useState<boolean>(false);
+    const [banUserModalOpen, setBanUserModalOpen] = useState<boolean>(false);
 
     const ReportCard = styled(Paper)(({ theme }) => ({
         width: 300,
@@ -98,6 +100,37 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         textAlign: 'center',
       }));
 
+    function BanUserModal(){
+        return <Dialog
+            onClose={()=> {setBanUserModalOpen(false)}}
+            open={banUserModalOpen}
+        >
+            <Box sx={{padding : 3}}>
+                {report.reportedEventInfoId ? <BanEventCreator/>: <></> }
+                {report.reportedUserId ? <BanUser/> : <></> }
+                {report.reportedMessageId ? <BanMessageSender/> : <></>}
+                {report.reportedGroupId ? <BanGroupCreator/> : <></>}
+            </Box>
+        </Dialog>
+    }
+
+    async function banUser(userId: string) {
+        try {
+            await axios.post(`${BASE_URL}/ban_user`, {
+                userId: userId
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+        } catch (error) {
+            console.error('Error banning user:', error);
+        }
+        reloadReports();
+        setBanUserModalOpen(false);
+    }
+    
       
     function DeleteReportModal(){
         return <Dialog
@@ -161,6 +194,131 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         reloadReports();
         setWarnUserModalOpen(false);
     }
+
+    function BanMessageSender(){
+        const [message, setMessage] = useState<Message>();
+
+        async function loadMessage() {
+            const res = await axios.get(`${BASE_URL}/get_message/${report.reportedMessageId}`);
+            setMessage(res.data[0]);
+        }
+
+        useEffect(() => {
+            loadMessage();
+        }, []);
+
+        if(!message) {
+            return <CircularProgress/>
+        }
+
+        return ( 
+            <Box>
+                <Typography>{`Ban the author of this message (${message.senderId})?`}</Typography>
+                <Box display="flex" flexDirection="row" justifyContent="space-between">
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setBanUserModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={() => {banUser(
+                        message.senderId
+                    )}}>Yes</Button>
+                </Box>
+            </Box>
+        );
+    }
+
+    function BanUser(){
+        const [user, setUser] = useState<User>();
+
+        async function loadUser() {
+            const res = await axios.get(`${BASE_URL}/api/get_user/${report.reportedUserId}`);
+            setUser(res.data[0]);
+        }
+
+        useEffect(() => {
+            loadUser();
+        }, []);
+
+        if(!user) {
+            return <CircularProgress/>
+        }
+
+        return (
+            <Box>
+                <Typography>{`Ban ${user.fname} ${user.lname} (${user.id})?`}</Typography>
+                <Box display="flex" flexDirection="row" justifyContent="space-between">
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setWarnUserModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={() => {banUser(
+                        user.id
+                    )}}>Yes</Button>
+                </Box>
+            </Box>
+        );
+    }
+
+    function BanGroupCreator() {
+        const [group, setGroup] = useState<Group>();
+
+        async function loadGroup() {
+            const res = await axios.get(
+                `${BASE_URL}/get_group/${report.reportedGroupId}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+            setGroup(res.data);
+        }
+
+        useEffect(() => {
+            loadGroup();
+        }, []);
+
+        if(!group) {
+            return <CircularProgress/>
+        }
+
+        return (
+            <Box>
+                <Typography>{`Ban the creator of this group (${group.creatorId})?`}</Typography>
+                <Box display="flex" flexDirection="row" justifyContent="space-between">
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setBanUserModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={() => {banUser(
+                        group.creatorId
+                    )}}>Yes</Button>
+                </Box>
+            </Box>
+        );
+    }
+
+    function BanEventCreator() {
+        const [eventInfo, setEventInfo] = useState<EventInfo>();
+
+        async function loadEvent() {
+            const res = await axios.get(`${BASE_URL}/get_event_info/${report.reportedEventInfoId}/`);
+            setEventInfo(res.data[0]);
+        }
+
+        useEffect(() => {
+            loadEvent();
+        }, []);
+
+        if(!eventInfo) {
+            return <CircularProgress/>
+        }
+
+        return (
+            <Box>
+                <Typography>{`Ban the creator of this event (${eventInfo.creatorId})?`}</Typography>
+                <Box display="flex" flexDirection="row" justifyContent="space-between">
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setBanUserModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto"}} onClick={() => {banUser(
+                        eventInfo.creatorId
+                    )}}>Yes</Button>
+                </Box>
+            </Box>
+        );
+    }
+
 
     function ViewReportedMessage() {
         const [message, setMessage] = useState<Message>();
@@ -326,6 +484,7 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
     return <Box>
         <DeleteReportModal></DeleteReportModal>
         <ViewReportModal></ViewReportModal>
+        <BanUserModal></BanUserModal>
         <ReportCard elevation={10} square={false} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '200px'}}>
             <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" gap={3}>
                 <Typography variant="h4">{ReportType(report)} Report</Typography>
@@ -339,6 +498,9 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
                     </Button>
                     <Button variant="contained" onClick={() => { setWarnUserModalOpen(true) }}>
                         <WarningIcon/>
+                    </Button>
+                    <Button variant="contained" onClick={() => { setBanUserModalOpen(true) }}>
+                        <BlockIcon/>
                     </Button>
                 </Box>
             </Box>
