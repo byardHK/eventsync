@@ -20,6 +20,7 @@ import { ThemeProvider } from "@mui/material";
 import theme from "./components/ColorTheme";
 import { useMsal } from "@azure/msal-react";
 import { useEffect, useState } from "react";
+import { Typography } from "@mui/material";
 
 const MainContent = () => {
   const { userDetails } = useUser();
@@ -38,7 +39,7 @@ const MainContent = () => {
   if (showBannedMessage) {
     return (
       <div style={{ textAlign: "center", marginTop: "20vh", fontSize: "24px", color: "red" }}>
-        <p>You are banned</p>
+        <Typography variant="p">You are banned</Typography>
       </div>
     );
   }
