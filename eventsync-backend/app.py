@@ -19,8 +19,9 @@ UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
+# CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
 
+CORS(app, origins=["http://localhost:3000"])
 
 db_config = {
     'host': '10.18.101.62',  
@@ -32,33 +33,43 @@ db_config = {
 
 GRAPH_API_URL = "https://graph.microsoft.com/v1.0/me"
 
+cached_auth_info = { }
+
 def get_authenticated_user():
     """Fetches the authenticated user's email from Microsoft Graph API."""
     
     auth_header = request.headers.get('Authorization')
     if not auth_header:
         print("ERROR: Missing Authorization header")
-        return None, jsonify({"error": "Invalid or missing Authorization header"}), 403
+        return None, jsonify({"error": "Missing Authorization header"}), 403
 
-    headers = {
-        "Authorization": auth_header,
-        "Accept": "application/json"
-    }
+    try:
+        encodedJwt = auth_header[7:]
+        jwtDecoder = jwt.JWT()
+        decodedJwt = jwtDecoder.decode(encodedJwt, do_verify=False)
+    except Exception as e:
+        return None, jsonify({"error": "Invalid Authorization header"}), 403
 
-    response = requests.get(GRAPH_API_URL, headers=headers)
-    if response.status_code != 200:
-        return None, jsonify({"error": "Failed to fetch user profile", "details": response.text}), 403
+    cached_info = cached_auth_info.get(auth_header)
+    if not cached_info:
+        headers = {
+            "Authorization": auth_header,
+            "Accept": "application/json"
+        }
 
-    data = response.json()
-    user_email = data.get("mail")  # Extract user email
+        response = requests.get(GRAPH_API_URL, headers=headers)
+        if response.status_code != 200:
+            return None, jsonify({"error": "Failed to fetch user profile", "details": response.text}), 403
+
+        cached_info = response.json()
+        cached_auth_info[auth_header] = cached_info
+
+    user_email = cached_info.get("mail")  # Extract user email
 
     if not user_email:
         return None, jsonify({"error": "Email not found in token response"}), 403
 
     return user_email, None, None  # No error, return email
-
-
-
 
 pusher_client = pusher.Pusher(
   app_id='1939690',
