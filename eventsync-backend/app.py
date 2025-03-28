@@ -2737,6 +2737,43 @@ def get_event_chat_id(event_id: int):
         print(f"Error: {err}")
     return {}
 
+from flask import request, jsonify
+import mysql.connector
+
+@app.route('/ban_user', methods=['POST'])
+def ban_user():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code
+    
+    if not user_email:
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403  
+
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("SELECT isAdmin FROM User WHERE id = %s", (user_email,))
+        response = mycursor.fetchone()
+        
+        if not response or response[0] != 1: 
+            return jsonify({"error": "Unauthorized: You must be an admin to perform this action"}), 403
+
+        data = request.get_json()
+        user_id_to_ban = data.get("userId")
+
+        if not user_id_to_ban:
+            return jsonify({"error": "Missing userId in request"}), 400
+
+        mycursor.execute("UPDATE User SET isBanned = 1 WHERE id = %s", (user_id_to_ban,))
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"success": f"User {user_id_to_ban} has been banned"}), 200
+
+    except mysql.connector.Error as err:
+        return jsonify({"error": f"Database error: {err}"}), 500
+
+
 @app.route('/upload/', methods=['POST'])
 def upload():
 
