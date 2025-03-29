@@ -1,4 +1,4 @@
-import { TextField, Box, Button, Typography, FormControlLabel, Checkbox, Switch, Chip } from '@mui/material';
+import { TextField, Box, Button, Typography, FormControlLabel, Checkbox, Switch, Chip, Accordion, AccordionSummary, AccordionDetails, FormLabel, RadioGroup } from '@mui/material';
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { MobileDateTimePicker } from "@mui/x-date-pickers/MobileDateTimePicker";
@@ -18,6 +18,9 @@ import "../styles/style.css"
 import Tag from '../types/Tag';
 import { BASE_URL } from '../components/Constants';
 import BackButton from '../components/BackButton';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import AccessAlarmIcon from '@mui/icons-material/AccessAlarm';
+import Radio from '@mui/material/Radio';
 
 function CreateEventPage() {
     const { userDetails } = useUser();
@@ -51,8 +54,8 @@ function CreateEventPage() {
             <Box
                 display="flex"
                 flexDirection="row"
-                alignItems="center"
-                justifyContent="center"
+                // alignItems="center"
+                // justifyContent="center"
                 flexWrap="wrap"
             >
                 {tags.map((tag, index) =>
@@ -60,6 +63,26 @@ function CreateEventPage() {
                     key={index}
                 >    
                     <Chip sx={{margin: 1, backgroundColor: '#71A9F7', color: "black"}} label={tag.name}></Chip>
+                </Box>
+            )}
+            </Box>
+        </>
+    }
+
+    function ListItems(){
+        return <>
+            <Box
+                display="flex"
+                flexDirection="row"
+                // alignItems="center"
+                // justifyContent="center"
+                flexWrap="wrap"
+            >
+                {items.map((item, index) =>
+                <Box 
+                    key={index}
+                >    
+                    <Chip sx={{margin: 1, backgroundColor: '#71A9F7', color: "black"}} label={`${item.description} - ${item.amountNeeded}`}></Chip>
                 </Box>
             )}
             </Box>
@@ -222,13 +245,20 @@ function CreateEventPage() {
     };
 
     return <>
-        <Box>
-            <Box display="flex" alignItems="center" justifyContent="center">
-                <BackButton></BackButton>
-                <Box display="flex" flexDirection="column">
-                    <Typography variant="h4">
+         <Box
+                display="flex"
+                flexDirection="column"
+                // alignItems="center"
+                // justifyContent="center"
+                // paddingBottom={3}
+                paddingTop={10}
+            >
+                <Box display="flex" gap={5} flexDirection="row" sx={{width: "100%", position: 'fixed', paddingTop: 2, top: '0px', backgroundColor: "#1c284c",  "z-index": 10}}>
+                    <BackButton></BackButton>
+                    <Typography color="white" fontWeight="bold" variant="h4">
                         {eventId ? "Edit Event" : "Create Event"}
                     </Typography>
+                </Box>
                     {eventId && (
                         <FormControlLabel
                             label={<Typography>Edit all events in this group</Typography>}
@@ -240,193 +270,205 @@ function CreateEventPage() {
                             }
                         />
                     )}
-                </Box>
-            </Box>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <Box 
-                    display="flex" 
-                    flexDirection="column"
-                    alignItems="center" 
-                    justifyContent="center"
-                    component="form"
-                    sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
-                    noValidate
-                    autoComplete="off">
-                    <TextField 
-                        sx={{input: {backgroundColor: 'white'}}}
-                        id="outlined-basic" 
-                        label="Title" 
-                        variant="outlined" 
-                        type="text" 
-                        value={titleText} 
-                        onChange={(event) => setTitleText(event.target.value)}  
-                    />
-                    <MobileDateTimePicker
-                        sx={{ input: { backgroundColor: "white" } }}
-                        label="Start"
-                        value={startDateTime}
-                        onChange={(newValue) => {
-                            setStartDateTime(newValue);
-                            setEndDateTime(newValue ? newValue.add(1, "hour") : null);
-                        }}
-                    />
-                    <MobileDateTimePicker
-                        sx={{input: {backgroundColor: 'white'}}}
-                        label="End"
-                        value={endDateTime}
-                        onChange={(newValue) => setEndDateTime(newValue)} 
-                    />
-                    <Box display="flex" alignItems="center" margin={5}>
-                        <Typography>Tags:</Typography>
-                        <TagModal savedTags={tags} handleSave={handleSave}></TagModal>
-                        <Typography>Items to Bring:</Typography>
-                        <ItemModal itemsToParent={itemsToParent} />
-                    </Box>
-                    <ListTags></ListTags>
-                    <TextField 
-                        sx={{input: {backgroundColor: 'white'}}}
-                        id="outlined-basic" 
-                        label="Description" 
-                        variant="outlined" 
-                        type="text" 
-                        value={descriptionText} 
-                        onChange={(event) => setDescriptionText(event.target.value)}  
-                    />
-                    <TextField 
-                        sx={{input: {backgroundColor: 'white'}}}
-                        id="outlined-basic" 
-                        label="Location" 
-                        variant="outlined" 
-                        type="text" 
-                        value={locationText} 
-                        onChange={(event) => setLocationText(event.target.value)}  
-                    />
-                    <TextField 
-                        sx={{input: {backgroundColor: 'white'}}}
-                        id="outlined-basic" 
-                        label="Venmo" 
-                        variant="outlined" 
-                        type="text" 
-                        value={venmoText} 
-                        onChange={(event) => setVenmoText(event.target.value)}  
-                    />
-                    <FormControlLabel
-                        label="Recurring Event"
-                        control={<Checkbox
-                            checked={checked}
-                            onChange={(event) => setChecked(event.target.checked)} 
-                            />
-                        }
-                    />
-                {checked ? 
-                    <div>
-                        <Box alignItems="center" 
-                            justifyContent="center"
-                        >
-                            <FormControl>
-                                <InputLabel id="select-frequency">Frequency</InputLabel>
-                                <Select
-                                    value={recurFrequency}
-                                    label="Frequency"
-                                    labelId="select-frequency"
-                                    onChange={(event) => setRecurFrequency(event.target.value)}
-                                    sx={{ minWidth: '15ch' }}
-                                >
-                                    <MenuItem value={"Daily"}>Daily</MenuItem>
-                                    <MenuItem value={"Weekly"}>Weekly</MenuItem>
-                                    <MenuItem value={"Monthly"}>Monthly</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Box>
-                        <Box display="flex" 
-                            alignItems="center" 
-                            justifyContent="center"
-                            component="form"
-                            sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
-                            noValidate
-                            autoComplete="off">
-                        <MobileDateTimePicker
-                            label="End Date"
-                            value={endRecurDateTime}
-                            onChange={(newValue) => setEndRecurDateTime(newValue)} 
+            <Accordion defaultExpanded disableGutters sx={{backgroundColor: "#1c284c", width: "100%", border: "1px solid #FFF"}}>
+                <AccordionSummary
+                    expandIcon={<ExpandMoreIcon style={{color: "white"}}/>}
+                    aria-controls="panel1-content"
+                    id="panel1-header"
+                >
+                    <Typography sx={{color: "white"}} variant="h4" component="span">General</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <Box 
+                        display="flex" 
+                        flexDirection="column"
+                        // alignItems="center" 
+                        // justifyContent="center"
+                        component="form"
+                        noValidate
+                        autoComplete="off"
+                        gap={3}
+                    >
+                        <TextField 
+                            sx={{input: {backgroundColor: 'white'}, width: "100%"}}
+                            id="outlined-basic" 
+                            label="Title" 
+                            variant="outlined" 
+                            type="text" 
+                            value={titleText} 
+                            onChange={(event) => setTitleText(event.target.value)}  
                         />
+                        <Box gap={2} display="flex" flexDirection="row" width="100%" justifyContent="flex-end">
+                            <AccessAlarmIcon style={{color: "white"}}></AccessAlarmIcon>
+                            <Typography color="white"> FROM </Typography>
+                            <MobileDateTimePicker
+                                sx={{ input: { backgroundColor: "white" }, width: "80%" }}
+                                label="Start"
+                                value={startDateTime}
+                                onChange={(newValue) => {
+                                    setStartDateTime(newValue);
+                                    setEndDateTime(newValue ? newValue.add(1, "hour") : null);
+                                }}
+                            />
+                            
                         </Box>
-                    </div>
-                : null}
-                </Box>
-                {<Box 
-                    display="flex" 
-                    flexDirection="column"
-                    alignItems="center" 
-                    justifyContent="center"
-                    component="form"
-                    sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
-                    noValidate
-                    autoComplete="off">
-                    <FormControlLabel
-                        label="Weather Sensitive"
-                        control={
-                            <Switch
-                                checked={isWeatherSensitive}
-                                onChange={(event) => setIsWeatherSensitive(event.target.checked)}
-                                name="isWeatherSensitive"
-                                color="primary"
+                        <Box gap={2} display="flex" flexDirection="row" width="100%" justifyContent="flex-end">
+                            <Typography sx={{paddingLeft:8.25}} color="white"> TO </Typography>
+                            <MobileDateTimePicker
+                                sx={{input: {backgroundColor: 'white'}, width: "80%"}}
+                                label="End"
+                                value={endDateTime}
+                                onChange={(newValue) => setEndDateTime(newValue)} 
                             />
-                        }
-                    />
-                    <FormControlLabel
-                        label="Private Event"
-                        control={
-                            <Switch
-                                checked={isPrivateEvent}
-                                onChange={(event) => setIsPrivateEvent(event.target.checked)}
-                                name="isPrivateEvent"
-                                color="primary"
+                        </Box>
+                        <TextField 
+                            sx={{input: {backgroundColor: 'white'}, width: "100%"}}
+                            id="outlined-basic" 
+                            label="Description" 
+                            variant="outlined" 
+                            type="text" 
+                            value={descriptionText} 
+                            onChange={(event) => setDescriptionText(event.target.value)}  
+                        />
+                        <TextField 
+                            sx={{input: {backgroundColor: 'white'}, width: "100%"}}
+                            id="outlined-basic" 
+                            label="Location" 
+                            variant="outlined" 
+                            type="text" 
+                            value={locationText} 
+                            onChange={(event) => setLocationText(event.target.value)}  
+                        />
+                    </Box>
+                    </LocalizationProvider>
+                </AccordionDetails>
+            </Accordion>
+            <Accordion disableGutters sx={{backgroundColor: "#1c284c", width: "100%", border: "1px solid #FFF"}}>
+                <AccordionSummary
+                    expandIcon={<ExpandMoreIcon style={{color: "white"}}/>}
+                    aria-controls="panel2-content"
+                    id="panel2-header"
+                >
+                    <Typography sx={{color: "white"}} variant="h4" component="span">Advanced</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                    <Box display="flex" flexDirection="column"  gap={1} paddingTop={2}>
+                        <Box display="flex" flexDirection="row" gap={1}>
+                            <Typography variant="h5" color="white">Tags:</Typography>
+                            <TagModal savedTags={tags} handleSave={handleSave}></TagModal>
+                        </Box>
+                        <ListTags></ListTags>
+                        <br></br>
+                        <Box display="flex" flexDirection="row" gap={1}>
+                            <Typography variant="h5"color="white">Items to Bring:</Typography>
+                            <ItemModal itemsToParent={itemsToParent} />
+                        </Box>
+                        <ListItems></ListItems>
+                        <br></br>
+                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            <FormControlLabel
+                                sx={{color: "white", fontSize:"h1"}}
+                                label={<Typography variant="h5">Recurring Event</Typography>}
+                                control={<Checkbox
+                                    sx={{color: "white"}}
+                                    checked={checked}
+                                    onChange={(event) => setChecked(event.target.checked)} 
+                                    />
+                                }
                             />
-                        }
-                    />
-                    <TextField
-                        sx={{input: {backgroundColor: 'white'}}}
-                        id="outlined-basic" 
-                        label="RSVP Limit" 
-                        variant="outlined" 
-                        type="number" 
-                        value={rsvpLimit !== null ? rsvpLimit : ''} 
-                        onChange={(event) => {
-                            const value = event.target.value === '' ? null : Number(event.target.value);
-                            if (value === null || value >= 0) {
-                                setRsvpLimit(value);
+                            {checked ? 
+                                <div>
+                                    <Box alignItems="center" 
+                                        justifyContent="center"
+                                    >
+                                        <Typography color="white">Frequency</Typography>
+                                        <FormControl>
+                                            <RadioGroup
+                                                value={recurFrequency}
+                                                onChange={(event) => setRecurFrequency(event.target.value)}
+                                                sx={{ minWidth: '15ch', color: "white" }}
+                                                aria-labelledby="demo-radio-buttons-group-label"
+                                                defaultValue="female"
+                                                name="radio-buttons-group"
+                                            >
+                                                <FormControlLabel value={"Daily"} control={<Radio sx={{color: "white"}} />} label="Daily" />
+                                                <FormControlLabel value={"Weekly"} control={<Radio sx={{color: "white"}}/>} label="Weekly" />
+                                                <FormControlLabel value={"Monthly"} control={<Radio sx={{color: "white"}}/>} label="Monthly" />
+                                            </RadioGroup>
+                                        </FormControl>
+                                    </Box>
+                                    <Box display="flex" 
+                                        // alignItems="center" 
+                                        // justifyContent="center"
+                                        component="form"
+                                        sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
+                                        noValidate
+                                        autoComplete="off">
+                                    <MobileDateTimePicker
+                                        sx={{backgroundColor: "white"}}
+                                        label="End Date"
+                                        value={endRecurDateTime}
+                                        onChange={(newValue) => setEndRecurDateTime(newValue)} 
+                                    />
+                                    </Box>
+                                </div>
+                            : null}
+                        </LocalizationProvider>
+                        <br></br>
+                        <TextField 
+                            sx={{input: {backgroundColor: 'white'}}}
+                            id="outlined-basic" 
+                            label="Venmo" 
+                            variant="outlined" 
+                            type="text" 
+                            value={venmoText} 
+                            onChange={(event) => setVenmoText(event.target.value)}  
+                        />
+                    </Box>
+                    <br></br>
+                    {<Box 
+                        display="flex" 
+                        flexDirection="column"
+                        // alignItems="center" 
+                        // justifyContent="center"
+                        component="form"
+                        sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
+                        noValidate
+                        autoComplete="off">
+                        <FormControlLabel
+                            label="Private Event"
+                            sx={{color: "white"}}
+                            control={
+                                <Switch
+                                    checked={isPrivateEvent}
+                                    onChange={(event) => setIsPrivateEvent(event.target.checked)}
+                                    name="isPrivateEvent"
+                                    color="primary"
+                                />
                             }
-                        }}  
-                    />
-                </Box>
-                }
-            </LocalizationProvider>
-            <Box display="flex" justifyContent="center" mt={2}>
-                <a href="https://www.aaiscloud.com/GroveCityC/default.aspx" target="_blank" rel="noopener">
-                    Astra Reservations
-                </a>
-            </Box>
-            <Box display="flex" justifyContent="space-between" mt={2}>
-                <Button 
-                    variant="contained" 
-                    sx={{ minWidth: '40px', minHeight: '40px', padding: 0, 
-                        color: "white"}}
-                    onClick={handleBackClick}
-                    title="cancel"
-                >
-                    Cancel
-                </Button>
-                <Button 
-                    variant="contained" 
-                    sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
-                    onClick={handleSubmit}
-                    title="submit"
-                >
-                    <CheckIcon />
-                </Button>
-            </Box>
-      </Box>
+                        />
+                        <br></br>
+                        <Typography color="white">RSVP Limit</Typography>
+                        <TextField
+                            sx={{input: {backgroundColor: 'white'}}}
+                            id="outlined-basic" 
+                            // label="RSVP Limit" 
+                            variant="outlined" 
+                            type="number" 
+                            value={rsvpLimit !== null ? rsvpLimit : ''} 
+                            onChange={(event) => {
+                                const value = event.target.value === '' ? null : Number(event.target.value);
+                                if (value === null || value >= 0) {
+                                    setRsvpLimit(value);
+                                }
+                            }}  
+                        />
+                    </Box>
+                    }
+                </AccordionDetails>
+            </Accordion>
+        </Box>
     </>;
 
 }

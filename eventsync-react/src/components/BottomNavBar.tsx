@@ -57,7 +57,12 @@ function BottomNavBar({ userId }: { userId: string }) {
             </Button>
         </Link>
         <Link to="/friends">
-            <Badge badgeContent={friendRequests} color="secondary">
+            <Badge badgeContent={friendRequests} sx={{
+                "& .MuiBadge-badge": {
+                color: "#FFFFFF",
+                backgroundColor: "#ad1f39"
+                }
+            }}>
                 <Button variant="contained">
                     <GroupIcon  style={{ color: 'black'}}/>
                 </Button>
