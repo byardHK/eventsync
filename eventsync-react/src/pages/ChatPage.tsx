@@ -15,6 +15,7 @@ import chatType from '../types/chatType';
 import { Link } from 'react-router-dom';
 import BackButton from '../components/BackButton';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
+import Divider from '@mui/material/Divider';
 import { useRef } from 'react';
 
 dayjs.extend(isToday);
@@ -111,14 +112,14 @@ function ChatPage() {
         if (!chat) return <div></div>;
         if (chat.chatType == chatType.INDIVIDUAL && nonGroupOtherUser) {
             return (
-                <Typography variant="h3">
+                <Typography align="center" fontWeight="bold" color="white" variant="h5">
                     <Link to={`/profile/${nonGroupOtherUser.id}`}>
                         {getName(nonGroupOtherUser.id)}
                     </Link>
                 </Typography>
             )
         }
-        return <Typography variant="h4">{chat.name}</Typography>;
+        return <Typography fontWeight="bold" color="white" variant="h5" textAlign="center">{chat.name}</Typography>;
     }
 
     function getName(userId: String) {
@@ -131,31 +132,27 @@ function ChatPage() {
         <Grid2
             display="flex"
             flexDirection="column"
-            style={{maxHeight: '85vh', overflow: 'auto'}}
+            style={{maxHeight: '89vh', overflow: 'auto'}}
             paddingTop={10}
         >
-            <Box display="flex" alignItems="center" justifyContent="center" className="chat-header">
-                <BackButton></BackButton>
-                {chatTitle()}   
+            <Box display="flex" flexDirection="row" alignItems="center" justifyContent="flex-start" className="chat-header" sx={{ borderBottom: "solid", borderBottomColor: "#FFFFFF", borderBottomWidth: "1px"}} style={{ position: 'fixed', paddingTop: "10px", backgroundColor: "#1c284c", width: "100%", right: 0, left: 0, marginRight: "0", marginLeft: "auto"}}>
+                <BackButton/>
+                {chatTitle()}
             </Box>
-            <Box>
-                <ChatList 
-                    messages={messages} 
-                    currentUserId={currentUserId} 
-                    groupChat={!(chat?.chatType == chatType.INDIVIDUAL)!} 
-                    getName={getName}
-                >
-                </ChatList>
-            </Box>
-            <Box>
-                <ChatInput channelName={""} currentUserId={currentUserId} chatId={chatId ?? "-1"}></ChatInput>
-            </Box>  
+            <ChatList 
+                messages={messages} 
+                currentUserId={currentUserId} 
+                groupChat={!(chat?.chatType == chatType.INDIVIDUAL)!} 
+                getName={getName}
+            >
+            </ChatList>
+            <ChatInput channelName={""} currentUserId={currentUserId} chatId={chatId ?? "-1"}></ChatInput>
         </Grid2>
 	)
 }
 
 const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Message[], currentUserId: String, groupChat: Boolean, getName: (userId: String) => String | null}) => {
-    const [flagVisible, setFlagVisible] = useState<boolean>(false);
+    const [flaggedMessageId, setFlaggedMessageId] = useState<number | undefined>();
     const [reportModalOpen, setReportModalOpen] = useState<boolean>(false);
 
     function messageDateString(dateStr: string) {
@@ -170,34 +167,27 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
         
     }
 
-    function otherChat(message : Message){
-        return <ListItemButton onClick={() => setFlagVisible(!flagVisible)} className="other">
+    function otherChat(message : Message, flagVisible: boolean, onClick: () => void){
+        return <ListItemButton onClick={onClick} className="other">
                 <div className="msg">
                     <ReportModal input={message} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="message"/>
                     {groupChat && <p>{getName(message.senderId)}</p>}
-                    {flagVisible ? (
-                        <div>
-                            <Box display="flex" justifyContent="flex-end">
-                                <IconButton onClick={()=>setReportModalOpen(true)}>
-                                    <FlagIcon style={{ color: '#ad1f39'}}></FlagIcon>
-                                </IconButton>
-                            </Box>
-                            <ListItemText>{message.messageContent}</ListItemText>
-                            <div className="date">{messageDateString(message.timeSent)}</div>
-                        </div>
-                    ) : (
-                        <div>
-                            <ListItemText className="message">{message.messageContent}</ListItemText>
-                            <div className="date">{messageDateString(message.timeSent)}</div>
-                        </div>
-                    )}
-            
+                    <div>
+                        <ListItemText className="message">{message.messageContent}</ListItemText>
+                        <div className="date">{messageDateString(message.timeSent)}</div>
+                    </div>
                 </div>
+                {flagVisible ?
+                    <IconButton onClick={()=>setReportModalOpen(true)}>
+                        <FlagIcon style={{ color: '#ad1f39'}}></FlagIcon>
+                    </IconButton> :
+                    <></>
+                }
             </ListItemButton>
     }
 
-    return (       
-        <div className="chatWindow">
+    return (
+        <Box>
             {messages.map((message, index) => (
                 <div key={index}>
                 {currentUserId === message.senderId ? (
@@ -214,13 +204,15 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
                     </div>
                 </ListItemButton>
                 ) : (
-                    otherChat(message)
+                    otherChat(message, flaggedMessageId === message.id, () => {
+                        setFlaggedMessageId(flaggedMessageId === message.id ? undefined : message.id);
+                    })
                 )}
                 </div>
             ))}
-        </div>
-        )
-        }
+        </Box>
+    )
+}
 
 
 const ChatInput = (props: { channelName: String, currentUserId: string, chatId: string }) => {
@@ -291,13 +283,20 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
         }
     }
 
-
-    return (
-        <div>
-        <div className="chat-input-container">
-
-        <Button onClick={handleClick}>
-            <AttachFileIcon></AttachFileIcon>
+    return <Box 
+        display="flex"
+        width="100%"
+        sx={{
+            backgroundColor: "#1c284c",
+            position: "fixed",
+            left: "0px",
+            bottom: "0px",
+            paddingBottom: "10px",
+            paddingTop: "10px"
+        }}
+    >
+        <Button onClick={handleClick} sx={{backgroundColor: "#71A9F7"}}>
+            <AttachFileIcon sx={{color: "#1c284c"}}></AttachFileIcon>
         </Button>
         <FormControl>
             <Input 
@@ -313,18 +312,14 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
             // multiline
             // maxRows={2}
             value={message} 
-            onChange={(event) => setMessage(event.target.value)}  
+            onChange={(event) => setMessage(event.target.value)}
+            sx={{backgroundColor: "#FFFFFF"}}
+            fullWidth
         />
-        <Button onClick={onSend}>
-            <SendIcon></SendIcon>
+        <Button onClick={onSend} sx={{backgroundColor: "#71A9F7"}}>
+            <SendIcon sx={{color: "#1c284c"}}></SendIcon>
         </Button>
-        
-        <div>
-            
-        </div>
-        </div>
-      </div>
-    );
+    </Box>;
 };
 
 const ImageComponent = ({id} : {id: number}) => {

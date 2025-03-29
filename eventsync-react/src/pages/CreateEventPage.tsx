@@ -250,7 +250,7 @@ function CreateEventPage() {
                 flexDirection="column"
                 // alignItems="center"
                 // justifyContent="center"
-                // paddingBottom={3}
+                paddingBottom={3}
                 paddingTop={10}
             >
                 <Box display="flex" gap={5} flexDirection="row" sx={{width: "100%", position: 'fixed', paddingTop: 2, top: '0px', backgroundColor: "#1c284c",  "z-index": 10}}>
@@ -470,14 +470,16 @@ function CreateEventPage() {
                 </AccordionDetails>
             </Accordion>
         </Box>
-        <Button 
-            variant="contained" 
-            sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
-            onClick={handleSubmit}
-            title="submit"
-        >
-            Save
-        </Button>
+        <Box display="flex" justifyContent="right" alignItems="right">
+            <Button 
+                variant="contained" 
+                sx={{ minWidth: '40px', minHeight: '40px', padding: 2, color: "black" }}
+                onClick={handleSubmit}
+                title="submit"
+            >
+                Save
+            </Button>
+        </Box>
     </>;
 
 }
