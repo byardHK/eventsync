@@ -5,11 +5,14 @@ import {InputAdornment, Paper, styled, TextField, Typography } from '@mui/materi
 import axios from 'axios';
 import { useUser } from '../sso/UserContext';
 import "../styles/style.css"
-import Chat from '../types/Chat';
 import "../styles/chatHome.css";
 import { BASE_URL } from '../components/Constants';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
+import ChatDisplay from '../types/ChatDisplay';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import GroupIcon from '@mui/icons-material/Group';
+import PersonIcon from '@mui/icons-material/Person';
 
 
 function ChatHomePage() {
@@ -60,7 +63,7 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
 
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
-    const [chats, setChats] = useState<Chat[]>([]); 
+    const [chats, setChats] = useState<ChatDisplay[]>([]); 
     
     const navigate = useNavigate();
 
@@ -68,19 +71,12 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const response = await axios.get<Chat[]>(`${BASE_URL}/get_my_chats/${currentUserId}`,{
+            const response = await axios.get<ChatDisplay[]>(`${BASE_URL}/get_my_chats/${currentUserId}`,{
               headers: {
                   'Authorization': `Bearer ${userDetails.token}`,
                   'Content-Type': 'application/json',
               },
           });
-            // const chats: Chat[] = response.data;
-            // for(const chat of chats){
-            //   if(!chat.isGroupChat){
-            //     chat.name = 
-            //   }
-            // }
-            // console.log(response.data);
             setChats(response.data);
             
           } catch (error) {
@@ -96,7 +92,7 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
           : true;
         });
 
-    function viewChat (chat: Chat) {
+    function viewChat (chat: ChatDisplay) {
       navigate(`/viewChat/${chat.id}`);
   }
 
@@ -109,7 +105,7 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
   );
 }
 
-function StyledCard({chat, viewChat, chatName} : {chat: Chat, viewChat: (chat:Chat) => void, chatName: String}){
+function StyledCard({chat, viewChat, chatName} : {chat: ChatDisplay, viewChat: (chat:ChatDisplay) => void, chatName: String}){
   const ChatCard = styled(Paper)(({ theme }) => ({
       width: 250,
       height: 75,
@@ -125,10 +121,20 @@ function StyledCard({chat, viewChat, chatName} : {chat: Chat, viewChat: (chat:Ch
   return (
       <Box display="flex" justifyContent="center" alignItems="center">
           <ChatCard elevation={10} square={false}>
-              <div onClick={() => { viewChat(chat); }} style={{cursor: "pointer"}}>
-                  <Typography variant="h5">{chatName}</Typography>
-                  <Typography variant="h5">{chat.chatType}</Typography>
-                </div>
+      
+      <div onClick={() => { viewChat(chat); }} style={{cursor: "pointer"}}>
+      <Box display="flex" flexDirection="row" justifyContent="space-between">
+        {chat.chatType == "Group" && <GroupIcon></GroupIcon>}
+        {chat.chatType == "Individual" && <PersonIcon></PersonIcon>}
+        {chat.chatType == "Event" && <CalendarMonthIcon></CalendarMonthIcon>}
+        <Box display="flex" flexDirection="row" justifyContent="space-between">
+          <Typography variant="h5">{chatName}</Typography>
+          {chat.lastMsg && chat.lastMsg.timeSent}
+          </Box>
+          {chat.lastMsg ? <Typography>{chat.lastMsg.messageContent}</Typography>
+                    : <Typography>No messages</Typography>}
+        </Box>
+      </div>        
           </ChatCard>
       </Box>
   )
