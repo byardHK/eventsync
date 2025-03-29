@@ -464,11 +464,20 @@ function CreateEventPage() {
                                 }
                             }}  
                         />
+                        
                     </Box>
                     }
                 </AccordionDetails>
             </Accordion>
         </Box>
+        <Button 
+            variant="contained" 
+            sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
+            onClick={handleSubmit}
+            title="submit"
+        >
+            Save
+        </Button>
     </>;
 
 }
