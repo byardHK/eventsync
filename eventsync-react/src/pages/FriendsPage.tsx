@@ -193,15 +193,6 @@ function FriendsPage() {
                     justifyContent="right"
                     alignItems="right"
                 >
-                    {/* <Button 
-                    color="primary" 
-                    aria-label="add" 
-                    variant="contained"
-                    sx={{ minWidth: '50px', minHeight: '50px'}}
-                    onClick={handleOpenDialog}
-                >
-                    <AddIcon />
-                </Button> */}
                 </Box>
                 <Dialog open={OpenDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm" scroll='body'>
                     <Box

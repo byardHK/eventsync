@@ -78,7 +78,7 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, heigh
 
                 {/* Share Button */}
                 <Box display="flex" flexDirection="row" justifyContent="space-between">
-                    {showViews && <p>{`${event.views} Views`}</p>}
+                    {showViews && <Typography>{`${event.views} Views`}</Typography>}
                     {showShareIcon && (
                         <Button
                             onClick={handleShare}
@@ -101,25 +101,6 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, heigh
                 
                 {children}
             </EventCard>
-
-            {/* Share Modal */}
-            {/* <Modal open={shareOpen} onClose={() => setShareOpen(false)}>
-                <Box className="modal-container">
-                    <h3>Share Event</h3>
-                    <p>Share this event with others:</p>
-                    <Button variant="contained" onClick={handleShare} startIcon={<IosShareIcon />} fullWidth>
-                        Share Link
-                    </Button>
-                    <Button 
-                        variant="outlined" 
-                        onClick={() => { navigator.clipboard.writeText(eventUrl); alert("Copied!"); }} 
-                        startIcon={<ContentCopy />} 
-                        fullWidth
-                    >
-                        Copy Link
-                    </Button>
-                </Box>
-            </Modal> */}
         </Box>
     );
 }

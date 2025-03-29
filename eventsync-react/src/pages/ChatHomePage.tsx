@@ -33,7 +33,7 @@ function ChatHomePage() {
             justifyContent="center"
             padding={2}
           >
-            <Typography variant="h3">My Chats</Typography>
+            <Typography color="white" variant="h3">My Chats</Typography>
           </Box>
               <TextField 
                 sx={{backgroundColor: 'white'}}
@@ -117,8 +117,8 @@ function StyledCard({chat, viewChat, chatName} : {chat: Chat, viewChat: (chat:Ch
       ...theme.typography.body2,
       textAlign: 'center',
       margin: '8px',
-      backgroundColor: '#1c284c',
-      color: "white"
+      backgroundColor: 'white',
+      color: "black"
 
     }));
 
@@ -126,8 +126,8 @@ function StyledCard({chat, viewChat, chatName} : {chat: Chat, viewChat: (chat:Ch
       <Box display="flex" justifyContent="center" alignItems="center">
           <ChatCard elevation={10} square={false}>
               <div onClick={() => { viewChat(chat); }} style={{cursor: "pointer"}}>
-                  <Typography variant="h5">{chatName}</Typography>
-                  <Typography variant="h5">{chat.chatType}</Typography>
+                  <Typography variant="h5" fontWeight="bold">{chatName}</Typography>
+                  <Typography>{chat.chatType}</Typography>
                 </div>
           </ChatCard>
       </Box>

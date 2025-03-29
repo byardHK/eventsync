@@ -18,7 +18,6 @@ import FlagIcon from '@mui/icons-material/Flag';
 import ReportModal from '../components/ReportModal';
 import { BASE_URL } from '../components/Constants';
 import { useNavigate } from "react-router-dom";
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import BackButton from '../components/BackButton';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import AccessAlarmIcon from '@mui/icons-material/AccessAlarm';
