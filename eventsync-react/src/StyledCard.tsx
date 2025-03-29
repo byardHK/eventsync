@@ -39,7 +39,7 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, heigh
     };
 
     const EventCard = styled(Paper)(({ theme }) => ({
-        width: 250,
+        width: 300,
         height: height ? height : 175,
         padding: theme.spacing(2),
         textAlign: 'center',
