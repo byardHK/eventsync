@@ -33,6 +33,26 @@ function ChatPage() {
     const channelName = `chat-${chatId}`;
     const [nonGroupOtherUser, setNonGroupOtherUser] = useState<User | null>(null);
 
+    async function msg_seen(msg_id: number) {
+          try {
+            const data = {
+              user_id: userDetails.email,
+              chat_id: chatId,
+              msg_id: msg_id,
+              chat_type: chat?.chatType
+            }
+            const response = await axios.post(`${BASE_URL}/update_msg_last_seen/`, data, {
+              headers: {
+                  'Authorization': `Bearer ${userDetails.token}`,
+                  'Content-Type': 'application/json',
+              },
+          });
+            
+          } catch (error) {
+            console.error('Error fetching data:', error);
+          }
+    }
+
 	useEffect(() => {
         const fetchChat = async () => {
             try {
@@ -49,6 +69,7 @@ function ChatPage() {
                 });
                 setUsers(new Map(response.data.users.map(user => [user.id, user])));
                 console.log(response.data);
+                // TODO: update msg last seen
             } catch (error) {
                 console.error('Error fetching tags:', error);
             }
@@ -62,6 +83,7 @@ function ChatPage() {
 		channel.bind('new-message', function(data: Message) {
             setMsg(data);
             console.log(data);
+            // TODO: update msg last seen
 		});
         channel.bind("pusher:subscription_succeeded", retrieveHistory);
 		
