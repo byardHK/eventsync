@@ -126,8 +126,8 @@ function TagModal({savedTags, handleSave}: TagModalProps){
 
     return <>
         <Button 
-            variant="outlined" 
-            sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
+            variant="contained" 
+            sx={{ color: "black", minWidth: '40px', minHeight: '40px', padding: 0 }}
             onClick={handleOpenModal}
             title="edit tags"
         >
@@ -141,7 +141,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                 justifyContent="center"
                 padding={2}
             >
-                <Typography variant="h5">Create a Custom Tag</Typography>
+                <Typography variant="h5" fontWeight="bold">Create a Custom Tag</Typography>
                 {errorMessage && <div className="error-message" style={{ color: 'red' }}>{errorMessage}</div>}
                 <Box
                     display="flex" 
@@ -149,7 +149,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                     paddingTop={2}
                 >
                     <TextField variant="outlined" value={createCustomTagText} onChange={(event) => setCreateCustomTagText(event.target.value)}  ></TextField>
-                    <Button size="small" variant="contained" onClick={handleCreateCustomTag}>Add Tag</Button>
+                    <Button sx={{backgroundColor: "#1c284c"}} size="small" variant="contained" onClick={handleCreateCustomTag}>Add Tag</Button>
                 </Box>
             </Box>
             <Box sx={{ border: 1 }}>
@@ -171,7 +171,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                             justifyContent="center"
                             sx={{width: "100%"}}
                         >    
-                            <FormControlLabel control={<Checkbox checked={!!selectedTags.find((_tag) => { return _tag.id === tag.id; })} onChange={(event) => {
+                            <FormControlLabel control={<Checkbox style={{color: "#1c284c"}} checked={!!selectedTags.find((_tag) => { return _tag.id === tag.id; })} onChange={(event) => {
                                 if(event.target.checked){
                                     setSelectedTags([...selectedTags, tag])
                                 }else{
@@ -181,7 +181,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                             <Button onClick={() => {
                                 deleteCustomTag(tag)
                             }}>
-                                <DeleteIcon/>
+                                <DeleteIcon style={{ color: '#ad1f39'}}/>
                             </Button>
                         </Box>
                     )}
@@ -195,7 +195,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                             justifyContent="center" 
                             sx={{width: "100%"}}
                         >    
-                            <FormControlLabel control={<Checkbox checked={!!selectedTags.find((_tag) => { return _tag.id === tag.id; })}onChange={(event) => {
+                            <FormControlLabel control={<Checkbox style={{color: "#1c284c"}} checked={!!selectedTags.find((_tag) => { return _tag.id === tag.id; })}onChange={(event) => {
                                 if(event.target.checked){
                                     setSelectedTags([...selectedTags, tag])
                                 }else{
@@ -218,7 +218,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                     <Box 
                         key={index} 
                     >    
-                        <Chip sx={{margin:1, backgroundColor: 'rgba(133, 156, 249, 0.5)', color: "black" }} label={tag.name} onDelete={() => {
+                        <Chip sx={{margin:1, backgroundColor: '#71A9F7', color: "black" }} label={tag.name} onDelete={() => {
                             setSelectedTags(selectedTags.filter((_tag) => { return _tag.id !== tag.id; }))
                         }
                         }></Chip>
@@ -233,8 +233,8 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                 padding={2}
                 gap={2}
             >
-                <Button variant="contained" fullWidth onClick={handleClose}>Cancel</Button>
-                <Button variant="contained" fullWidth onClick={onSave}>Save</Button>
+                <Button sx={{backgroundColor: "#1c284c", color: "white"}} variant="contained" fullWidth onClick={handleClose}>Cancel</Button>
+                <Button sx={{backgroundColor: "#1c284c", color: "white"}} variant="contained" fullWidth onClick={onSave}>Save</Button>
             </Box>
         </Dialog>
     </>

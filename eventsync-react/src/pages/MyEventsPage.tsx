@@ -39,7 +39,7 @@ function MyEventsPage() {
             justifyContent="center"
         >
             <Box
-                sx={{width: "100%", position: 'fixed', top: '0px', backgroundColor: "rgb(175, 175, 175)",  "z-index": 10}}
+                sx={{width: "100%", position: 'fixed', top: '0px', paddingBottom: "10px", backgroundColor: "#1c284c",  "z-index": 10}}
             >
                 <Box 
                     display="flex" 
@@ -50,6 +50,11 @@ function MyEventsPage() {
                         variant={showingAttending ? "contained" : "outlined"} 
                         fullWidth
                         onClick={() => {setShowingAttending(true)}}
+                        sx={{
+                            color: showingAttending
+                               ? 'black'
+                               : 'white'
+                        }}
                     >
                         Attending
                     </Button>
@@ -57,28 +62,25 @@ function MyEventsPage() {
                         variant={!showingAttending ? "contained" : "outlined"} 
                         fullWidth
                         onClick={() => {setShowingAttending(false)}}
+                        sx={{
+                            color: !showingAttending
+                               ? 'black'
+                               : 'white'
+                        }}
                     >
                         Hosting
                     </Button>
                 </Box>
+                {showingAttending ?
+                <></>:
+                    <>
+                        <Button sx={{ width:"100%", marginTop: "5px"}} title="Add Event Button" variant="contained" onClick={handleCreatEventClick}>
+                            <AddIcon sx={{color: "white"}}/>
+                        </Button>
+                    </>
+                }
             </Box>
             <EventLists showingAttending={showingAttending}/>
-            <Box
-                    display="flex"
-                    justifyContent="right"
-                    alignItems="right"
-                    sx={{width: "100%", position: 'fixed', bottom: '75px'}}
-                    paddingRight={3}
-                >
-                    {showingAttending ?
-                        <></>:
-                        <>
-                            <Button sx={{ minWidth: '50px', minHeight: '50px'}} title="Add Event Button" variant="contained" onClick={handleCreatEventClick}>
-                                <AddIcon/>
-                            </Button>
-                        </>
-                    }
-                </Box>
             <BottomNavBar userId={currentUserId!}/>
         </Box>
     </>;
@@ -128,7 +130,11 @@ function EventLists({showingAttending}: EventListsProps) {
                 display="flex"
                 justifyContent="center"
                 alignItems="center"
-                paddingTop={8}
+                sx={{
+                    paddingTop: showingAttending
+                       ? 8
+                       : 14
+                  }}
                 paddingBottom={8}
             >
                 {showingAttending ?
@@ -193,12 +199,12 @@ function EventList({ events, canDeleteEvents, setEventsChanged }: { events: Even
         {events.map(event =>  
             <StyledCard height={canDeleteEvents ? 225 : undefined} key={event.id} event={event} viewEvent={viewEvent} showShareIcon={true} showViews>
                 {canDeleteEvents && (
-                    <Box display="flex" flexDirection="row" gap={2} sx={{ '& button': { m: 1 }}}>
-                        <Button size="small" fullWidth variant="contained" onClick={() => editEvent(event)}>Edit</Button>
+                    <Box display="flex" flexDirection="row" sx={{ '& button': { m: 1 }}}>
+                        <Button sx={{backgroundColor: "#1c284c"}} size="small" fullWidth variant="contained" onClick={() => editEvent(event)}>Edit</Button>
                         {canDeleteEvents && (event.recurs > 1 ?
                             <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}>
                             </DeleteRecurEventModal>
-                            : <Button size="small" fullWidth variant="contained" onClick={() => deleteEvent(event)}>Delete</Button>
+                            : <Button sx={{backgroundColor: "#1c284c"}} size="small" fullWidth variant="contained" onClick={() => deleteEvent(event)}>Delete</Button>
                             )} 
                     </Box>
                 )}   

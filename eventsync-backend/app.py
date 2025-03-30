@@ -1,6 +1,6 @@
 import jwt
 import requests
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, send_file
 # INSTALL THESE:
 # pip install mysql-connector-python
 import mysql.connector
@@ -9,13 +9,17 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import *
 import pusher
 import os
+import yagmail
 
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
 app.config["PROPAGATE_EXCEPTIONS"] = True  # Ensure exceptions are raised
+UPLOAD_FOLDER = 'uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-CORS(app, origins=["https://eventsync.gcc.edu"])
+CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
 
 db_config = {
     'host': '10.18.101.62',  
@@ -27,33 +31,43 @@ db_config = {
 
 GRAPH_API_URL = "https://graph.microsoft.com/v1.0/me"
 
+cached_auth_info = { }
+
 def get_authenticated_user():
     """Fetches the authenticated user's email from Microsoft Graph API."""
     
     auth_header = request.headers.get('Authorization')
     if not auth_header:
         print("ERROR: Missing Authorization header")
-        return None, jsonify({"error": "Invalid or missing Authorization header"}), 403
+        return None, jsonify({"error": "Missing Authorization header"}), 403
 
-    headers = {
-        "Authorization": auth_header,
-        "Accept": "application/json"
-    }
+    try:
+        encodedJwt = auth_header[7:]
+        jwtDecoder = jwt.JWT()
+        decodedJwt = jwtDecoder.decode(encodedJwt, do_verify=False)
+    except Exception as e:
+        return None, jsonify({"error": "Invalid Authorization header"}), 403
 
-    response = requests.get(GRAPH_API_URL, headers=headers)
-    if response.status_code != 200:
-        return None, jsonify({"error": "Failed to fetch user profile", "details": response.text}), 403
+    cached_info = cached_auth_info.get(auth_header)
+    if not cached_info:
+        headers = {
+            "Authorization": auth_header,
+            "Accept": "application/json"
+        }
 
-    data = response.json()
-    user_email = data.get("mail")  # Extract user email
+        response = requests.get(GRAPH_API_URL, headers=headers)
+        if response.status_code != 200:
+            return None, jsonify({"error": "Failed to fetch user profile", "details": response.text}), 403
+
+        cached_info = response.json()
+        cached_auth_info[auth_header] = cached_info
+
+    user_email = cached_info.get("mail")  # Extract user email
 
     if not user_email:
         return None, jsonify({"error": "Email not found in token response"}), 403
 
     return user_email, None, None  # No error, return email
-
-
-
 
 pusher_client = pusher.Pusher(
   app_id='1939690',
@@ -789,7 +803,7 @@ def accept_friend_request(userId, friendId):
 
         # Create chat for friend
         createChat = f"""
-            INSERT INTO Chat (name, chatType) VALUES ("", 'Event');
+            INSERT INTO Chat (name, chatType) VALUES ("", 'Individual');
         """
         mycursor.execute(createChat)
         chatId = mycursor.lastrowid
@@ -897,6 +911,24 @@ def remove_friend(userId, friendId):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+
+        query = f"""SET @chatId = (SELECT ChatToUser.chatId FROM ChatToUser 
+            JOIN (SELECT * FROM ChatToUser WHERE
+                userId = '{userId}' OR userId = '{userId}' ) AS table2
+            ON ChatToUser.chatId = table2.chatId
+            WHERE ChatToUser.userId = '{friendId}' OR ChatToUser.userId = '{friendId}');
+                """
+        mycursor.execute(query)
+        mycursor.execute("DELETE FROM Chat WHERE id = @chatId")
+        mycursor.execute("DELETE FROM ChatToUser WHERE chatId = @chatId")
+        mycursor.execute("SELECT id FROM Message WHERE chatId = @chatId")
+        msg_ids = mycursor.fetchall()
+        delete_uploads(msg_ids)
+        removeMessages = f"""
+            DELETE FROM Message WHERE chatId = @chatId;
+        """
+        mycursor.execute(removeMessages)
+
         query = """
                 DELETE FROM UserToUser
                 WHERE (user1Id = %s AND user2Id = %s) OR (user1Id = %s AND user2Id = %s);
@@ -923,9 +955,16 @@ def delete_one_event(eventId):
 
     if not user_email:
         return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
+   
+    
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+
+        # send an email to all rsvps
+        send_event_cancellation(eventId)
+
         
         setEventInfoId = f"SET @eventInfoId = (SELECT eventInfoId FROM Event WHERE id = {eventId});"
         setChatId = "SET @chatId = (SELECT chatId FROM EventInfoToChat WHERE eventInfoId = @eventInfoId);"
@@ -936,12 +975,20 @@ def delete_one_event(eventId):
         mycursor.execute(deleteEventInfoToChat)
         mycursor.execute(deleteChat)
 
+        mycursor.execute("SELECT id FROM Message WHERE chatId = @chatId")
+        msg_ids = mycursor.fetchall()
+        delete_uploads(msg_ids)
+        removeMessages = f"""
+            DELETE FROM Message WHERE chatId = @chatId;
+        """
+        mycursor.execute(removeMessages)
+
         mycursor.execute("DELETE FROM EventToItem WHERE eventId = %s", (eventId,))
         mycursor.execute("DELETE FROM EventToUser WHERE eventId = %s", (eventId,))
         mycursor.execute("DELETE FROM Event WHERE id = %s", (eventId,))
-        mycursor.execute
 
         deleteEventInfo = f"DELETE FROM EventInfo WHERE id = @eventInfoId"
+        mycursor.execute(deleteEventInfo)
 
         conn.commit()
         rowCount: int = mycursor.rowcount
@@ -969,6 +1016,10 @@ def delete_one_recurring_event(eventId):
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
 
+        # send an email to all rsvps
+        send_event_cancellation(eventId)
+
+        # delete event
         mycursor.execute("DELETE FROM EventToItem WHERE eventId = %s", (eventId,))
         mycursor.execute("DELETE FROM EventToUser WHERE eventId = %s", (eventId,))
         mycursor.execute("DELETE FROM Event WHERE id = %s", (eventId,))
@@ -1001,19 +1052,41 @@ def delete_mult_event(eventId):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+
+       
+
         mycursor.execute(f"""
                         SET @eventInfoId = (SELECT eventInfoId FROM Event WHERE id = {eventId});
                         
                      """)
+        
+        # send email notifications
+        mycursor.execute(f"""
+                        Select id FROM Event WHERE eventInfoId = @eventInfoId;
+                    """)
+        eventIds = [row[0] for row in mycursor.fetchall()]
+        for eventId in eventIds:
+            send_event_cancellation(eventId)
+        
         setChatId = "SET @chatId = (SELECT chatId FROM EventInfoToChat WHERE eventInfoId = @eventInfoId);"
         deleteEventInfoToChat = f"DELETE FROM EventInfoToChat WHERE eventInfoId = @eventInfoId"
         deleteChat = f"DELETE FROM Chat WHERE id = @chatId"
         mycursor.execute(setChatId)
         mycursor.execute(deleteEventInfoToChat)
         mycursor.execute(deleteChat)
+
+        mycursor.execute("SELECT id FROM Message WHERE chatId = @chatId")
+        msg_ids = mycursor.fetchall()
+        delete_uploads(msg_ids)
+        removeMessages = f"""
+            DELETE FROM Message WHERE chatId = @chatId;
+        """
+        mycursor.execute(removeMessages)
         
         mycursor.execute("""DELETE FROM Event
                         WHERE eventInfoId = @eventInfoId;""")
+        deleteEventInfo = f"DELETE FROM EventInfo WHERE id = @eventInfoId"
+        mycursor.execute(deleteEventInfo)
         conn.commit()
 
         success: int = mycursor.rowcount
@@ -1889,6 +1962,7 @@ def get_rsvps():
         print(f"Error: {err}")
     return {} 
 
+
 @app.route('/get_my_groups/<string:userId>')
 def get_my_groups(userId):
 
@@ -2115,7 +2189,7 @@ def remove_user_from_group():
         removeUserFromGroupChat = f"""
             DELETE ChatToUser FROM GroupOfUser JOIN ChatToUser ON GroupOfUser.chatId = ChatToUser.chatId
             WHERE ChatToUser.userId = "{currentUserId}" AND GroupOfUser.id = {groupId};
-        """
+        """ 
         mycursor.execute(removeUserFromGroupChat)
         
         conn.commit()
@@ -2157,6 +2231,14 @@ def delete_group():
             DELETE FROM Chat WHERE id = @chatId;
         """
         mycursor.execute(removeChat)
+        
+        mycursor.execute("SELECT id FROM Message WHERE chatId = @chatId")
+        msg_ids = mycursor.fetchall()
+        delete_uploads(msg_ids)
+        removeMessages = f"""
+            DELETE FROM Message WHERE chatId = @chatId;
+        """
+        mycursor.execute(removeMessages)
         
         conn.commit()
         mycursor.close()
@@ -2472,7 +2554,7 @@ def message():
         mycursor.close()
         conn.close()
         pusher_client.trigger(f'chat-{data["chatId"]}', 'new-message', {'messageContent': data['messageContent'], 'senderId': data['senderId'],
-                                    'chatId': data['chatId'], 'timeSent': data['timeSent'], 'id': data['id']}) # TODO: change id
+                                    'chatId': data['chatId'], 'timeSent': data['timeSent'], 'id': data['id']})
         return "message sent"
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -2534,19 +2616,19 @@ def get_my_chats(user_id: str):
                             JOIN GroupOfUserToUser ON GroupOfUserToChat.groupOfUserId = GroupOfUserToUser.groupId
                             JOIN GroupOfUser ON GroupOfUserToChat.groupOfUserId = GroupOfUser.id
                             WHERE GroupOfUserToUser.userId = '{user_id}') AS groupStuff
-                            ON Chat.id = groupStuff.chatId)
+                            ON Chat.id = groupStuff.chatId WHERE Chat.chatType = 'Group')
                             UNION 
                             (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
                             JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
                             JOIN Event ON Event.eventInfoId = EventInfoToChat.eventInfoId
                             JOIN EventToUser ON EventToUser.eventId = Event.id
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            WHERE EventToUser.userId = "{user_id}")
+                            WHERE EventToUser.userId = "{user_id}" AND Chat.chatType = 'Event')
                             UNION
                             (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
                             JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            WHERE EventInfo.creatorId = "{user_id}")
+                            WHERE EventInfo.creatorId = "{user_id}" AND Chat.chatType = 'Event')
                             UNION
                             (SELECT Chat.id, CONCAT(otherUser.fname, " ", otherUser.lname) AS name, Chat.chatType FROM Chat 
                             JOIN ChatToUser ON Chat.id = ChatToUser.chatId
@@ -2555,7 +2637,7 @@ def get_my_chats(user_id: str):
                                 WHERE ChatToUser.userId != '{user_id}'
                                 ) AS otherUser
                             ON ChatToUser.chatId = otherUser.chatId
-                            WHERE ChatToUser.userId = '{user_id}')""")
+                            WHERE ChatToUser.userId = '{user_id}' AND Chat.chatType = 'Individual')""")
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
@@ -2663,3 +2745,158 @@ def get_event_chat_id(event_id: int):
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
+
+from flask import request, jsonify
+import mysql.connector
+
+@app.route('/ban_user', methods=['POST'])
+def ban_user():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code
+    
+    if not user_email:
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403  
+
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        mycursor.execute("SELECT isAdmin FROM User WHERE id = %s", (user_email,))
+        response = mycursor.fetchone()
+        
+        if not response or response[0] != 1: 
+            return jsonify({"error": "Unauthorized: You must be an admin to perform this action"}), 403
+
+        data = request.get_json()
+        user_id_to_ban = data.get("userId")
+
+        if not user_id_to_ban:
+            return jsonify({"error": "Missing userId in request"}), 400
+
+        mycursor.execute("UPDATE User SET isBanned = 1 WHERE id = %s", (user_id_to_ban,))
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return jsonify({"success": f"User {user_id_to_ban} has been banned"}), 200
+
+    except mysql.connector.Error as err:
+        return jsonify({"error": f"Database error: {err}"}), 500
+
+
+@app.route('/upload/', methods=['POST'])
+def upload():
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if 'file' not in request.files:
+        return jsonify({'message': 'No file part'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'message': 'No selected file'}), 400
+    if file:
+        data = request.form
+        try:
+            conn = mysql.connector.connect(**db_config)
+            mycursor = conn.cursor()
+            mycursor.execute(f""" 
+                INSERT INTO Message (chatId, senderId, imagePath, timeSent) 
+                    VALUES ({data.get('chatId')}, "{data.get("senderId")}", "{file.filename}", "{data.get("timeSent")}");
+            """)
+
+            messageId = mycursor.lastrowid
+            filename = str(messageId) + '.jpg'
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            conn.commit()
+            mycursor.close()
+            conn.close()
+            pusher_client.trigger(f'chat-{data.get("chatId")}', 'new-message', {'imagePath': file.filename, 'senderId': request.form.get('senderId'),
+                    'chatId': request.form.get('chatId'), 'timeSent': request.form.get('timeSent'), 'id': messageId})
+            return jsonify({'message': 'File uploaded successfully', 'filename': filename}), 200
+
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+    return {}
+
+@app.route('/get_image/<int:message_id>/', methods=['GET'])
+def get_image(message_id: int):
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+   
+    try:
+        return send_file(f"uploads/{message_id}.jpg", mimetype='image/jpeg'), 200
+    except Exception as  e:
+        print(f"Error: {e}")
+        return {}, 404
+    
+def delete_uploads(msg_ids):
+    for msg_arr in msg_ids:
+        msg_id = msg_arr[0]
+        img_path = f"uploads/{msg_id}.jpg"
+        if os.path.exists(img_path):
+            os.remove(img_path)
+
+def send_event_cancellation(event_id):
+    conn = mysql.connector.connect(**db_config)
+    mycursor = conn.cursor()
+    
+    # Fetch RSVP'd users
+    mycursor.execute("""
+        SELECT User.id
+        FROM User
+        JOIN EventToUser ON User.id = EventToUser.userId
+        WHERE EventToUser.eventId = %s
+    """, (event_id,))      
+    rsvp_emails = [row[0] for row in mycursor.fetchall()]
+    
+    # Fetch event details
+    mycursor.execute("""
+        SELECT EventInfo.title, Event.startTime, Event.endTime
+        FROM Event
+        JOIN EventInfo ON Event.eventInfoId = EventInfo.id
+        WHERE Event.id = %s
+    """, (event_id,))
+    
+    response = mycursor.fetchone()
+    
+    if not response:
+        return jsonify({"error": "Event not found"}), 404
+    
+    headers = [x[0] for x in mycursor.description]
+    event = dict(zip(headers, response))
+    
+    yag = yagmail.SMTP("noreplyeventsync@gmail.com", "ktlo jynx tzpy jxok")
+    for email in rsvp_emails:
+
+        # get first name
+        mycursor.execute("""
+        select fname from User where id = %s
+        """, (email,))
+    
+        first_name = mycursor.fetchone()
+
+        subject = "Event Cancelled"
+        event_start_time = event['startTime'] 
+        formatted_time = event_start_time.strftime("%A, %B %d, %Y at %I:%M %p")
+        
+        # Email Body
+        body = f"""
+        Dear {first_name[0]},
+
+        This is a notification to let you know that {event['title']}, originally scheduled for {formatted_time}, has been cancelled.
+        
+        We apologize for any inconvenience.
+        
+        Best regards,
+
+        EventSync Team
+        """
+        
+        # Send emails
+        yag.send(email, subject, body)
+        
+           

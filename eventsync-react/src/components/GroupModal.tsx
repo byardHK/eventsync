@@ -123,7 +123,7 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                         input: {
                         startAdornment: (
                             <InputAdornment position="start">
-                                <SearchIcon sx={{color: "#04227a"}}/>
+                                <SearchIcon sx={{color: "#1c284c"}}/>
                             </InputAdornment>
                             ),
                         },
@@ -160,8 +160,8 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                         </Box>
                     ))}
                 <Box display="flex" flexDirection="row" gap={2} sx={{"margin-top": "auto", width:"100%"}}>
-                    <Button variant="contained" fullWidth onClick={onClose}>Cancel</Button>
-                    <Button variant="contained" fullWidth onClick={handleSave}>Save</Button>
+                    <Button variant="contained" sx={{backgroundColor: "#1c284c"}} fullWidth onClick={onClose}>Cancel</Button>
+                    <Button variant="contained" sx={{backgroundColor: "#1c284c"}} fullWidth onClick={handleSave}>Save</Button>
                 </Box>
             </Box>
         </Dialog>
