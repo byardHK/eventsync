@@ -403,7 +403,7 @@ function CreateEventPage() {
                 }
             </LocalizationProvider>
             <Box display="flex" justifyContent="center" mt={2}>
-                <a href="https://www.aaiscloud.com/GroveCityC/default.aspx" target="_blank" rel="noopener">
+                <a href="https://www.aaiscloud.com/GroveCityC/default.aspx" target="_blank" rel="noopener noreferrer">
                     Astra Reservations
                 </a>
             </Box>

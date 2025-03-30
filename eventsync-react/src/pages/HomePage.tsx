@@ -369,7 +369,7 @@ function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents,
                 justifyContent="center"
                 paddingBottom={2}
             >
-                {currentEvents.map((event, index) => (
+                {currentEvents.map((event) => (
                     <StyledCard key={event.id} event={event} viewEvent={viewEvent} showTags/>
                 ))}
             </Grid2>

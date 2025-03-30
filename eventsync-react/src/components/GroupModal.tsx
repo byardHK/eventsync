@@ -130,19 +130,35 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                     }}
                     variant="outlined"
                 />
-                {friends.filter((friend) => friend.id.toLowerCase().includes(searchKeyword.toLowerCase())).map((friend) =>
-                    <Box key={friend.id}>
-                        <FormControlLabel control={<Checkbox disabled={friend.id === userDetails.email} checked={!!group.users.find((user) => { return user.id === friend.id; })} onChange={(event) => {
-                            const updatedGroup : Group = {...group};
-                            if(event.target.checked){
-                                updatedGroup.users.push(friend);
-                            }else{
-                                updatedGroup.users = updatedGroup.users.filter((user) => { return user.id !== friend.id; });
+                {friends
+                    .filter((friend) => {
+                        const keyword = searchKeyword.trim().toLowerCase();
+                        return keyword === "" || friend.id.toLowerCase().includes(keyword);
+                    })
+                    .map((friend) => (
+                        <Box key={friend.id}>
+                        <FormControlLabel
+                            control={
+                            <Checkbox
+                                disabled={friend.id === userDetails.email}
+                                checked={!!group.users.find((user) => user.id === friend.id)}
+                                onChange={(event) => {
+                                const updatedGroup: Group = { ...group };
+                                if (event.target.checked) {
+                                    updatedGroup.users.push(friend);
+                                } else {
+                                    updatedGroup.users = updatedGroup.users.filter(
+                                    (user) => user.id !== friend.id
+                                    );
+                                }
+                                setGroup(updatedGroup);
+                                }}
+                            />
                             }
-                            setGroup(updatedGroup);
-                        }}/>} label={`${friend.fname} ${friend.lname}`} />
-                    </Box>
-                )}
+                            label={`${friend.fname} ${friend.lname}`}
+                        />
+                        </Box>
+                    ))}
                 <Box display="flex" flexDirection="row" gap={2} sx={{"margin-top": "auto", width:"100%"}}>
                     <Button variant="contained" fullWidth onClick={onClose}>Cancel</Button>
                     <Button variant="contained" fullWidth onClick={handleSave}>Save</Button>
