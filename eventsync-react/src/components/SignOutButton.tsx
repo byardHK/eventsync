@@ -24,8 +24,7 @@ export const SignOutButton = () => {
 
   return (
     <Button onClick={() => handleLogout("redirect")} variant="contained" size="small">
-      <LogoutRounded></LogoutRounded>
-      
+      <LogoutRounded sx={{color: "black"}}></LogoutRounded>
     </Button>
   );
 };
