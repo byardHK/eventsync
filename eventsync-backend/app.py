@@ -2209,6 +2209,11 @@ def delete_group():
         body = request.json
         groupId = body.get("groupId")
 
+        removeReportsOfGroup = f"""
+            DELETE FROM Report WHERE reportedGroupId = {groupId};
+        """
+        mycursor.execute(removeReportsOfGroup)
+
         getChatId = f"SET @chatId = (SELECT chatId FROM GroupOfUserToChat WHERE groupOfUserId = {groupId});"
 
         removeGroupOfUserToChat = f"""
