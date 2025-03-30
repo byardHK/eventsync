@@ -93,7 +93,7 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
                                 <AddIcon />
                             </IconButton>
                             <IconButton onClick={() => deleteItem(index)}>
-                                <DeleteIcon />
+                                <DeleteIcon style={{ color: '#ad1f39'}} />
                             </IconButton>
                         </Box>
                     ))}

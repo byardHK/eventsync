@@ -75,7 +75,7 @@ function MyEventsPage() {
                 <></>:
                     <>
                         <Button sx={{ width:"100%", marginTop: "5px"}} title="Add Event Button" variant="contained" onClick={handleCreatEventClick}>
-                            <AddIcon sx={{color: "white"}}/>
+                            <AddIcon sx={{color: "black"}}/>
                         </Button>
                     </>
                 }
