@@ -9,6 +9,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AddIcon from '@mui/icons-material/Add';
 import { BASE_URL } from '../components/Constants';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 function FriendsPage() {
     const { userDetails } = useUser();
@@ -300,15 +301,11 @@ function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refre
                     margin="5px 0"
                     bgcolor="white"
                 >
-                    <Button 
-                        variant="contained" 
+                    <DeleteIcon style={{ color: '#ad1f39'}} 
                         onClick={(e) => {
                             e.stopPropagation();
                             userDetails.email && removeFriend(userDetails.email, friend.id);
-                        }}
-                    >
-                        <CloseIcon/>
-                    </Button>
+                    }}/>
                     <Box flexGrow={1} textAlign="left" marginLeft={5}>
                             {`${friend.fname} ${friend.lname}`}
                     </Box>
@@ -418,21 +415,13 @@ function RequestsList({ requests, refreshData, onRequestAction }: { requests: Ev
                     }}
                     square={false}
                 >
-                    <Button 
-                        variant="contained" 
-                        color="primary" 
-                        onClick={() => userDetails.email && removeRequest(userDetails.email, user.id)}
-                    >
-                        <CloseIcon/>
-                    </Button>
+                    <DeleteIcon style={{ color: '#ad1f39'}} 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            userDetails.email && removeRequest(userDetails.email, user.id);
+                    }}/>
                     {`${user.fname} ${user.lname}`}
-                    <Button 
-                        variant="contained" 
-                        color="primary" 
-                        onClick={() => userDetails.email && acceptFriend(userDetails.email, user.id)}
-                    >
-                        <CheckIcon/>
-                    </Button>
+                    <CheckIcon style={{color:"#1c284c"}} onClick={() => userDetails.email && acceptFriend(userDetails.email, user.id)}/>
                 </Card>
             ))}
         </Box>
@@ -472,13 +461,11 @@ function PendingList({ pending, refreshData }: { pending: EventSyncUser[]; refre
                     }}
                     square={false}
                 >
-                    <Button 
-                        variant="contained" 
-                        color="primary" 
-                        onClick={() => userDetails.email && removeRequest(userDetails.email, user.id)}
-                    >
-                        <CloseIcon/>
-                    </Button>
+                    <DeleteIcon style={{ color: '#ad1f39'}} 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            userDetails.email && removeRequest(userDetails.email, user.id);
+                    }}/>
                     <Box flexGrow={1} textAlign="left" marginLeft={5}>
                         {`${user.fname} ${user.lname}`}
                     </Box>
