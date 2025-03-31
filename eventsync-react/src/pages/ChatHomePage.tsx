@@ -174,13 +174,6 @@ function StyledCard({chat, viewChat, chatName} : {chat: ChatDisplay, viewChat: (
     return name.substring(0, 13) + "..."
   }
 
-  function getNameStr(name: String) {
-    if(name.length < 16) {
-        return name
-    }
-    return name.substring(0, 13) + "..."
-  }
-
   return (
       <Box display="flex" justifyContent="center" alignItems="center">
           <ChatCard elevation={10} square={false}>
@@ -195,7 +188,7 @@ function StyledCard({chat, viewChat, chatName} : {chat: ChatDisplay, viewChat: (
         </Box>
         <Box>
         <Box display="flex" flexDirection="row" justifyContent="space-between" alignContent="left">
-            <Typography align="left" variant="h6">{getNameStr(chatName)}</Typography>
+            <Typography align="left" fontWeight="bold" variant="h6">{getNameStr(chatName)}</Typography>
             {chat.lastMsg && <Typography>{messageDateString(chat.lastMsg.timeSent)}</Typography>}
             </Box>
 
