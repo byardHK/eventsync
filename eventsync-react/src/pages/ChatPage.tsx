@@ -35,6 +35,26 @@ function ChatPage() {
     const channelName = `chat-${chatId}`;
     const [nonGroupOtherUser, setNonGroupOtherUser] = useState<User | null>(null);
 
+    async function msg_seen(msg_id: number) {
+          try {
+            const data = {
+              user_id: userDetails.email,
+              chat_id: chatId,
+              msg_id: msg_id,
+              chat_type: chat?.chatType
+            }
+            const response = await axios.post(`${BASE_URL}/update_msg_last_seen/`, data, {
+              headers: {
+                  'Authorization': `Bearer ${userDetails.token}`,
+                  'Content-Type': 'application/json',
+              },
+          });
+            
+          } catch (error) {
+            console.error('Error fetching data:', error);
+          }
+    }
+
 	useEffect(() => {
         const fetchChat = async () => {
             try {
@@ -50,6 +70,7 @@ function ChatPage() {
                     chatType: stringToEnum(response.data.chat.chatType)
                 });
                 setUsers(new Map(response.data.users.map(user => [user.id, user])));
+                console.log(response.data);
             } catch (error) {
                 console.error('Error fetching tags:', error);
             }
@@ -62,6 +83,7 @@ function ChatPage() {
 		const channel = pusher.subscribe(channelName);
 		channel.bind('new-message', async function(newMsg: Message) {
             setMsg(newMsg);
+            // TODO: update msg last seen
 		});
         channel.bind("pusher:subscription_succeeded", retrieveHistory);
 		
@@ -83,6 +105,7 @@ function ChatPage() {
     useEffect(() => {
         if(msg) {
             setMessages([...messages,msg]);
+            console.log(messages.length);
         }
     }, [msg]);
 
@@ -97,6 +120,12 @@ function ChatPage() {
     }
     }, [chat, users]);
 
+      useEffect(() => {
+        if(chat && messages && messages.length > 0) {
+            msg_seen(messages[messages.length - 1].id);
+        }
+      }, [messages, chat]);
+
     async function retrieveHistory() {
         const response = await axios.get<MessageList>(`${BASE_URL}/get_chat_hist/${chatId}`, {
             headers: {
@@ -104,7 +133,8 @@ function ChatPage() {
                 'Content-Type': 'application/json'
             }
         });
-        setMessages(response.data.chats);
+        const msgs = response.data.chats
+        setMessages(msgs);
     }
 
     //TODO: add if statement to change chat title if logged in user is an admin
