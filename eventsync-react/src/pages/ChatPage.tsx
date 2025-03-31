@@ -106,6 +106,7 @@ function ChatPage() {
         if(msg) {
             setMessages([...messages,msg]);
             console.log(messages.length);
+            msg_seen(msg.id);
         }
       }, [msg]);
 
@@ -120,6 +121,12 @@ function ChatPage() {
         }
       }, [chat, users]);
 
+      useEffect(() => {
+        if(chat && messages && messages.length > 0) {
+            msg_seen(messages[messages.length - 1].id);
+        }
+      }, [messages, chat]);
+
     async function retrieveHistory() {
         const response = await axios.get<MessageList>(`${BASE_URL}/get_chat_hist/${chatId}`, {
             headers: {
@@ -127,7 +134,8 @@ function ChatPage() {
                 'Content-Type': 'application/json'
             }
         });
-        setMessages(response.data.chats);
+        const msgs = response.data.chats
+        setMessages(msgs);
     }
 
     //TODO: add if statement to change chat title if logged in user is an admin

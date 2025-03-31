@@ -15,6 +15,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import PersonIcon from '@mui/icons-material/Person';
 import Message from '../types/Message';
 import dayjs, { Dayjs } from "dayjs";
+import CircleIcon from '@mui/icons-material/Circle';
 
 
 function ChatHomePage() {
@@ -80,7 +81,7 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
               },
           });
             for(var chat of response.data) {
-              if(chat.lastMsgId) {
+              if(chat.lastMsgId && chat.lastMsgId > 0) {
                 try{
                   const msgResponse = await axios.get<Message[]>(`${BASE_URL}/get_message/${chat.lastMsgId}`,{
                     headers: {
@@ -161,16 +162,19 @@ function StyledCard({chat, viewChat, chatName} : {chat: ChatDisplay, viewChat: (
       
       <div onClick={() => { viewChat(chat); }} style={{cursor: "pointer"}}>
       <Box display="flex" flexDirection="row" justifyContent="space-between">
-        {chat.chatType == "Group" && <GroupIcon></GroupIcon>}
-        {chat.chatType == "Individual" && <PersonIcon></PersonIcon>}
-        {chat.chatType == "Event" && <CalendarMonthIcon></CalendarMonthIcon>}
+        <Box display="flex" flexDirection="column" justifyContent="space-between">
+          {chat.chatType == "Group" && <GroupIcon></GroupIcon>}
+          {chat.chatType == "Individual" && <PersonIcon></PersonIcon>}
+          {chat.chatType == "Event" && <CalendarMonthIcon></CalendarMonthIcon>}
+          {chat.unreadMsgs == true && <CircleIcon></CircleIcon>}
+        </Box>
         <Box>
         <Box display="flex" flexDirection="row" justifyContent="space-between">
             <Typography variant="h6">{chatName}</Typography>
-            {chat.lastMsg && <div>{messageDateString(chat.lastMsg.timeSent)}</div>}
+            {chat.lastMsg && <Typography>{messageDateString(chat.lastMsg.timeSent)}</Typography>}
             </Box>
 
-            {chat.lastMsg ? <Typography>Hello</Typography> // {chat.lastMsg.messageContent}
+            {chat.lastMsg ? <Typography>{chat.lastMsg.messageContent}</Typography> // {chat.lastMsg.messageContent}
                       : <Typography>No messages</Typography>}
           </Box>
         </Box>
