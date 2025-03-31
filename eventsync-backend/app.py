@@ -2543,71 +2543,73 @@ def get_my_chats(user_id: str):
                             ON Chat.id = groupStuff.chatId 
                             WHERE Chat.chatType = 'Group')
                             UNION 
-                            (SELECT Chat.id, EventInfo.title AS name, msg.lastMsgId, Chat.chatType,
-                                msg.lastMsgId > 0 AND EventToUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs FROM Chat
-                            JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
-                            JOIN Event ON Event.eventInfoId = EventInfoToChat.eventInfoId
-                            JOIN EventToUser ON EventToUser.eventId = Event.id
-                            JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = Chat.id
-                            WHERE EventToUser.userId = "{user_id}" AND Chat.chatType = 'Event')
-                            UNION
-                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
-                            JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
-                            JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            WHERE EventInfo.creatorId = "{user_id}" AND Chat.chatType = 'Event')
-                            UNION
-                            (SELECT Chat.id, CONCAT(otherUser.fname, " ", otherUser.lname) AS name, Chat.chatType FROM Chat 
+                            (SELECT Chat.id, CONCAT(otherUser.fname, " ", otherUser.lname) AS name, Chat.chatType, otherUser.lastMsgId, 
+                                otherUser.lastMsgId > 0 AND otherUser.lastMsgSeen < otherUser.lastMsgId AS unreadMsgs FROM Chat 
                             JOIN ChatToUser ON Chat.id = ChatToUser.chatId
-                            JOIN (SELECT * FROM ChatToUser 
-                                JOIN User ON ChatToUser.userId = User.id
-                                WHERE ChatToUser.userId != '{user_id}'
-                                ) AS otherUser
+                            JOIN (SELECT ChatToUser.chatId, ChatToUser.lastMsgSeen, User.fname, User.lname, msg.lastMsgId FROM ChatToUser 
+                            JOIN User ON ChatToUser.userId = User.id
+                            JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) 
+                                AS msg ON msg.chatId = ChatToUser.chatId
+                            WHERE ChatToUser.userId != '{user_id}') AS otherUser
                             ON ChatToUser.chatId = otherUser.chatId
                             WHERE ChatToUser.userId = '{user_id}' AND Chat.chatType = 'Individual')""")
+                            #                             (SELECT Chat.id, EventInfo.title AS name, msg.lastMsgId, Chat.chatType,
+                            #     msg.lastMsgId > 0 AND EventToUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs FROM Chat
+                            # JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
+                            # JOIN Event ON Event.eventInfoId = EventInfoToChat.eventInfoId
+                            # JOIN EventToUser ON EventToUser.eventId = Event.id
+                            # JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
+                            # JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = Chat.id
+                            # WHERE EventToUser.userId = "{user_id}" AND Chat.chatType = 'Event')
+                            # UNION
+                            # (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
+                            # JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
+                            # JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
+                            # WHERE EventInfo.creatorId = "{user_id}" AND Chat.chatType = 'Event')
+                            # UNION
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
         mycursor.close()
         conn.close()
-        # return sqlResponseToJson(response, headers)
-        return [
-                {
-                    "chatType": "Group",
-                    "id": 46,
-                    "name": "Another Chat Test Group",
-                    "unreadMsgs": False,
-                    "lastMsg": None
-                },
-                {
-                    "chatType": "Event",
-                    "id": 29,
-                    "name": "AI Study Session",
-                    "unreadMsgs": False,
-                    "lastMsg": None
-                },
-                {
-                    "chatType": "Event",
-                    "id": 49,
-                    "name": "Wolfe test",
-                    "unreadMsgs": False,
-                    "lastMsg": None
-                },
-                {
-                    "chatType": "Individual",
-                    "id": 134,
-                    "name": "fake dude",
-                    "unreadMsgs": True,
-                    "lastMsg": {
-                        "chatId": 134,
-                        "id": 260,
-                        "imagePath": None,
-                        "messageContent": "Hi fake dude!",
-                        "senderId": "harnlyam20@gcc.edu",
-                        "timeSent": "Sat, 29 Mar 2025 14:59:48 GMT"
-                    }
-                }
-            ]
+        return sqlResponseToJson(response, headers)
+        # return [
+        #         {
+        #             "chatType": "Group",
+        #             "id": 46,
+        #             "name": "Another Chat Test Group",
+        #             "unreadMsgs": False,
+        #             "lastMsg": None
+        #         },
+        #         {
+        #             "chatType": "Event",
+        #             "id": 29,
+        #             "name": "AI Study Session",
+        #             "unreadMsgs": False,
+        #             "lastMsg": None
+        #         },
+        #         {
+        #             "chatType": "Event",
+        #             "id": 49,
+        #             "name": "Wolfe test",
+        #             "unreadMsgs": False,
+        #             "lastMsg": None
+        #         },
+        #         {
+        #             "chatType": "Individual",
+        #             "id": 134,
+        #             "name": "fake dude",
+        #             "unreadMsgs": True,
+        #             "lastMsg": {
+        #                 "chatId": 134,
+        #                 "id": 260,
+        #                 "imagePath": None,
+        #                 "messageContent": "Hi fake dude!",
+        #                 "senderId": "harnlyam20@gcc.edu",
+        #                 "timeSent": "Sat, 29 Mar 2025 14:59:48 GMT"
+        #             }
+        #         }
+        #     ]
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}

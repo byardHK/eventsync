@@ -13,6 +13,8 @@ import ChatDisplay from '../types/ChatDisplay';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import GroupIcon from '@mui/icons-material/Group';
 import PersonIcon from '@mui/icons-material/Person';
+import Message from '../types/Message';
+import dayjs, { Dayjs } from "dayjs";
 
 
 function ChatHomePage() {
@@ -71,13 +73,29 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const response = await axios.get<ChatDisplay[]>(`${BASE_URL}/get_my_chats/${currentUserId}`,{
+            var response = await axios.get<ChatDisplay[]>(`${BASE_URL}/get_my_chats/${currentUserId}`,{
               headers: {
                   'Authorization': `Bearer ${userDetails.token}`,
                   'Content-Type': 'application/json',
               },
           });
-            setChats(response.data);
+            for(var chat of response.data) {
+              if(chat.lastMsgId) {
+                try{
+                  const msgResponse = await axios.get<Message[]>(`${BASE_URL}/get_message/${chat.lastMsgId}`,{
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json',
+                    },
+                  }); 
+                  chat.lastMsg = msgResponse.data[0];
+              }catch(error) {
+                console.error('Error fetching data:', error);
+                }
+            };
+            }
+            setChats(sortedChats(response.data));
+            console.log(response);
             
           } catch (error) {
             console.error('Error fetching data:', error);
@@ -91,6 +109,25 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
           ? chat.name.toLowerCase().includes(searchKeyword.toLowerCase())
           : true;
         });
+
+    const sortedChats = (chats: ChatDisplay[]) => {
+      const sortedChats = [...chats].sort((a, b) => {
+        if(!a.lastMsg) {
+          return 1
+        }
+        if(!b.lastMsg) {
+          return 1
+        }
+        if (a.lastMsg.timeSent > b.lastMsg.timeSent) {
+          return -1;
+        }
+        if (a.lastMsg.timeSent > b.lastMsg.timeSent) {
+          return 1;
+        }
+        return 0;
+      });
+      return sortedChats;
+    };
 
     function viewChat (chat: ChatDisplay) {
       navigate(`/viewChat/${chat.id}`);
@@ -127,17 +164,33 @@ function StyledCard({chat, viewChat, chatName} : {chat: ChatDisplay, viewChat: (
         {chat.chatType == "Group" && <GroupIcon></GroupIcon>}
         {chat.chatType == "Individual" && <PersonIcon></PersonIcon>}
         {chat.chatType == "Event" && <CalendarMonthIcon></CalendarMonthIcon>}
+        <Box>
         <Box display="flex" flexDirection="row" justifyContent="space-between">
-          <Typography variant="h5">{chatName}</Typography>
-          {chat.lastMsg && chat.lastMsg.timeSent}
+            <Typography variant="h6">{chatName}</Typography>
+            {chat.lastMsg && <div>{messageDateString(chat.lastMsg.timeSent)}</div>}
+            </Box>
+
+            {chat.lastMsg ? <Typography>Hello</Typography> // {chat.lastMsg.messageContent}
+                      : <Typography>No messages</Typography>}
           </Box>
-          {chat.lastMsg ? <Typography>{chat.lastMsg.messageContent}</Typography>
-                    : <Typography>No messages</Typography>}
         </Box>
       </div>        
           </ChatCard>
       </Box>
   )
 }
+
+export function messageDateString(dateStr: string) {
+  const date: Dayjs = dayjs(dateStr);
+  if (date.isToday()) {
+      return dayjs(dateStr).format("h:mm A");
+  } else if(date.year() == dayjs().year()) {
+      return dayjs(dateStr).format("M/D");
+  } else {
+      return dayjs(dateStr).format("M/D/YY");
+  }
+  
+}
+
 
 export default ChatHomePage;
