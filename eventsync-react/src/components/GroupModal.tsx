@@ -101,49 +101,82 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
             <Box
                 display="flex"
                 flexDirection="column"
+                justifyContent="space-between"
                 alignItems="center"
                 gap={2}
                 sx={{padding: 3, minHeight: "80vh", maxHeight: "80vh"}}
             >
-                <TextField 
-                    id="standard-basic" 
-                    label="Group Name" 
-                    variant="outlined" 
-                    value={group.groupName}
-                    onChange={(event) => {
-                        setGroup({...group, groupName: event.target.value})
+                <Box sx={{ width: "100%" }}>
+                    <TextField 
+                        id="standard-basic" 
+                        label="Group Name" 
+                        variant="outlined" 
+                        value={group.groupName}
+                        fullWidth
+                        onChange={(event) => {
+                            setGroup({...group, groupName: event.target.value})
+                        }}
+                    />
+                    <Typography sx={{ marginTop: 2 }}>Choose friends to add to group: </Typography>
+                    <TextField 
+                        sx={{backgroundColor: 'white', marginTop: 1}}
+                        id="outlined-basic"
+                        onChange={(e) => setSearchKeyword(e.target.value)}
+                        slotProps={{
+                            input: {
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <SearchIcon sx={{color: "#1c284c"}}/>
+                                </InputAdornment>
+                                ),
+                            },
+                        }}
+                        variant="outlined"
+                        fullWidth
+                    />
+                </Box>
+                <Box
+                    sx={{
+                        flexGrow: 1,
+                        overflowY: "auto",
+                        width: "100%",
+                        marginTop: 2,
                     }}
-                />
-                <Typography>Choose friends to add to group: </Typography>
-                <TextField 
-                    sx={{backgroundColor: 'white'}}
-                    id="outlined-basic"
-                    onChange={(e) => setSearchKeyword(e.target.value)}
-                    slotProps={{
-                        input: {
-                        startAdornment: (
-                            <InputAdornment position="start">
-                                <SearchIcon sx={{color: "#1c284c"}}/>
-                            </InputAdornment>
-                            ),
-                        },
-                    }}
-                    variant="outlined"
-                />
-                {friends.filter((friend) => friend.id.toLowerCase().includes(searchKeyword.toLowerCase())).map((friend) =>
-                    <Box key={friend.id}>
-                        <FormControlLabel control={<Checkbox style={{color: "#1c284c"}} disabled={friend.id === userDetails.email} checked={!!group.users.find((user) => { return user.id === friend.id; })} onChange={(event) => {
-                            const updatedGroup : Group = {...group};
-                            if(event.target.checked){
-                                updatedGroup.users.push(friend);
-                            }else{
-                                updatedGroup.users = updatedGroup.users.filter((user) => { return user.id !== friend.id; });
-                            }
-                            setGroup(updatedGroup);
-                        }}/>} label={`${friend.fname} ${friend.lname}`} />
-                    </Box>
-                )}
-                <Box display="flex" flexDirection="row" gap={2} sx={{"margin-top": "auto", width:"100%"}}>
+                >
+                    {friends
+                        .filter((friend) => {
+                            const keyword = searchKeyword.trim().toLowerCase();
+                            return (
+                                keyword === "" ||
+                                friend.fname.toLowerCase().includes(keyword) || friend.lname.toLowerCase().includes(keyword)
+                            );
+                        })
+                        .map((friend) => (
+                            <Box key={friend.id}>
+                            <FormControlLabel
+                                control={
+                                <Checkbox
+                                    disabled={friend.id === userDetails.email}
+                                    checked={!!group.users.find((user) => user.id === friend.id)}
+                                    onChange={(event) => {
+                                    const updatedGroup: Group = { ...group };
+                                    if (event.target.checked) {
+                                        updatedGroup.users.push(friend);
+                                    } else {
+                                        updatedGroup.users = updatedGroup.users.filter(
+                                        (user) => user.id !== friend.id
+                                        );
+                                    }
+                                    setGroup(updatedGroup);
+                                    }}
+                                />
+                                }
+                                label={`${friend.fname} ${friend.lname}`}
+                            />
+                            </Box>
+                        ))}
+                </Box>
+                <Box display="flex" flexDirection="row" gap={2} sx={{ width: "100%" }}>
                     <Button variant="contained" sx={{backgroundColor: "#1c284c"}} fullWidth onClick={onClose}>Cancel</Button>
                     <Button variant="contained" sx={{backgroundColor: "#1c284c"}} fullWidth onClick={handleSave}>Save</Button>
                 </Box>

@@ -22,6 +22,7 @@ function FriendsPage() {
     const [filteredUsers, setFilteredUsers] = useState(users);
     const [isFriendsPage ] = useState<Boolean>(true); 
     const [refreshTrigger, setRefreshTrigger] = useState(false);
+    const [expandedAccordion, setExpandedAccordion] = useState<string | false>('friends');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -87,6 +88,13 @@ function FriendsPage() {
         setRefreshTrigger(!refreshTrigger);
     };
 
+    const handleAccordionChange = (panel: string) => (
+        event: React.SyntheticEvent,
+        isExpanded: boolean
+    ) => {
+        setExpandedAccordion(isExpanded ? panel : false);
+    };
+
     return <>
         <Box
             display="flex"
@@ -139,52 +147,83 @@ function FriendsPage() {
                 paddingBottom={10}
                 paddingTop={13}
             >
-                <Accordion defaultExpanded disableGutters sx={{backgroundColor: "#1c284c", width: "100%", border: "1px solid #FFF"}}>
+                <Accordion
+                    expanded={expandedAccordion === 'friends'}
+                    onChange={handleAccordionChange('friends')}
+                    disableGutters
+                    sx={{ backgroundColor: "#1c284c", width: "100%", border: "1px solid #FFF" }}
+                >
                     <AccordionSummary
-                        expandIcon={<ExpandMoreIcon style={{color: "white"}}/>}
+                        expandIcon={<ExpandMoreIcon style={{ color: "white" }} />}
                         aria-controls="panel1-content"
                         id="panel1-header"
                     >
-                        <Typography sx={{color: "white"}} variant="h4" component="span">Friends</Typography>
+                        <Typography sx={{ color: "white" }} variant="h4" component="span">
+                            Friends
+                        </Typography>
                     </AccordionSummary>
                     <AccordionDetails>
-                        {friends.length > 0 ?
-                            <FriendsList friends={friends} refreshData={() => userDetails.email && refreshData(userDetails.email)} />
-                            :
-                            <Typography sx={{color: "white"}}>No Friends</Typography>
-                        }
+                        {friends.length > 0 ? (
+                            <FriendsList
+                                friends={friends}
+                                refreshData={() => userDetails.email && refreshData(userDetails.email)}
+                            />
+                        ) : (
+                            <Typography sx={{ color: "white" }}>No Friends</Typography>
+                        )}
                     </AccordionDetails>
                 </Accordion>
-                <Accordion disableGutters sx={{backgroundColor: "#1c284c", width: "100%", border: "1px solid #FFF"}}>
+                <Accordion
+                    expanded={expandedAccordion === 'requests'}
+                    onChange={handleAccordionChange('requests')}
+                    disableGutters
+                    sx={{ backgroundColor: "#1c284c", width: "100%", border: "1px solid #FFF" }}
+                >
                     <AccordionSummary
-                        expandIcon={<ExpandMoreIcon style={{color: "white"}}/>}
+                        expandIcon={<ExpandMoreIcon style={{ color: "white" }} />}
                         aria-controls="panel2-content"
                         id="panel2-header"
                     >
-                        <Typography sx={{color: "white"}} variant="h4" component="span">Friend Requests</Typography>
+                        <Typography sx={{ color: "white" }} variant="h4" component="span">
+                            Friend Requests
+                        </Typography>
                     </AccordionSummary>
                     <AccordionDetails>
-                        {requests.length > 0 ?
-                            <RequestsList requests={requests} refreshData={() => userDetails.email && refreshData(userDetails.email)} onRequestAction={handleRequestAction} />
-                            :
-                            <Typography sx={{color: "white"}}>No Friend Requests</Typography>
-                        }
+                        {requests.length > 0 ? (
+                            <RequestsList
+                                requests={requests}
+                                refreshData={() => userDetails.email && refreshData(userDetails.email)}
+                                onRequestAction={handleRequestAction}
+                            />
+                        ) : (
+                            <Typography sx={{ color: "white" }}>No Friend Requests</Typography>
+                        )}
                     </AccordionDetails>
                 </Accordion>
-                <Accordion disableGutters sx={{backgroundColor: "#1c284c", width: "100%", border: "1px solid #FFF"}}>
-                    <AccordionSummary
-                    expandIcon={<ExpandMoreIcon style={{color: "white"}}/>}
-                    aria-controls="panel3-content"
-                    id="panel3-header"
+                <Accordion
+                    expanded={expandedAccordion === 'pending'}
+                    onChange={handleAccordionChange('pending')}
+                    disableGutters
+                    sx={{ backgroundColor: "#1c284c", width: "100%", border: "1px solid #FFF" }}
                 >
-                    <Typography sx={{color: "white"}} variant="h4" component="span">Pending Friends</Typography>
+                    <AccordionSummary
+                        expandIcon={<ExpandMoreIcon style={{ color: "white" }} />}
+                        aria-controls="panel3-content"
+                        id="panel3-header"
+                    >
+                        <Typography sx={{ color: "white" }} variant="h4" component="span">
+                            Pending Friends
+                        </Typography>
                     </AccordionSummary>
                     <AccordionDetails>
-                        {pending.length > 0 ?
-                            <PendingList pending={pending} refreshData={() => userDetails.email && refreshData(userDetails.email)}/>
-                            :
-                            <Typography sx={{color: "white"}}>No Pending Friend Requests</Typography>
-                        }
+                        {pending.length > 0 ? (
+                            <PendingList
+                                pending={pending}
+                                refreshData={() => userDetails.email && refreshData(userDetails.email)}
+                            />
+                        ) : (
+                            <Typography sx={{ color: "white" }}>No Pending Friend Requests</Typography>
+                        )}
                     </AccordionDetails>
                 </Accordion>
                 <Box
