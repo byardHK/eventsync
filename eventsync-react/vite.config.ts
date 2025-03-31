@@ -12,7 +12,7 @@ export default defineConfig({
       key: fs.readFileSync(path.resolve(__dirname, '../eventsync-backend/server.key')),
       cert: fs.readFileSync(path.resolve(__dirname, '../eventsync-backend/server.crt')), 
     },
-    port: 3000,
+    port: 443,
     proxy: {
       '/api': {
         target: 'https://eventsync.gcc.edu:5000', // Ensure backend is running HTTPS
