@@ -35,7 +35,7 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged:
     }
 
     return <>
-        <Button fullWidth variant="contained" onClick={() => handleOpen()}>Delete</Button>
+        <Button sx={{backgroundColor: "#1c284c"}} fullWidth variant="contained" onClick={() => handleOpen()}>Delete</Button>
         <Dialog onClose={handleClose} open={isOpen}>
             <Box
                 display="flex" 

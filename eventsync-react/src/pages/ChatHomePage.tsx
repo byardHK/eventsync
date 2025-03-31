@@ -31,18 +31,21 @@ function ChatHomePage() {
             alignItems="center" 
             justifyContent="center"
             paddingBottom={2}
-            style={{ position: 'fixed', top: '0', width: "100%", backgroundColor: "#1c284c"}}
+            style={{ position: 'fixed', top: '0', backgroundColor: "#1c284c", width: "100%", right: 0, left: 0, marginRight: "0", marginLeft: "auto"}}
         >
           <Box
             display="flex"
+            flexDirection="column"
             alignItems="center" 
             justifyContent="center"
-            padding={2}
+            gap={2}
+            paddingTop={2}
           >
-            <Typography variant="h3">My Chats</Typography>
+            <Typography color="white" variant="h3">My Chats</Typography>
           </Box>
+          <br></br>
               <TextField 
-                sx={{backgroundColor: 'white'}}
+                sx={{backgroundColor: 'white', width: "75%"}}
                 id="outlined-basic"
                 onChange={(e) => setSearchKeyword(e.target.value)}
                 slotProps={{
@@ -57,8 +60,16 @@ function ChatHomePage() {
                 variant="outlined"
             />
           </Box>
-          <ChatList searchKeyword={searchKeyword}></ChatList>
-          <BottomNavBar userId={currentUserId!}></BottomNavBar>
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center" 
+            justifyContent="center"
+            paddingBottom={2}
+          >
+            <ChatList searchKeyword={searchKeyword}></ChatList>
+            <BottomNavBar userId={currentUserId!}></BottomNavBar>
+          </Box>
     </>;
 };
 
@@ -135,7 +146,7 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
   }
 
     return (
-      <Box display="flex" flexDirection="column" paddingBottom={10} paddingTop={20}>
+      <Box display="flex" flexDirection="column" paddingBottom={7} paddingTop={18}>
         {filteredChats.map((chat, index) => (
           <StyledCard key={index} chat={chat} viewChat={viewChat} chatName={chat.name}></StyledCard>
         ))}
@@ -145,16 +156,23 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
 
 function StyledCard({chat, viewChat, chatName} : {chat: ChatDisplay, viewChat: (chat:ChatDisplay) => void, chatName: String}){
   const ChatCard = styled(Paper)(({ theme }) => ({
-      width: 250,
-      height: 75,
+      width: 300,
+      height: 85,
       padding: theme.spacing(2),
       ...theme.typography.body2,
       textAlign: 'center',
       margin: '8px',
-      backgroundColor: '#1c284c',
-      color: "white"
+      backgroundColor: 'white',
+      color: "black"
 
     }));
+
+  function getNameStr(name: String) {
+    if(name.length < 16) {
+        return name
+    }
+    return name.substring(0, 13) + "..."
+  }
 
   function getNameStr(name: String) {
     if(name.length < 16) {

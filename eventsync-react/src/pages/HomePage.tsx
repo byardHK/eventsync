@@ -274,7 +274,7 @@ function HomePage() {
                 sx={{paddingTop: "200px"}}
             >
                 <EventList searchKeyword={searchKeyword} tags={tags} userTags={userTags} isComingSoon={isComingSoon} hideFullEvents={hideFullEvents} afterDate={afterDate} beforeDate={beforeDate} friends={friends}/>   
-            <BottomNavBar userId={currentUserId!}/>
+                <BottomNavBar userId={currentUserId!}/>
             </Box>
         </LocalizationProvider>
     </>;
@@ -384,7 +384,7 @@ function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents,
                 ))}
             </Grid2>
             {currentEvents.length < filteredEvents.length && (
-                <Button onClick={handlePageChange} variant="contained" color="primary" sx={{ marginTop: 0, marginBottom: 10 }}>
+                <Button onClick={handlePageChange} variant="contained"  sx={{ marginTop: 0, marginBottom: 10, backgroundColor:"#71A9F7", color: "black" }}>
                     Load More
                 </Button>
             )}

@@ -18,16 +18,38 @@ import LoadingPage from "./pages/LoadingPage";
 import { Navigate } from 'react-router-dom';
 import { ThemeProvider } from "@mui/material";
 import theme from "./components/ColorTheme";
+import { useMsal } from "@azure/msal-react";
+import { useEffect, useState } from "react";
+import { Typography } from "@mui/material";
 
 const MainContent = () => {
   const { userDetails } = useUser();
+  const { instance, inProgress } = useMsal();
+  const [showBannedMessage, setShowBannedMessage] = useState(false);
+
+  useEffect(() => {
+    if (userDetails.isBanned) {
+      setShowBannedMessage(true);
+      setTimeout(() => {
+          instance.logoutRedirect(); 
+      }, 3000); 
+    }
+  }, [userDetails.isBanned, instance, inProgress]);
+
+  if (showBannedMessage) {
+    return (
+      <div style={{ textAlign: "center", marginTop: "20vh", fontSize: "24px", color: "red" }}>
+        <Typography variant="p">You are banned</Typography>
+      </div>
+    );
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <div className="App">
           <AuthenticatedTemplate>
             <BrowserRouter>
-            <LoadUser></LoadUser>
-           
+              <LoadUser></LoadUser>
                 <Routes>
                     <Route path="/" element={!userDetails.isOnboardingComplete ? <LoadingPage /> : <Navigate to="/home" />}/>
                     <Route path="/home" element={<HomePage/>}/>

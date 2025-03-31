@@ -10,35 +10,6 @@
   position: absolute;
   left: 0;
 } */
-
-.chat-input-container {
-  padding: 12px;
-  background-color: #fff;
-  border-top: 1px solid #ddd;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  position: fixed;
-  bottom: 0px;
-}
-
-.chat-input-container input {
-  width: 100%;
-  border-radius: 5px;
-  border: 1px solid #ddd;
-}
-
-.chat-input-container button {
-  border: none;
-  background-color: #1c284c;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-}
-  
-  /* .chat-input-container button:hover {
-    background-color: #007AFF;
-  } */
   
 .chat {
   list-style: none;
@@ -56,10 +27,9 @@
 }
 
 .other .msg {
-  order: 1;
   border-top-left-radius: 0px;
-  background-color: #5271ff;
-  color: white;
+  background-color: #71A9F7;
+  color: black;
 }
 
 .self {
@@ -69,8 +39,8 @@
 .self .msg {
   order: 1;
   border-bottom-right-radius: 0px;
-  background-color: #1c284c;
-  color: white;
+  background-color: white;
+  color: black;
   margin-left: auto; 
   margin-right: 0;
 }
@@ -87,12 +57,12 @@
 .msg p {
   font-size: 0.8rem;
   margin: 0 0 0.2rem 0;
-  color: white;
+  color: black;
 }
 
 .msg .date {
   font-size: 0.8rem;
   padding-top: 5px;
   text-align: right;
-  color: white;
+  color: black;
 }

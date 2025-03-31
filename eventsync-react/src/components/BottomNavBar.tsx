@@ -8,10 +8,14 @@ import GroupIcon from '@mui/icons-material/Group';
 import axios from 'axios';
 import { BASE_URL } from './Constants';
 import { useUser } from '../sso/UserContext';
+import { useLocation } from 'react-router-dom';
 
 function BottomNavBar({ userId }: { userId: string }) {
     const [friendRequests, setFriendRequests] = useState(0);
     const { userDetails } = useUser();
+    const location = useLocation();
+    const currentPage = location.pathname;
+
     
     useEffect(() => {
         async function fetchFriendRequests() {
@@ -35,33 +39,75 @@ function BottomNavBar({ userId }: { userId: string }) {
         display="flex"
         flexDirection="row"
         width="100%"
-        paddingBottom={2}
-        paddingTop={2}
-        sx={{backgroundColor: "#1c284c"}}
+        // paddingBottom={2}
+        // paddingTop={2}
+        height="50px"
+        sx={{backgroundColor: "#71A9F7"}}
         justifyContent="space-around"
+        alignItems="center"
         style={{ position: 'fixed', bottom: '0' }}
     >
         <Link title="Link to Home Page" to="/home">
-            <Button title="Home Page Button" variant="contained">
+            {currentPage=="/home" ?
+            <Box sx={{backgroundColor: "#1c284c", height:"50px", width: "75px", display:"flex", alignItems:"center", justifyContent:"center"}}>
+                <HomeIcon style={{ color: 'white'}}/>
+            </Box>
+            :
+            <Box sx={{height:"50px", width: "75px", display:"flex", alignItems:"center", justifyContent:"center"}}>
                 <HomeIcon style={{ color: 'black'}}/>
-            </Button>
+            </Box>
+            }
+            
         </Link>
         <Link title="Link to My Events Page" to="/myEvents">
-            <Button title="My Events Page Button" variant="contained">
+        {currentPage=="/myEvents" ?
+            <Box sx={{backgroundColor: "#1c284c", height:"50px", width: "75px", display:"flex", alignItems:"center", justifyContent:"center"}}>
+                <CalendarMonthIcon style={{ color: 'white'}}/>
+            </Box>
+            :
+            <Box sx={{height:"50px", width: "75px", display:"flex", alignItems:"center", justifyContent:"center"}}>
                 <CalendarMonthIcon style={{ color: 'black'}}/>
-            </Button>
+            </Box>
+            }
         </Link>
         <Link to="/chatHome">
-            <Button variant="contained">
+        {currentPage=="/chatHome" ?
+            <Box sx={{backgroundColor: "#1c284c", height:"50px", width: "75px", display:"flex", alignItems:"center", justifyContent:"center"}}>
+                <ChatIcon style={{ color: 'white'}}/>
+            </Box>
+            :
+            <Box sx={{height:"50px", width: "75px", display:"flex", alignItems:"center", justifyContent:"center"}}>
                 <ChatIcon style={{ color: 'black'}}/>
-            </Button>
+            </Box>
+            }
         </Link>
         <Link to="/friends">
-            <Badge badgeContent={friendRequests} color="secondary">
-                <Button variant="contained">
-                    <GroupIcon  style={{ color: 'black'}}/>
-                </Button>
-            </Badge>
+                {currentPage=="/friends" || currentPage=="/groups" ?
+                
+                <Box sx={{backgroundColor: "#1c284c", height:"50px", width: "75px", display:"flex", alignItems:"center", justifyContent:"center"}}>
+                    <Badge badgeContent={friendRequests} sx={{
+                        padding:1,
+                        "& .MuiBadge-badge": {
+                        color: "#FFFFFF",
+                        backgroundColor: "#ad1f39"
+                        }
+                    }}>
+                        <GroupIcon style={{ color: 'white'}}/>
+                    </Badge>
+                </Box>
+                :
+                <Box sx={{height:"50px", width: "75px", display:"flex", alignItems:"center", justifyContent:"center"}}>
+                    <Badge badgeContent={friendRequests} sx={{
+                        padding:1,
+                        "& .MuiBadge-badge": {
+                        color: "#FFFFFF",
+                        backgroundColor: "#ad1f39"
+                        }
+                    }}>
+                        <GroupIcon style={{ color: 'black'}}/>
+                    </Badge>
+                </Box>
+                }
         </Link>
     </Box>
 }

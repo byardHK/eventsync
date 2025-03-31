@@ -50,8 +50,8 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
     return (
         <div>
             <Button 
-                variant="outlined"
-                sx={{ minWidth: '40px', minHeight: '40px', padding: 0 }}
+                variant="contained"
+                sx={{ color: "black", minWidth: '40px', minHeight: '40px', padding: 0 }}
                 onClick={handleOpen}
                 title="edit tags"
             >
@@ -93,7 +93,7 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
                                 <AddIcon />
                             </IconButton>
                             <IconButton onClick={() => deleteItem(index)}>
-                                <DeleteIcon />
+                                <DeleteIcon style={{ color: '#ad1f39'}} />
                             </IconButton>
                         </Box>
                     ))}

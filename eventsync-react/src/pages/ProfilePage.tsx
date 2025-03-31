@@ -151,15 +151,17 @@ function ProfilePage() {
         }, [userTagsTrigger]);
 
         return (
-            <Box display="flex" flexDirection="column" alignItems="center" width="85%" maxWidth="350px" margin="auto">
+            <Box display="flex" flexDirection="column" alignItems="center">
+                
                 {/* Back & Logout Buttons */}
-                <Box display="flex" justifyContent="space-between" width="100%">
+                {/* <Box display="flex" justifyContent="space-between" width="100%"> */}
+                <Box display="flex" flexDirection="row" justifyContent="space-between" sx={{width: "90%", backgroundColor: "#1c284c", position: 'fixed', top: '0px', paddingBottom: "10px", paddingTop: "10px", paddingRight:2,  "z-index": 10}}>
                     <BackButton></BackButton>
                     <SignOutButton />
                 </Box>
 
                 {/* Profile Card */}
-                <Card sx={{ width: '100%', marginTop: '16px', borderRadius: '16px', padding: '16px', backgroundColor: '#f9f9f9' }}>
+                <Card sx={{margin: '16px', borderRadius: '16px', padding: '16px', backgroundColor: '#f9f9f9', marginTop:8}}>
                     {/* Profile Picture & Name */}
                     <Box textAlign="center" mt={2}>
                         <Box
@@ -175,12 +177,12 @@ function ProfilePage() {
                             {/* Placeholder Profile Picture */}
                             <span style={{ fontSize: '2rem' }}>🧑</span>
                         </Box>
-                        <Typography variant="h4" style={{ marginTop: '0.5rem' }}>{userDetails.firstName} {userDetails.lastName}</Typography>
+                        <Typography variant="h4" fontWeight="bold" style={{ marginTop: '0.5rem' }}>{userDetails.firstName} {userDetails.lastName}</Typography>
                     </Box>
 
                     {/* About Me */}
-                    <Box width="100%" mt={2}>
-                        <Typography variant="h5">Bio</Typography>
+                    <Box width="100%" mt={2} paddingTop={3}>
+                        <Typography fontWeight="bold" variant="h5">Bio</Typography>
                         <TextField
                             fullWidth
                             multiline
@@ -193,8 +195,8 @@ function ProfilePage() {
                     </Box>
 
                     {/* Interests (Tags) */}
-                    <Box width="100%" mt={2}>
-                        <Typography variant="h5" style={{ display: 'flex', alignItems: 'center'}}>
+                    <Box width="100%" mt={2}paddingTop={3}>
+                        <Typography fontWeight="bold" variant="h5" style={{ display: 'flex', alignItems: 'center'}}>
                             Interests
                             <div style={{ marginLeft: '10px' }}>
                                 <TagModal savedTags={userTags} handleSave={handleSave} />
@@ -202,7 +204,7 @@ function ProfilePage() {
                         </Typography>
                         <Box display="flex" flexWrap="wrap" gap={1} paddingTop={3}>
                             {userTags.map((tag, index) => (
-                                <Chip sx={{backgroundColor: 'rgba(133, 156, 249, 0.5)', color: "black" }} key={index} label={tag.name} />
+                                <Chip sx={{backgroundColor: '#71A9F7', color: "black" }} key={index} label={tag.name} />
                             ))}
                         </Box>
                         <br />
@@ -210,41 +212,22 @@ function ProfilePage() {
                     </Box>
 
                     {/* Settings */}
-                    <Box width="100%" mt={2}>
-                        <Typography variant="h5">Settings</Typography>
+                    <Box width="100%" mt={2} paddingTop={3}>
+                        <Typography fontWeight="bold" variant="h5">Settings</Typography>
 
                         {/* Privacy Toggle */}
                         <Box display="flex" alignItems="center" justifyContent="space-between" paddingTop={3}>
                             <Typography>Keep info private?</Typography>
-                            <Switch checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} onBlur={handleSaveChanges} />
-                        </Box>
-
-                        {/* Notification Frequency */}
-                        <br />
-                        <Box mt={1}>
-                            <FormControl fullWidth>
-                                <InputLabel>Notification Digest</InputLabel>
-                                <br />
-                                <Select
-                                    value={notificationFrequency}
-                                    onChange={(e) => setNotificationFrequency(e.target.value)}
-                                    onBlur={handleSaveChanges}  // Auto-save when focus is lost
-                                >
-                                    <MenuItem value="None">None</MenuItem>
-                                    <MenuItem value="Daily">Daily</MenuItem>
-                                    <MenuItem value="Weekly">Weekly</MenuItem>
-                                    <MenuItem value="Monthly">Monthly</MenuItem>
-                                </Select>
-                            </FormControl>
+                            <Switch style={{color: "#1c284c"}} checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} onBlur={handleSaveChanges} />
                         </Box>
 
                         {/* Instant Notifications */}
                         <Box mt={2}>
-                            <Typography variant="h5">Instant Notifications</Typography>
-                            <Box display="flex" flexDirection="column" gap={1}>
-                                <Box display="flex" justifyContent="space-between" paddingTop={3}>
+                            {/* <Box display="flex" flexDirection="column" gap={1}>
+                                <Box display="flex" justifyContent="space-between">
                                     <Typography>Receive friend request</Typography>
                                     <Switch
+                                        style={{color: "#1c284c"}}
                                         checked={receiveFriendRequest}
                                         onChange={(e) => setReceiveFriendRequest(e.target.checked)}
                                         onBlur={handleSaveChanges}  // Auto-save when focus is lost
@@ -253,14 +236,16 @@ function ProfilePage() {
                                 <Box display="flex" justifyContent="space-between">
                                     <Typography>Invited to Event</Typography>
                                     <Switch
+                                        style={{color: "#1c284c"}}
                                         checked={invitedToEvent}
                                         onChange={(e) => setInvitedToEvent(e.target.checked)}
                                         onBlur={handleSaveChanges}  // Auto-save when focus is lost
                                     />
-                                </Box>
+                                </Box> */}
                                 <Box display="flex" justifyContent="space-between">
-                                    <Typography>Event Cancelled</Typography>
+                                    <Typography>Notifications for Event Cancelled</Typography>
                                     <Switch
+                                        style={{color: "#1c284c"}}
                                         checked={eventCancelled}
                                         onChange={(e) => setEventCancelled(e.target.checked)}
                                         onBlur={handleSaveChanges}  // Auto-save when focus is lost
@@ -269,7 +254,7 @@ function ProfilePage() {
                                 <Box mt={3} textAlign="center">
                                     <Button
                                         variant="contained"
-                                        color="primary"
+                                        sx={{backgroundColor:"#1c284c", color: "white"}}
                                         onClick={() => {
                                             handleSaveChanges();
                                             handleSave([], []);// Adjust if there are changes in the tags as well
@@ -277,7 +262,7 @@ function ProfilePage() {
                                     >
                                         Save Changes
                                     </Button>
-                                </Box>
+                                {/* </Box> */}
                             </Box>
                         </Box>
                     </Box>
@@ -364,7 +349,7 @@ function ProfilePage() {
                 </Box>
     
                 {/* Profile Card */}
-                <Card sx={{ width: '100%', marginTop: '16px', borderRadius: '16px', padding: '16px', backgroundColor: '#f9f9f9' }}>
+                <Card sx={{ width: '100%', height:"80vh", marginTop: '16px', borderRadius: '16px', padding: '16px', backgroundColor: '#f9f9f9' }}>
                     {/* Profile Picture & Name */}
                     <Box textAlign="center" mt={2}>
                         <Box
@@ -380,12 +365,12 @@ function ProfilePage() {
                             {/* Placeholder Profile Picture */}
                             <span style={{ fontSize: '2rem' }}>🧑</span>
                         </Box>
-                        <h2 style={{ marginTop: '0.5rem' }}>{profileDetails.firstName} {profileDetails.lastName}</h2>
+                        <Typography variant="h4" style={{ marginTop: '0.5rem' }}>{profileDetails.firstName} {profileDetails.lastName}</Typography>
                     </Box>
     
                     {/* About Me */}
-                    <Box width="100%" mt={2}>
-                        <h3>Bio</h3>
+                    <Box width="100%" mt={2} paddingTop={3}>
+                        <Typography variant="h5" fontWeight="bold">Bio</Typography>
                         <Box
                             sx={{
                                 width: '92.5%',
@@ -399,25 +384,25 @@ function ProfilePage() {
                                 alignItems: 'center'
                             }}
                         >
-                            {profileDetails.bio}
+                            <Typography>{profileDetails.bio}</Typography>
                         </Box>
                     </Box>
     
                     {/* Interests (Tags) */}
-                    <Box width="100%" mt={2}>
-                        <h3 style={{ display: 'flex', alignItems: 'center' }}>
+                    <Box width="100%" mt={2} paddingTop={3}>
+                        <Typography fontWeight="bold" variant="h5" style={{ display: 'flex', alignItems: 'center' }}>
                             Interests
-                        </h3>
-                        <Box display="flex" flexWrap="wrap" gap={1}>
+                        </Typography>
+                        <Box display="flex" flexWrap="wrap" gap={1} paddingTop={1}>
                             {userTags.map((tag, index) => (
-                                <Chip key={index} label={tag.name} sx={{backgroundColor: "rgba(133, 156, 249, 0.5)"}}/>
+                                <Chip key={index} label={tag.name} sx={{backgroundColor: '#71A9F7'}}/>
                             ))}
                         </Box>
                         <br />
                     </Box>
 
-                    <Box width="100%" mt={2} textAlign='center'>
-                        <Button variant="contained" onClick={goToMessages}>
+                    <Box width="100%" mt={2} textAlign='center' paddingTop={5}>
+                        <Button sx={{backgroundColor:"#1c284c"}} variant="contained" onClick={goToMessages}>
                             Message
                         </Button>
                     </Box>  

@@ -50,6 +50,11 @@ function MyEventsPage() {
                         variant={showingAttending ? "contained" : "outlined"} 
                         fullWidth
                         onClick={() => {setShowingAttending(true)}}
+                        sx={{
+                            color: showingAttending
+                               ? 'black'
+                               : 'white'
+                        }}
                     >
                         Attending
                     </Button>
@@ -57,6 +62,11 @@ function MyEventsPage() {
                         variant={!showingAttending ? "contained" : "outlined"} 
                         fullWidth
                         onClick={() => {setShowingAttending(false)}}
+                        sx={{
+                            color: !showingAttending
+                               ? 'black'
+                               : 'white'
+                        }}
                     >
                         Hosting
                     </Button>
@@ -65,7 +75,7 @@ function MyEventsPage() {
                 <></>:
                     <>
                         <Button sx={{ width:"100%", marginTop: "5px"}} title="Add Event Button" variant="contained" onClick={handleCreatEventClick}>
-                            <AddIcon sx={{color: "white"}}/>
+                            <AddIcon sx={{color: "black"}}/>
                         </Button>
                     </>
                 }
@@ -189,12 +199,12 @@ function EventList({ events, canDeleteEvents, setEventsChanged }: { events: Even
         {events.map(event =>  
             <StyledCard height={canDeleteEvents ? 225 : undefined} key={event.id} event={event} viewEvent={viewEvent} showShareIcon={true} showViews>
                 {canDeleteEvents && (
-                    <Box display="flex" flexDirection="row" gap={2} sx={{ '& button': { m: 1 }}}>
-                        <Button size="small" fullWidth variant="contained" onClick={() => editEvent(event)}>Edit</Button>
+                    <Box display="flex" flexDirection="row" sx={{ '& button': { m: 1 }}}>
+                        <Button sx={{backgroundColor: "#1c284c"}} size="small" fullWidth variant="contained" onClick={() => editEvent(event)}>Edit</Button>
                         {canDeleteEvents && (event.recurs > 1 ?
                             <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}>
                             </DeleteRecurEventModal>
-                            : <Button size="small" fullWidth variant="contained" onClick={() => deleteEvent(event)}>Delete</Button>
+                            : <Button sx={{backgroundColor: "#1c284c"}} size="small" fullWidth variant="contained" onClick={() => deleteEvent(event)}>Delete</Button>
                             )} 
                     </Box>
                 )}   

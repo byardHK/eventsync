@@ -39,7 +39,7 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, heigh
     };
 
     const EventCard = styled(Paper)(({ theme }) => ({
-        width: 250,
+        width: 300,
         height: height ? height : 175,
         padding: theme.spacing(2),
         textAlign: 'center',
@@ -70,7 +70,7 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, heigh
                     {showTags && (
                         <Box display="flex" flexWrap="wrap" justifyContent="center">
                             {event.tags.map((tag, index) => (
-                                <Chip key={index} label={tag.name} style={{ margin: 2, backgroundColor: 'rgba(133, 156, 249, 0.5)', color:"black" }}  />
+                                <Chip key={index} label={tag.name} style={{ margin: 2, backgroundColor: '#71A9F7', color:"black" }}  />
                             ))}
                         </Box>
                     )}
@@ -78,7 +78,7 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, heigh
 
                 {/* Share Button */}
                 <Box display="flex" flexDirection="row" justifyContent="space-between">
-                    {showViews && <p>{`${event.views} Views`}</p>}
+                    {showViews && <Typography>{`${event.views} Views`}</Typography>}
                     {showShareIcon && (
                         <Button
                             onClick={handleShare}
@@ -101,25 +101,6 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, heigh
                 
                 {children}
             </EventCard>
-
-            {/* Share Modal */}
-            {/* <Modal open={shareOpen} onClose={() => setShareOpen(false)}>
-                <Box className="modal-container">
-                    <h3>Share Event</h3>
-                    <p>Share this event with others:</p>
-                    <Button variant="contained" onClick={handleShare} startIcon={<IosShareIcon />} fullWidth>
-                        Share Link
-                    </Button>
-                    <Button 
-                        variant="outlined" 
-                        onClick={() => { navigator.clipboard.writeText(eventUrl); alert("Copied!"); }} 
-                        startIcon={<ContentCopy />} 
-                        fullWidth
-                    >
-                        Copy Link
-                    </Button>
-                </Box>
-            </Modal> */}
         </Box>
     );
 }
