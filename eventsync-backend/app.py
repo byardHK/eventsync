@@ -2619,7 +2619,7 @@ def get_my_chats(user_id: str):
         mycursor = conn.cursor()
         mycursor.execute(f"""(SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType, 
                                 groupStuff.lastMsgId, groupStuff.unreadMsgs FROM Chat
-                            LEFT JOIN (SELECT GroupOfUser.chatId, GroupOfUser.groupName, 
+                            JOIN (SELECT GroupOfUser.chatId, GroupOfUser.groupName, 
                                     msg.lastMsgId, FALSE AS unreadMsgs FROM GroupOfUserToChat
                             JOIN GroupOfUserToUser ON GroupOfUserToChat.groupOfUserId = GroupOfUserToUser.groupId
                             JOIN GroupOfUser ON GroupOfUserToChat.groupOfUserId = GroupOfUser.id
