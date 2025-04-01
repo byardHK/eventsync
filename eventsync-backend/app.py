@@ -19,7 +19,7 @@ UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
+CORS(app, origins=["http://localhost:3000"])
 
 db_config = {
     'host': '10.18.101.62',  
@@ -2551,9 +2551,13 @@ def message():
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+        
+        date = datetime.strptime(data['timeSent'], "%Y-%m-%d %H:%M:%S")
+        dateToStore = (date + timedelta(hours=4)).strftime("%Y-%m-%d %H:%M:%S")
+
         mycursor.execute(f""" 
             INSERT INTO Message (chatId, senderId, messageContent, timeSent) 
-                VALUES ({data['chatId']}, "{data["senderId"]}", "{data["messageContent"]}", "{data["timeSent"]}");
+                VALUES ({data['chatId']}, "{data["senderId"]}", "{data["messageContent"]}", "{dateToStore}");
         """)
         chatId = mycursor.lastrowid
         conn.commit()
