@@ -2630,15 +2630,15 @@ def get_my_chats(user_id: str):
                             WHERE Chat.chatType = 'Group')
                             UNION 
                             (SELECT Chat.id, CONCAT(otherUser.fname, " ", otherUser.lname) AS name, Chat.chatType, msg.lastMsgId, 
-                                msg.lastMsgId > 0 AND currUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs FROM Chat 
+                                msg.lastMsgId IS NOT NULL AND msg.lastMsgId > 0 AND currUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs FROM Chat 
                             JOIN ChatToUser AS currUser ON Chat.id = currUser.chatId
-                            JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) 
+                            LEFT JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) 
                                 AS msg ON msg.chatId = currUser.chatId
                             JOIN (SELECT ChatToUser.chatId, ChatToUser.lastMsgSeen, User.fname, User.lname FROM ChatToUser 
                                 JOIN User ON ChatToUser.userId = User.id
-                                WHERE ChatToUser.userId != 'harnlyam20@gcc.edu') AS otherUser
+                                WHERE ChatToUser.userId != '{user_id}') AS otherUser
                             ON currUser.chatId = otherUser.chatId
-                            WHERE currUser.userId = 'harnlyam20@gcc.edu' AND Chat.chatType = 'Individual')
+                            WHERE currUser.userId = '{user_id}' AND Chat.chatType = 'Individual')
                             UNION
                             (SELECT Chat.id, EventInfo.title AS name, Chat.chatType, msg.lastMsgId, 
                                 msg.lastMsgId > 0 AND EventToUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs FROM Chat
