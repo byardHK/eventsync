@@ -226,41 +226,37 @@ function FriendsPage() {
                         )}
                     </AccordionDetails>
                 </Accordion>
-                <Box
+                {/* <Box
                     sx={{width: "100%", position: 'fixed', bottom: '75px'}}
                     paddingRight={3}
                     display="flex"
                     justifyContent="right"
                     alignItems="right"
                 >
-                </Box>
-                <Dialog open={OpenDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm" scroll='body'>
+                </Box> */}
+                <Dialog open={OpenDialog} onClose={handleCloseDialog}>
                     <Box
+                        display="flex"
+                        flexDirection="column"
                         alignItems="center"
                         width="300px"
                         height="500px"
                         bgcolor="white"
                     >
-                        <DialogTitle>
+                        <Box>
                             <TextField
-                                sx={{ width: '250px' }}
+                                sx={{ width: '200px' }}
                                 value={searchInput}
                                 onChange={handleSearchChange}
                                 label="Search Users"
                                 variant="outlined"
                                 fullWidth
                             />
-                            <Button
-                                aria-label="close"
-                                onClick={handleCloseDialog}
-                                style={{ position: 'absolute', right: '-12px', top: '8px' }}
-                            >
-                                <CloseIcon />
-                            </Button>
-                        </DialogTitle>
-                        <DialogContent>
+                        </Box>
+                        <Box>
                             <UserList users={filteredUsers} refreshData={() => userDetails.email && refreshData(userDetails.email)} onAddFriend={handleCloseDialog} />
-                        </DialogContent>
+                            <Button variant="contained" sx={{backgroundColor: "#1c284c", width: "100%"}} onClick={handleCloseDialog}>Close</Button>
+                        </Box>
                     </Box>
                 </Dialog>
                 <BottomNavBar userId={userDetails.email!} key={refreshTrigger.toString()} />
@@ -294,10 +290,10 @@ function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refre
                     display="flex"
                     justifyContent="space-between"
                     alignItems="center"
-                    width="300px"
+                    width="350px"
                     padding="10px"
-                    // border="1px solid #ccc"
-                    // borderRadius="5px"
+                    border="1px solid #ccc"
+                    borderRadius="5px"
                     margin="5px 0"
                     bgcolor="white"
                 >
@@ -334,24 +330,23 @@ function UserList({ users, refreshData, onAddFriend }: { users: EventSyncUser[];
     };
 
     return (
-        <Box>
+        <Box display="flex" flexDirection="column" gap={2}>
             {Array.isArray(users) && users.map((user, index) => (
                 <Card
                     key={index}
                     sx={{
-                        width: "300px", 
+                        width: "200px", 
                         padding: "10px", 
                         backgroundColor: "white", 
                         display: "flex", 
                         justifyContent: "space-between", 
-                        alignItems: "center", 
-                        margin: "5px 0"
+                        alignItems: "center",
                     }}
                     square={false}
                 >
                     {`${user.fname} ${user.lname}`}
                     <Button 
-                        variant="contained" 
+                        variant="contained" sx={{backgroundColor: "#1c284c", color: "white"}} 
                         onClick={() => {
                             userDetails.email && addFriend(userDetails.email, user.id)
                             onAddFriend();

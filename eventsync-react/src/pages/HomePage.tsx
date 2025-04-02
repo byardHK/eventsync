@@ -204,7 +204,7 @@ function HomePage() {
                                         onChange={(newValue) => setAfterDate(newValue)}
                                     />
                                     <Button onClick={resetAfterPicker}>
-                                        <ReplayIcon/>
+                                        <ReplayIcon sx={{color: "#1c284c"}}/>
                                     </Button>
                                 </Box>
                                 <Box display="flex" alignItems="center" width={"255px"}>
@@ -214,7 +214,7 @@ function HomePage() {
                                         onChange={(newValue) => setBeforeDate(newValue)}
                                     />
                                     <Button onClick={resetBeforePicker}>
-                                        <ReplayIcon/>
+                                        <ReplayIcon sx={{color: "#1c284c"}}/>
                                     </Button>
                                 </Box>
                                 <FormControlLabel
@@ -223,7 +223,7 @@ function HomePage() {
                                             checked={hideFullEvents}
                                             onChange={(e) => setHideFullEvents(e.target.checked)}
                                             name="hideFullEvents"
-                                            color="primary"
+                                            style={{color:"#1c284c"}}
                                         />
                                     }
                                     label="Hide Full Events"

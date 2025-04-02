@@ -53,12 +53,16 @@ function AdminPage(){
 
     return (userDetails.isAdmin ?
         <>
-            <BackButton></BackButton>
+            <Box display="flex" flexDirection="row" gap={8} paddingTop={2} paddingBottom={1} sx={{ position: 'fixed', top: '0', backgroundColor: "#1c284c", width: "100%", right: 0, left: 0, marginRight: "0", marginLeft: "auto", "z-index": 10}}>
+                <BackButton></BackButton>
+                <Typography variant="h4" fontWeight="bold" color="white">Reports</Typography>
+            </Box>
             <Box
                 display="flex"
                 flexDirection="column"
                 alignItems="center"
                 gap={2}
+                paddingTop={9}
             >
                 {reports ?
                     reports.map(report =>
@@ -70,13 +74,12 @@ function AdminPage(){
                         justifyContent="center"
                         alignItems="center"
                     >
-                        <Typography>Loading...</Typography>
-                        <CircularProgress/>
+                        <Typography color="white">Loading Reports</Typography>
                     </Box>
                 }
             </Box>
         </> :
-        <Typography>You don't have access to this page.</Typography>
+        <Typography color="white">You don't have access to this page.</Typography>
     );
 }
 
@@ -337,9 +340,9 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         }
 
         return ( viewReportModalOpen ?
-            <Box>
-                <Typography>{`Sender Email: ${message.senderId}`}</Typography>
-                <Typography>{`Message: ${message.messageContent}`}</Typography>
+            <Box display="flex" flexDirection="column" gap={3} height={300} width={200} padding={3}>
+                <Typography variant="h6" fontWeight="bold">{`${message.messageContent}`}</Typography>
+                <Typography>{`Sent by: ${message.senderId}` }</Typography>
             </Box> :
             <Box>
                 <Typography>{`Warn the author of this message (${message.senderId})?`}</Typography>
@@ -374,9 +377,9 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         }
 
         return (viewReportModalOpen ?
-            <Box>
-                <Typography>{`Name: ${user.fname} ${user.lname}`}</Typography>
-                <Typography>{`Email: ${user.id}`}</Typography>
+            <Box display="flex" flexDirection="column" gap={3} height={300} width={200} padding={3}>
+                <Typography variant="h6" fontWeight="bold">{`${user.fname} ${user.lname}`}</Typography>
+                <Typography>{`User Email: ${user.id}`}</Typography>
             </Box> :
             <Box>
                 <Typography>{`Warn ${user.fname} ${user.lname} (${user.id})?`}</Typography>
@@ -418,9 +421,9 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         }
 
         return (viewReportModalOpen ?
-            <Box>
-                <Typography>{`Creator Email: ${group.creatorId}`}</Typography>
-                <Typography>{`Group Name: ${group.groupName}`}</Typography>
+            <Box display="flex" flexDirection="column" gap={3} height={300} width={200} padding={3}>
+                <Typography variant="h6" fontWeight="bold">{`${group.groupName}`}</Typography>
+                <Typography>{`Created by: ${group.creatorId}`}</Typography>
             </Box> :
             <Box>
                 <Typography>{`Warn the creator of this group (${group.creatorId})?`}</Typography>
@@ -455,14 +458,15 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         }
 
         return (viewReportModalOpen ?
-            <Box>
-                <Typography>{`Creator: ${eventInfo.creatorName} (${eventInfo.creatorId})`}</Typography>
-                <Typography>{`Event Title: ${eventInfo.title}`}</Typography>
+            <Box display="flex" flexDirection="column" gap={3} height={300} width={200} padding={3}>
+                <Typography variant="h6" fontWeight="bold">{`${eventInfo.title}`}</Typography>
+                <Typography>{`Created by: ${eventInfo.creatorName} (${eventInfo.creatorId})`}</Typography>
                 <Typography>{`Event Description: ${eventInfo.description}`}</Typography>
                 <Typography>{`Event Location: ${eventInfo.locationName} ${eventInfo.locationLink ? `(${eventInfo.locationLink})` : ``}`}</Typography>
                 {eventInfo.venmo ? <Typography>{`Venmo: ${eventInfo.venmo}`}</Typography> : <></>}
             </Box> :
             <Box>
+                {/* TODO: creatorId = AI study session */}
                 <Typography>{`Warn the creator of this event (${eventInfo.creatorId})?`}</Typography>
                 <Box display="flex" flexDirection="row" justifyContent="space-between">
                     <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setWarnUserModalOpen(false)}}>Cancel</Button>
@@ -485,21 +489,21 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         <DeleteReportModal></DeleteReportModal>
         <ViewReportModal></ViewReportModal>
         <BanUserModal></BanUserModal>
-        <ReportCard elevation={10} square={false} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '200px'}}>
+        <ReportCard elevation={10} square={false} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '250px', width: "325px"}}>
             <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" gap={3}>
-                <Typography variant="h4">{ReportType(report)} Report</Typography>
+                <Typography variant="h4" fontWeight="bold" >{ReportType(report)}</Typography>
                 <Typography>{report.details}</Typography>
-                <Box display="flex" flexDirection="row" gap={2} >
-                    <Button variant="contained" onClick={() => { setViewReportModalOpen(true) }}>
+                <Box display="flex" flexDirection="row" gap={2} padding={2}>
+                    <Button sx={{backgroundColor: "#1c284c"}} variant="contained" onClick={() => { setViewReportModalOpen(true) }}>
                         <RemoveRedEyeIcon/>
                     </Button>
-                    <Button variant="contained" onClick={() => { setDeleteReportModalOpen(true) }}>
+                    <Button sx={{backgroundColor: "#1c284c"}} variant="contained" onClick={() => { setDeleteReportModalOpen(true) }}>
                         <DeleteIcon/>
                     </Button>
-                    <Button variant="contained" onClick={() => { setWarnUserModalOpen(true) }}>
+                    <Button sx={{backgroundColor: "#1c284c"}} variant="contained" onClick={() => { setWarnUserModalOpen(true) }}>
                         <WarningIcon/>
                     </Button>
-                    <Button variant="contained" onClick={() => { setBanUserModalOpen(true) }}>
+                    <Button sx={{backgroundColor: "#1c284c"}} variant="contained" onClick={() => { setBanUserModalOpen(true) }}>
                         <BlockIcon/>
                     </Button>
                 </Box>

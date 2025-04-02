@@ -82,7 +82,7 @@ function CreateEventPage() {
                 <Box 
                     key={index}
                 >    
-                    <Chip sx={{margin: 1, backgroundColor: '#71A9F7', color: "black"}} label={`${item.description} - ${item.amountNeeded}`}></Chip>
+                    <Chip sx={{margin: 1, backgroundColor: '#71A9F7', color: "black"}} label={`${item.description} : ${item.amountNeeded}`}></Chip>
                 </Box>
             )}
             </Box>
@@ -288,7 +288,7 @@ function CreateEventPage() {
                         component="form"
                         noValidate
                         autoComplete="off"
-                        gap={3}
+                        gap={1.5}
                     >
                         <TextField 
                             sx={{input: {backgroundColor: 'white'}, width: "100%"}}
