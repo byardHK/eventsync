@@ -10,6 +10,8 @@ from dateutil.relativedelta import *
 import pusher
 import os
 import yagmail
+import pillow_heif
+from PIL import Image
 
 
 app = Flask(__name__)
@@ -2901,19 +2903,40 @@ def upload():
         try:
             conn = mysql.connector.connect(**db_config)
             mycursor = conn.cursor()
+
             mycursor.execute(f""" 
                 INSERT INTO Message (chatId, senderId, imagePath, timeSent) 
-                    VALUES ({data.get('chatId')}, "{data.get("senderId")}", "{file.filename}", "{data.get("timeSent")}");
+                    VALUES ({data.get('chatId')}, "{data.get("senderId")}", "{data.get('imageType')}", "{data.get("timeSent")}");
             """)
-
             messageId = mycursor.lastrowid
-            filename = str(messageId) + '.jpg'
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(file_path)
             conn.commit()
             mycursor.close()
             conn.close()
-            pusher_client.trigger(f'chat-{data.get("chatId")}', 'new-message', {'imagePath': file.filename, 'senderId': request.form.get('senderId'),
+
+            type = data.get('imageType')
+
+            if(data.get('imageType') == 'image/png'):
+                filename = str(messageId) + '.png'
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+            elif(data.get('imageType') == 'image/jpeg'):
+                filename = str(messageId) + '.jpg'
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+            else: 
+                heif_file = pillow_heif.read_heif(file)
+                image = Image.frombytes(
+                    heif_file.mode,
+                    heif_file.size,
+                    heif_file.data,
+                    "raw",
+                )
+                filename = str(messageId) + '.jpg'
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                image.save(file_path, format("jpeg"))
+                type = 'image/jpeg'
+            
+            pusher_client.trigger(f'chat-{data.get("chatId")}', 'new-message', {'imagePath': type, 'senderId': request.form.get('senderId'),
                     'chatId': request.form.get('chatId'), 'timeSent': request.form.get('timeSent'), 'id': messageId})
             return jsonify({'message': 'File uploaded successfully', 'filename': filename}), 200
 
@@ -2929,7 +2952,12 @@ def get_image(message_id: int):
         return error_response, status_code  
    
     try:
-        return send_file(f"uploads/{message_id}.jpg", mimetype='image/jpeg'), 200
+        if os.path.exists(f"uploads/{message_id}.jpg"):
+            return send_file(f"uploads/{message_id}.jpg", mimetype='image/jpeg'), 200
+        elif os.path.exists(f"uploads/{message_id}.png"):
+            return send_file(f"uploads/{message_id}.png", mimetype='image/png'), 200
+        else:
+            return "No image found", 404
     except Exception as  e:
         print(f"Error: {e}")
         return {}, 404
@@ -2937,9 +2965,10 @@ def get_image(message_id: int):
 def delete_uploads(msg_ids):
     for msg_arr in msg_ids:
         msg_id = msg_arr[0]
-        img_path = f"uploads/{msg_id}.jpg"
-        if os.path.exists(img_path):
-            os.remove(img_path)
+        img_paths = [f"uploads/{msg_id}.jpg", f"uploads/{msg_id}.png"]
+        for path in img_paths:
+            if os.path.exists(path):
+                os.remove(path)
 
 def send_event_cancellation(event_id):
     conn = mysql.connector.connect(**db_config)

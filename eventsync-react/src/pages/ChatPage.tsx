@@ -15,7 +15,6 @@ import chatType from '../types/chatType';
 import { Link } from 'react-router-dom';
 import BackButton from '../components/BackButton';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
-import Divider from '@mui/material/Divider';
 import { useRef } from 'react';
 
 dayjs.extend(isToday);
@@ -43,7 +42,7 @@ function ChatPage() {
               msg_id: msg_id,
               chat_type: chat?.chatType
             }
-            const response = await axios.post(`${BASE_URL}/update_msg_last_seen/`, data, {
+            await axios.post(`${BASE_URL}/update_msg_last_seen/`, data, {
               headers: {
                   'Authorization': `Bearer ${userDetails.token}`,
                   'Content-Type': 'application/json',
@@ -249,6 +248,22 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
     const [message, setMessage] = useState<string>("");
     const {userDetails} = useUser();
     const [selectedImage, setSelectedImage] = useState<File | undefined>();
+    const [text, setText] = useState<string>("");
+
+    const [editableText, setEditableText] = useState('');
+    const uneditableText = "This part can't be edited: ";
+
+
+    selectedImage === undefined
+
+    function textInput() {
+        console.log(`getting text`);
+        if(selectedImage === undefined) {
+            return message;
+        } 
+
+        return "Image Selected " + message;
+    }
 
     const sendMessage = () => {
         if (message.trim().length > 0) {
@@ -287,6 +302,7 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
         formData.append('senderId', props.currentUserId);
         formData.append('chatId', props.chatId);
         formData.append('timeSent', getCurDate());
+        formData.append('imageType', selectedImage.type ?? 'image/heic');
 
         try {
             await axios.post('http://localhost:5000/upload/', formData, {
@@ -334,18 +350,46 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
                 onChange={handleImageChange}
                 inputRef={hiddenFileInput}
                 style={{display:'none'}}
-                inputProps={{accept: "image/*" }}
+                inputProps={{accept: "image/heic, image/jpeg, image/png" }}
             />
         </FormControl>
+        {/* <textarea value={"Hi!"}></textarea> */}
+        {/* <textarea readOnly
+            color='red' 
+        // cols="50" rows="1"
+        >
+            This part of the textarea content is fixed and cannot be changed
+          </textarea>
+          <br />
+          <textarea 
+        //   cols="50" rows="10"
+          >
+            but the rest of the textarea content can be changed to whatever you
+            want.
+          </textarea> */}
         <TextField 
             type="text" 
             // multiline
             // maxRows={2}
-            value={message} 
+            value={textInput} 
             onChange={(event) => setMessage(event.target.value)}
             sx={{backgroundColor: "#FFFFFF"}}
             fullWidth
         />
+            {/* <div>
+      <input
+        type="text"
+        value={uneditableText}
+        readOnly
+        style={{ border: 'none', outline: 'none' }}
+      />
+      <input
+        type="text"
+        value={editableText}
+        onChange={(event) => setEditableText(event.target.value)}
+        style={{ border: 'none', outline: 'none' }}
+      />
+    </div> */}
         <Button onClick={onSend} sx={{backgroundColor: "#71A9F7"}}>
             <SendIcon sx={{color: "#1c284c"}}></SendIcon>
         </Button>
@@ -394,9 +438,19 @@ const ImageComponent = ({id} : {id: number}) => {
     );
   };
 
+export function getCurDateGMT() {
+    const date = new Date();
+    date.setHours(date.getHours() + 4);
+    return formatDate(date);    
+}
+
 export function getCurDate() {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`; 
+    return formatDate(new Date());
+}
+
+function formatDate(date: Date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`; 
+
 }
 
 type MessageList = {

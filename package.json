@@ -3,6 +3,7 @@
     "@azure/msal-browser": "^4.0.1",
     "@azure/msal-react": "^3.0.1",
     "date-fns": "^4.1.0",
+    "heic2any": "^0.0.4",
     "pusher": "^5.2.0"
   }
 }
