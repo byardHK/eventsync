@@ -79,7 +79,7 @@ pusher_client = pusher.Pusher(
 
 @app.route('/api/update_user_profile', methods=['POST'])
 def update_user_profile():
-     ###### validating email #####
+    ###### validating email #####
     user_email, error_response, status_code = get_authenticated_user()
     if error_response:
         return error_response, status_code  
@@ -100,10 +100,8 @@ def update_user_profile():
         email = data.get('userId')
         bio = data.get('bio')
         is_public = data.get('isPublic')
-        notification_frequency = data.get('notificationFrequency')
-        receive_friend_request = data.get('receiveFriendRequest')
-        invited_to_event = data.get('invitedToEvent')
         event_cancelled = data.get('eventCancelled')
+        profile_picture = data.get('profilePicture')
 
         # Validate required fields
         if not email:
@@ -118,16 +116,12 @@ def update_user_profile():
             UPDATE User SET 
                 bio = %s, 
                 isPublic = %s, 
-                notificationFrequency = %s, 
-                friendRequest = %s, 
-                eventInvite = %s, 
-                eventCancelled = %s
+                eventCancelled = %s,
+                profilePicture = %s
             WHERE id = %s
         """
         mycursor.execute(updateQuery, (
-            bio, is_public, notification_frequency, 
-            receive_friend_request, invited_to_event, 
-            event_cancelled, email
+            bio, is_public, event_cancelled, profile_picture, email
         ))
 
         # Commit the changes to the database
@@ -229,13 +223,11 @@ def add_user():
         fname = data.get("firstName")
         lname = data.get("lastName")
         bio = data.get("bio", "")
-        notification_frequency = data.get("notificationFrequency", "None")
+        profilePicture = data.get("profilePicture", 0) 
         is_public = int(data.get("isPublic", 0))
         is_banned = 0  # Default to 0
         num_times_reported = int(data.get("numTimesReported", 0))  # Default to 0
         notification_id = 1  # Default to 1
-        friend_request = int(data.get("receiveFriendRequest", 0))
-        event_invite = int(data.get("invitedToEvent", 0))
         event_cancelled = int(data.get("eventCancelled", 0))
         gender = data.get("gender", "Undefined")  # Default to "Undefined"
 
@@ -245,9 +237,9 @@ def add_user():
         event_invite = int(event_invite)
         event_cancelled = int(event_cancelled)
 
-        print("Final values:", (id, fname, lname, bio, isAdmin,
-                        notification_frequency, is_public, is_banned, num_times_reported, 
-                        notification_id, friend_request, event_invite, event_cancelled, gender))
+        print("Final values:", (id, fname, lname, bio, profilePicture, isAdmin,
+                        is_public, is_banned, num_times_reported, 
+                        notification_id, event_cancelled, gender))
 
         if not id or not fname or not lname:
             return jsonify({"error": "Missing required fields"}), 400
@@ -255,13 +247,13 @@ def add_user():
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
 
-        sql = """INSERT INTO User (id, fname, lname, bio, 
-                notificationFrequency, isAdmin, isPublic, isBanned, numTimesReported, 
-                notificationId, friendRequest, eventInvite, eventCancelled, gender) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+        sql = """INSERT INTO User (id, fname, lname, bio, profilePicture,
+                isAdmin, isPublic, isBanned, numTimesReported, 
+                notificationId, eventCancelled, gender) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
         
-        values = (id, fname, lname, bio, 
-                  notification_frequency, isAdmin, is_public, is_banned, num_times_reported, notification_id, friend_request, event_invite, event_cancelled, gender)
+        values = (id, fname, lname, bio, profilePicture,
+                  isAdmin, is_public, is_banned, num_times_reported, event_cancelled, gender)
 
         mycursor.execute(sql, values)
         conn.commit()
@@ -2898,5 +2890,5 @@ def send_event_cancellation(event_id):
         
         # Send emails
         yag.send(email, subject, body)
-        
-           
+
+
