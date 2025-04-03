@@ -16,6 +16,7 @@ import { Link } from 'react-router-dom';
 import BackButton from '../components/BackButton';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import { useRef } from 'react';
+import ClearIcon from '@mui/icons-material/Clear';
 
 dayjs.extend(isToday);
 
@@ -69,7 +70,6 @@ function ChatPage() {
                     chatType: stringToEnum(response.data.chat.chatType)
                 });
                 setUsers(new Map(response.data.users.map(user => [user.id, user])));
-                console.log(response.data);
             } catch (error) {
                 console.error('Error fetching tags:', error);
             }
@@ -104,7 +104,6 @@ function ChatPage() {
     useEffect(() => {
         if(msg) {
             setMessages([...messages,msg]);
-            console.log(messages.length);
         }
     }, [msg]);
 
@@ -248,22 +247,6 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
     const [message, setMessage] = useState<string>("");
     const {userDetails} = useUser();
     const [selectedImage, setSelectedImage] = useState<File | undefined>();
-    const [text, setText] = useState<string>("");
-
-    const [editableText, setEditableText] = useState('');
-    const uneditableText = "This part can't be edited: ";
-
-
-    selectedImage === undefined
-
-    function textInput() {
-        console.log(`getting text`);
-        if(selectedImage === undefined) {
-            return message;
-        } 
-
-        return "Image Selected " + message;
-    }
 
     const sendMessage = () => {
         if (message.trim().length > 0) {
@@ -314,6 +297,7 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
         } catch (error) {
             console.error('Error uploading image:', error);
         }
+        setSelectedImage(undefined)
     };
 
     const onSend = () => {
@@ -324,7 +308,10 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
     const hiddenFileInput = useRef<HTMLDivElement>(null);
 
     const handleClick = () => {
-        if (hiddenFileInput.current) {
+        if (selectedImage) {
+            setSelectedImage(undefined)
+        }
+        else if (hiddenFileInput.current) {
             hiddenFileInput.current.click();
         }
     }
@@ -342,7 +329,7 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
         }}
     >
         <Button onClick={handleClick} sx={{backgroundColor: "#71A9F7"}}>
-            <AttachFileIcon sx={{color: "#1c284c"}}></AttachFileIcon>
+            {selectedImage ? <ClearIcon sx={{color: "#1c284c"}}></ClearIcon> :  <AttachFileIcon sx={{color: "#1c284c"}}></AttachFileIcon>}
         </Button>
         <FormControl>
             <Input 
@@ -353,43 +340,16 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
                 inputProps={{accept: "image/heic, image/jpeg, image/png" }}
             />
         </FormControl>
-        {/* <textarea value={"Hi!"}></textarea> */}
-        {/* <textarea readOnly
-            color='red' 
-        // cols="50" rows="1"
-        >
-            This part of the textarea content is fixed and cannot be changed
-          </textarea>
-          <br />
-          <textarea 
-        //   cols="50" rows="10"
-          >
-            but the rest of the textarea content can be changed to whatever you
-            want.
-          </textarea> */}
         <TextField 
             type="text" 
             // multiline
             // maxRows={2}
-            value={textInput} 
+            value={message} 
             onChange={(event) => setMessage(event.target.value)}
             sx={{backgroundColor: "#FFFFFF"}}
             fullWidth
         />
-            {/* <div>
-      <input
-        type="text"
-        value={uneditableText}
-        readOnly
-        style={{ border: 'none', outline: 'none' }}
-      />
-      <input
-        type="text"
-        value={editableText}
-        onChange={(event) => setEditableText(event.target.value)}
-        style={{ border: 'none', outline: 'none' }}
-      />
-    </div> */}
+            
         <Button onClick={onSend} sx={{backgroundColor: "#71A9F7"}}>
             <SendIcon sx={{color: "#1c284c"}}></SendIcon>
         </Button>

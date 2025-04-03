@@ -2904,9 +2904,12 @@ def upload():
             conn = mysql.connector.connect(**db_config)
             mycursor = conn.cursor()
 
+            date = datetime.strptime(data['timeSent'], "%Y-%m-%d %H:%M:%S")
+            dateToStore = (date + timedelta(hours=4)).strftime("%Y-%m-%d %H:%M:%S")
+
             mycursor.execute(f""" 
                 INSERT INTO Message (chatId, senderId, imagePath, timeSent) 
-                    VALUES ({data.get('chatId')}, "{data.get("senderId")}", "{data.get('imageType')}", "{data.get("timeSent")}");
+                    VALUES ({data.get('chatId')}, "{data.get("senderId")}", "{data.get('imageType')}", "{dateToStore}");
             """)
             messageId = mycursor.lastrowid
             conn.commit()
