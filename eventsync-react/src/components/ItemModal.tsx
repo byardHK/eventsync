@@ -58,15 +58,14 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
                 <AddIcon/>
             </Button>
             <Dialog open={open} onClose={handleClose} fullWidth>
-                <DialogTitle>Manage Items</DialogTitle>
+                <DialogTitle fontWeight="bold">Manage Items</DialogTitle>
                 <DialogContent>
                     {partialItems.map((item, index) => (
                         <Box key={index} display="flex" alignItems="center" mb={2}>
                             <TextField
-                                label="Description"
-                                value={item.description}
+                                placeholder={item.description}
                                 onChange={(e) => changeItemDescription(e.target.value, index)}
-                                fullWidth
+                                sx={{width: 350}}
                                 margin="normal"
                             />
                             <IconButton onClick={() => changeItemQuantity(-1, index)}>
@@ -97,18 +96,22 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
                             </IconButton>
                         </Box>
                     ))}
-                    <Button variant="outlined" onClick={createNewPartialItem}>
-                        Add Item
+                    <Button 
+                        variant="contained"
+                        sx={{ backgroundColor: "#1c284c", color: "black", minWidth: '40px', minHeight: '40px', padding: 0 }}
+                        onClick={createNewPartialItem}
+                    >
+                        <AddIcon sx={{color: "white"}}/>
                     </Button>
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose} color="primary">
+                <Box display="flex" flexDirection="row" justifyContent="space-between" padding={2}>
+                    <Button sx={{backgroundColor: "#1c284c"}} variant="contained" onClick={handleClose}>
                         Cancel
                     </Button>
-                    <Button onClick={handleSave} color="primary">
+                    <Button sx={{backgroundColor: "#1c284c"}} variant="contained" onClick={handleSave}>
                         Save
                     </Button>
-                </DialogActions>
+                </Box>
             </Dialog>
         </div>
     );
@@ -116,7 +119,7 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
 
 type Item = {
     id: number;
-    description: String;
+    description: string;
     amountNeeded: number;
     quantityAccountedFor: number;
     isFull: Boolean;

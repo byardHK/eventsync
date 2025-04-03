@@ -82,7 +82,7 @@ function CreateEventPage() {
                 <Box 
                     key={index}
                 >    
-                    <Chip sx={{margin: 1, backgroundColor: '#71A9F7', color: "black"}} label={`${item.description} - ${item.amountNeeded}`}></Chip>
+                    <Chip sx={{margin: 1, backgroundColor: '#71A9F7', color: "black"}} label={`${item.description} : ${item.amountNeeded}`}></Chip>
                 </Box>
             )}
             </Box>
@@ -261,7 +261,7 @@ function CreateEventPage() {
                 </Box>
                     {eventId && (
                         <FormControlLabel
-                            label={<Typography>Edit all events in this group</Typography>}
+                            label={<Typography color="white">Edit all events in this group</Typography>}
                             control={
                                 <Checkbox
                                     checked={editAllEvents}
@@ -288,7 +288,7 @@ function CreateEventPage() {
                         component="form"
                         noValidate
                         autoComplete="off"
-                        gap={3}
+                        gap={1.5}
                     >
                         <TextField 
                             sx={{input: {backgroundColor: 'white'}, width: "100%"}}
@@ -303,6 +303,20 @@ function CreateEventPage() {
                             <AccessAlarmIcon style={{color: "white"}}></AccessAlarmIcon>
                             <Typography color="white"> FROM </Typography>
                             <MobileDateTimePicker
+                                // slotProps={{
+                                //     toolbar: {
+                                //     sx: {
+                                //         "& .MuiPickersToolbarText-root": {
+                                //         color: "red"
+                                //         }
+                                //     }
+                                //     },
+                                //     day: {
+                                //     sx: {
+                                //         color: "red"
+                                //     }
+                                //     }
+                                // }}
                                 sx={{ input: { backgroundColor: "white" }, width: "80%" }}
                                 label="Start"
                                 value={startDateTime}

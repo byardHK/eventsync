@@ -16,6 +16,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import Message from '../types/Message';
 import dayjs, { Dayjs } from "dayjs";
 import CircleIcon from '@mui/icons-material/Circle';
+import chatType from '../types/chatType';
 
 
 function ChatHomePage() {
@@ -52,7 +53,7 @@ function ChatHomePage() {
                     input: {
                       startAdornment: (
                         <InputAdornment position="start">
-                          <SearchIcon/>
+                          <SearchIcon sx={{color: "#1c284c"}}/>
                         </InputAdornment>
                       ),
                     },
@@ -177,26 +178,35 @@ function StyledCard({chat, viewChat, chatName} : {chat: ChatDisplay, viewChat: (
   return (
       <Box display="flex" justifyContent="center" alignItems="center">
           <ChatCard elevation={10} square={false}>
-      
-      <div onClick={() => { viewChat(chat); }} style={{cursor: "pointer"}}>
-      <Box display="flex" flexDirection="row" justifyContent="space-between">
-        <Box display="flex" flexDirection="column" justifyContent="space-between">
-          {chat.chatType == "Group" && <GroupIcon></GroupIcon>}
-          {chat.chatType == "Individual" && <PersonIcon></PersonIcon>}
-          {chat.chatType == "Event" && <CalendarMonthIcon></CalendarMonthIcon>}
-          {chat.unreadMsgs == true && <CircleIcon></CircleIcon>}
-        </Box>
-        <Box>
-        <Box display="flex" flexDirection="row" justifyContent="space-between" alignContent="left">
-            <Typography align="left" fontWeight="bold" variant="h6">{getNameStr(chatName)}</Typography>
-            {chat.lastMsg && <Typography>{messageDateString(chat.lastMsg.timeSent)}</Typography>}
-            </Box>
-
-            {chat.lastMsg ? <Typography>{chat.lastMsg.messageContent}</Typography> // {chat.lastMsg.messageContent}
-                      : <Typography>No messages</Typography>}
-          </Box>
-        </Box>
-      </div>        
+            <div onClick={() => { viewChat(chat); }} style={{cursor: "pointer"}}>
+              <Box display="flex" flexDirection="column" gap={1}>
+                <Box display="flex" flexDirection="row" width="100%" justifyContent="space-around" alignItems="center">
+                  <Box width="15%">
+                    {chat.chatType == "Group" && <GroupIcon></GroupIcon>}
+                    {chat.chatType == "Individual" && <PersonIcon></PersonIcon>}
+                    {chat.chatType == "Event" && <CalendarMonthIcon></CalendarMonthIcon>}
+                  </Box>
+                  <Box width="70%">
+                    <Typography align="center" fontWeight="bold" variant="h6">{chatName}</Typography>
+                  </Box>
+                  <Box width="15%">
+                    {chat.lastMsg ? <Typography>{messageDateString(chat.lastMsg.timeSent)}</Typography> : <Typography></Typography>}
+                  </Box>
+                </Box>
+                <Box display="flex" flexDirection="row" width="100%" justifyContent="space-around">
+                  <Box width="15%">
+                    {chat.unreadMsgs ? <CircleIcon sx={{color: "#71A9F7"}}></CircleIcon> : <Typography></Typography>}
+                  </Box>
+                  <Box width="70%">
+                    {chat.lastMsg ? 
+                    <Typography>{chat.lastMsg.messageContent}</Typography> // {chat.lastMsg.messageContent}
+                      : 
+                    <Typography>No messages</Typography>}
+                  </Box>
+                  <Box width="15%"></Box>
+                </Box>
+              </Box>
+            </div>        
           </ChatCard>
       </Box>
   )
