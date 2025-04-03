@@ -2623,7 +2623,8 @@ def get_my_chats(user_id: str):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"""(SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType, 
+        mycursor.execute(f"""SELECT * FROM
+                            ((SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType, 
                                 groupStuff.lastMsgId, groupStuff.unreadMsgs FROM Chat
                             JOIN (SELECT GroupOfUser.chatId, GroupOfUser.groupName, 
                                     msg.lastMsgId, FALSE AS unreadMsgs FROM GroupOfUserToChat
@@ -2660,7 +2661,10 @@ def get_my_chats(user_id: str):
                             FROM Chat
                             JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            WHERE EventInfo.creatorId = "{user_id}" AND Chat.chatType = 'Event')
+                            WHERE EventInfo.creatorId = "{user_id}" AND Chat.chatType = 'Event')) AS info
+                            LEFT JOIN (SELECT id AS msgId, senderId, messageContent, imagePath, timeSent FROM
+                                Message) AS lastMsg ON info.lastMsgId = lastMsg.msgId
+                            ORDER BY timeSent DESC
                             """)
         response = mycursor.fetchall()
         headers = mycursor.description

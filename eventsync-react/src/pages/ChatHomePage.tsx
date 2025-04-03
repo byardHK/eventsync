@@ -13,7 +13,6 @@ import ChatDisplay from '../types/ChatDisplay';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import GroupIcon from '@mui/icons-material/Group';
 import PersonIcon from '@mui/icons-material/Person';
-import Message from '../types/Message';
 import dayjs, { Dayjs } from "dayjs";
 import CircleIcon from '@mui/icons-material/Circle';
 
@@ -91,21 +90,6 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
                   'Content-Type': 'application/json',
               },
           });
-            for(var chat of response.data) {
-              if(chat.lastMsgId && chat.lastMsgId > 0) {
-                try{
-                  const msgResponse = await axios.get<Message[]>(`${BASE_URL}/get_message/${chat.lastMsgId}`,{
-                    headers: {
-                        'Authorization': `Bearer ${userDetails.token}`,
-                        'Content-Type': 'application/json',
-                    },
-                  }); 
-                  chat.lastMsg = msgResponse.data[0];
-              }catch(error) {
-                console.error('Error fetching data:', error);
-                }
-            };
-            }
             setChats(sortedChats(response.data));
             console.log(response);
             
@@ -124,16 +108,16 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
 
     const sortedChats = (chats: ChatDisplay[]) => {
       const sortedChats = [...chats].sort((a, b) => {
-        if(!a.lastMsg) {
+        if(!a.lastMsgId) {
           return 1
         }
-        if(!b.lastMsg) {
+        if(!b.lastMsgId) {
           return 1
         }
-        if (a.lastMsg.timeSent > b.lastMsg.timeSent) {
+        if (a.timeSent > b.timeSent) {
           return -1;
         }
-        if (a.lastMsg.timeSent > b.lastMsg.timeSent) {
+        if (a.timeSent > b.timeSent) {
           return 1;
         }
         return 0;
@@ -189,10 +173,10 @@ function StyledCard({chat, viewChat, chatName} : {chat: ChatDisplay, viewChat: (
         <Box>
         <Box display="flex" flexDirection="row" justifyContent="space-between" alignContent="left">
             <Typography align="left" fontWeight="bold" variant="h6">{getNameStr(chatName)}</Typography>
-            {chat.lastMsg && <Typography>{messageDateString(chat.lastMsg.timeSent)}</Typography>}
+            {chat.lastMsgId && <Typography>{messageDateString(chat.timeSent)}</Typography>}
             </Box>
 
-            {chat.lastMsg ? <Typography>{chat.lastMsg.messageContent}</Typography> // {chat.lastMsg.messageContent}
+            {chat.lastMsgId ? <Typography>{chat.messageContent}</Typography>
                       : <Typography>No messages</Typography>}
           </Box>
         </Box>
