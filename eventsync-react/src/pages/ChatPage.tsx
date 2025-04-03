@@ -201,7 +201,12 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
                     <ReportModal input={message} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="message"/>
                     {groupChat && <p>{getName(message.senderId)}</p>}
                     <div>
-                        <ListItemText className="message">{message.messageContent}</ListItemText>
+                    <ListItemText className="message">{message.messageContent}</ListItemText>
+                        {message.id && message.imagePath &&
+                        <div>
+                            <ImageComponent id={message.id} />
+                        </div>
+                        }
                         <div className="date">{messageDateString(message.timeSent)}</div>
                     </div>
                 </div>
