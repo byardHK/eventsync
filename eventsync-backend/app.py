@@ -10,6 +10,8 @@ from dateutil.relativedelta import *
 import pusher
 import os
 import yagmail
+import pillow_heif
+from PIL import Image
 
 
 app = Flask(__name__)
@@ -2551,9 +2553,13 @@ def message():
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+        
+        date = datetime.strptime(data['timeSent'], "%Y-%m-%d %H:%M:%S")
+        dateToStore = (date + timedelta(hours=4)).strftime("%Y-%m-%d %H:%M:%S")
+
         mycursor.execute(f""" 
             INSERT INTO Message (chatId, senderId, messageContent, timeSent) 
-                VALUES ({data['chatId']}, "{data["senderId"]}", "{data["messageContent"]}", "{data["timeSent"]}");
+                VALUES ({data['chatId']}, "{data["senderId"]}", "{data["messageContent"]}", "{dateToStore}");
         """)
         chatId = mycursor.lastrowid
         conn.commit()
@@ -2662,43 +2668,6 @@ def get_my_chats(user_id: str):
         mycursor.close()
         conn.close()
         return sqlResponseToJson(response, headers)
-        # return [
-        #         {
-        #             "chatType": "Group",
-        #             "id": 46,
-        #             "name": "Another Chat Test Group",
-        #             "unreadMsgs": False,
-        #             "lastMsg": None
-        #         },
-        #         {
-        #             "chatType": "Event",
-        #             "id": 29,
-        #             "name": "AI Study Session",
-        #             "unreadMsgs": False,
-        #             "lastMsg": None
-        #         },
-        #         {
-        #             "chatType": "Event",
-        #             "id": 49,
-        #             "name": "Wolfe test",
-        #             "unreadMsgs": False,
-        #             "lastMsg": None
-        #         },
-        #         {
-        #             "chatType": "Individual",
-        #             "id": 134,
-        #             "name": "fake dude",
-        #             "unreadMsgs": True,
-        #             "lastMsg": {
-        #                 "chatId": 134,
-        #                 "id": 260,
-        #                 "imagePath": None,
-        #                 "messageContent": "Hi fake dude!",
-        #                 "senderId": "harnlyam20@gcc.edu",
-        #                 "timeSent": "Sat, 29 Mar 2025 14:59:48 GMT"
-        #             }
-        #         }
-        #     ]
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
@@ -2830,10 +2799,10 @@ def update_msg_last_seen():
                              WHERE chatId = {chat_id} AND userId = '{user_id}'""")
         elif chat_type == 'Event':
             pass
-            # TODO: this is a tricky case
+            # TODO 
         else:
             pass
-            # TODO: return error
+            # TODO
 
         conn.commit()
         mycursor.close()
@@ -2897,19 +2866,43 @@ def upload():
         try:
             conn = mysql.connector.connect(**db_config)
             mycursor = conn.cursor()
+
+            date = datetime.strptime(data['timeSent'], "%Y-%m-%d %H:%M:%S")
+            dateToStore = (date + timedelta(hours=4)).strftime("%Y-%m-%d %H:%M:%S")
+
             mycursor.execute(f""" 
                 INSERT INTO Message (chatId, senderId, imagePath, timeSent) 
-                    VALUES ({data.get('chatId')}, "{data.get("senderId")}", "{file.filename}", "{data.get("timeSent")}");
+                    VALUES ({data.get('chatId')}, "{data.get("senderId")}", "{data.get('imageType')}", "{dateToStore}");
             """)
-
             messageId = mycursor.lastrowid
-            filename = str(messageId) + '.jpg'
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(file_path)
             conn.commit()
             mycursor.close()
             conn.close()
-            pusher_client.trigger(f'chat-{data.get("chatId")}', 'new-message', {'imagePath': file.filename, 'senderId': request.form.get('senderId'),
+
+            type = data.get('imageType')
+
+            if(data.get('imageType') == 'image/png'):
+                filename = str(messageId) + '.png'
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+            elif(data.get('imageType') == 'image/jpeg'):
+                filename = str(messageId) + '.jpg'
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+            else: 
+                heif_file = pillow_heif.read_heif(file)
+                image = Image.frombytes(
+                    heif_file.mode,
+                    heif_file.size,
+                    heif_file.data,
+                    "raw",
+                )
+                filename = str(messageId) + '.jpg'
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                image.save(file_path, format("jpeg"))
+                type = 'image/jpeg'
+            
+            pusher_client.trigger(f'chat-{data.get("chatId")}', 'new-message', {'imagePath': type, 'senderId': request.form.get('senderId'),
                     'chatId': request.form.get('chatId'), 'timeSent': request.form.get('timeSent'), 'id': messageId})
             return jsonify({'message': 'File uploaded successfully', 'filename': filename}), 200
 
@@ -2925,7 +2918,12 @@ def get_image(message_id: int):
         return error_response, status_code  
    
     try:
-        return send_file(f"uploads/{message_id}.jpg", mimetype='image/jpeg'), 200
+        if os.path.exists(f"uploads/{message_id}.jpg"):
+            return send_file(f"uploads/{message_id}.jpg", mimetype='image/jpeg'), 200
+        elif os.path.exists(f"uploads/{message_id}.png"):
+            return send_file(f"uploads/{message_id}.png", mimetype='image/png'), 200
+        else:
+            return "No image found", 404
     except Exception as  e:
         print(f"Error: {e}")
         return {}, 404
@@ -2933,9 +2931,10 @@ def get_image(message_id: int):
 def delete_uploads(msg_ids):
     for msg_arr in msg_ids:
         msg_id = msg_arr[0]
-        img_path = f"uploads/{msg_id}.jpg"
-        if os.path.exists(img_path):
-            os.remove(img_path)
+        img_paths = [f"uploads/{msg_id}.jpg", f"uploads/{msg_id}.png"]
+        for path in img_paths:
+            if os.path.exists(path):
+                os.remove(path)
 
 def send_event_cancellation(event_id):
     conn = mysql.connector.connect(**db_config)

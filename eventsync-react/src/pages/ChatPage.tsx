@@ -15,8 +15,8 @@ import chatType from '../types/chatType';
 import { Link } from 'react-router-dom';
 import BackButton from '../components/BackButton';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
-import Divider from '@mui/material/Divider';
 import { useRef } from 'react';
+import ClearIcon from '@mui/icons-material/Clear';
 
 dayjs.extend(isToday);
 
@@ -43,7 +43,7 @@ function ChatPage() {
               msg_id: msg_id,
               chat_type: chat?.chatType
             }
-            const response = await axios.post(`${BASE_URL}/update_msg_last_seen/`, data, {
+            await axios.post(`${BASE_URL}/update_msg_last_seen/`, data, {
               headers: {
                   'Authorization': `Bearer ${userDetails.token}`,
                   'Content-Type': 'application/json',
@@ -70,7 +70,6 @@ function ChatPage() {
                     chatType: stringToEnum(response.data.chat.chatType)
                 });
                 setUsers(new Map(response.data.users.map(user => [user.id, user])));
-                console.log(response.data);
             } catch (error) {
                 console.error('Error fetching tags:', error);
             }
@@ -105,7 +104,6 @@ function ChatPage() {
     useEffect(() => {
         if(msg) {
             setMessages([...messages,msg]);
-            console.log(messages.length);
         }
     }, [msg]);
 
@@ -287,6 +285,7 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
         formData.append('senderId', props.currentUserId);
         formData.append('chatId', props.chatId);
         formData.append('timeSent', getCurDate());
+        formData.append('imageType', selectedImage.type ?? 'image/heic');
 
         try {
             await axios.post('http://localhost:5000/upload/', formData, {
@@ -298,6 +297,7 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
         } catch (error) {
             console.error('Error uploading image:', error);
         }
+        setSelectedImage(undefined)
     };
 
     const onSend = () => {
@@ -308,7 +308,10 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
     const hiddenFileInput = useRef<HTMLDivElement>(null);
 
     const handleClick = () => {
-        if (hiddenFileInput.current) {
+        if (selectedImage) {
+            setSelectedImage(undefined)
+        }
+        else if (hiddenFileInput.current) {
             hiddenFileInput.current.click();
         }
     }
@@ -326,7 +329,7 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
         }}
     >
         <Button onClick={handleClick} sx={{backgroundColor: "#71A9F7"}}>
-            <AttachFileIcon sx={{color: "#1c284c"}}></AttachFileIcon>
+            {selectedImage ? <ClearIcon sx={{color: "#1c284c"}}></ClearIcon> :  <AttachFileIcon sx={{color: "#1c284c"}}></AttachFileIcon>}
         </Button>
         <FormControl>
             <Input 
@@ -334,7 +337,7 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
                 onChange={handleImageChange}
                 inputRef={hiddenFileInput}
                 style={{display:'none'}}
-                inputProps={{accept: "image/*" }}
+                inputProps={{accept: "image/heic, image/jpeg, image/png" }}
             />
         </FormControl>
         <TextField 
@@ -346,6 +349,7 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
             sx={{backgroundColor: "#FFFFFF"}}
             fullWidth
         />
+            
         <Button onClick={onSend} sx={{backgroundColor: "#71A9F7"}}>
             <SendIcon sx={{color: "#1c284c"}}></SendIcon>
         </Button>
@@ -394,9 +398,19 @@ const ImageComponent = ({id} : {id: number}) => {
     );
   };
 
+export function getCurDateGMT() {
+    const date = new Date();
+    date.setHours(date.getHours() + 4);
+    return formatDate(date);    
+}
+
 export function getCurDate() {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`; 
+    return formatDate(new Date());
+}
+
+function formatDate(date: Date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`; 
+
 }
 
 type MessageList = {
