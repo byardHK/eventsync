@@ -34,6 +34,11 @@ function ChatPage() {
     const currentUserId = userDetails.email ? userDetails.email : "";
     const channelName = `chat-${chatId}`;
     const [nonGroupOtherUser, setNonGroupOtherUser] = useState<User | null>(null);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({behavior: "auto"})
+    }
 
     async function msg_seen(msg_id: number) {
           try {
@@ -119,6 +124,7 @@ function ChatPage() {
     }, [chat, users]);
 
       useEffect(() => {
+        scrollToBottom();
         if(chat && messages && messages.length > 0) {
             msg_seen(messages[messages.length - 1].id);
         }
@@ -172,14 +178,17 @@ function ChatPage() {
                 currentUserId={currentUserId} 
                 groupChat={!(chat?.chatType == chatType.INDIVIDUAL)!} 
                 getName={getName}
+                // messagesEndRef={messagesEndRef.current}
             >
             </ChatList>
+            <div ref={messagesEndRef} />
+            
             <ChatInput channelName={""} currentUserId={currentUserId} chatId={chatId ?? "-1"}></ChatInput>
         </Grid2>
 	)
 }
 
-const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Message[], currentUserId: String, groupChat: Boolean, getName: (userId: String) => String | null}) => {
+const ChatList = ({messages, currentUserId, groupChat, getName, }: { messages: Message[], currentUserId: String, groupChat: Boolean, getName: (userId: String) => String | null,  }) => {
     const [flaggedMessageId, setFlaggedMessageId] = useState<number | undefined>();
     const [reportModalOpen, setReportModalOpen] = useState<boolean>(false);
 
