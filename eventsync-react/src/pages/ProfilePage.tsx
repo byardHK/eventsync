@@ -188,7 +188,7 @@ function ProfilePage() {
                                 {userDetails.profilePicture || "🧑"}
                             </span>
                             <Chip
-                                icon={<EditIcon />}
+                                icon={<EditIcon style={{color: "#71A9F7"}}/>}
                                 label=""
                                 size="small"
                                 sx={{

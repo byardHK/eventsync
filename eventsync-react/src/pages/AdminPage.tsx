@@ -140,11 +140,11 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
             onClose={()=> {setDeleteReportModalOpen(false)}}
             open={deleteReportModalOpen}
         >
-            <Box sx={{padding : 3}}>
-                <Typography variant="h3">Delete Report?</Typography>
-                <Box display="flex" flexDirection="row" justifyContent="space-between">
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setDeleteReportModalOpen(false)}}>Cancel</Button>
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={deleteReport}>Yes</Button>
+            <Box sx={{padding : 5}} width={200} height={100}>
+                <Typography align="center" variant="h5">Delete Report?</Typography>
+                <Box display="flex" flexDirection="row" width="100%" gap={2} paddingTop={5}>
+                    <Button variant="contained" sx={{backgroundColor: "#1c284c", color:"white"}} fullWidth onClick={()=> {setDeleteReportModalOpen(false)}}>Cancel</Button>
+                    <Button variant="contained" sx={{backgroundColor: "#1c284c", color:"white"}} fullWidth onClick={deleteReport}>Yes</Button>
                 </Box>
             </Box>
         </Dialog>
@@ -176,6 +176,10 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
                 {report.reportedMessageId ? <ViewReportedMessage/> : <></>}
                 {report.reportedGroupId ? <ViewReportedGroup/> : <></>}
             </Box>
+            {viewReportModalOpen ? <Button variant="contained" sx={{backgroundColor: "#1c284c", width: "100%", marginBottom:2}} onClick={() => {setViewReportModalOpen(false)}}>Close</Button>
+            :
+            <></>}
+            
         </Dialog>
     }
 
@@ -217,9 +221,9 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         return ( 
             <Box>
                 <Typography>{`Ban the author of this message (${message.senderId})?`}</Typography>
-                <Box display="flex" flexDirection="row" justifyContent="space-between">
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setBanUserModalOpen(false)}}>Cancel</Button>
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={() => {banUser(
+                <Box display="flex" flexDirection="row" gap={2} paddingTop={5}>
+                    <Button fullWidth sx={{marginTop: "auto", backgroundColor: "#1c284c", color: "white"}} onClick={()=> {setBanUserModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto", backgroundColor: "#1c284c", color: "white"}} onClick={() => {banUser(
                         message.senderId
                     )}}>Yes</Button>
                 </Box>
@@ -246,9 +250,9 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         return (
             <Box>
                 <Typography>{`Ban ${user.fname} ${user.lname} (${user.id})?`}</Typography>
-                <Box display="flex" flexDirection="row" justifyContent="space-between">
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setWarnUserModalOpen(false)}}>Cancel</Button>
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={() => {banUser(
+                <Box display="flex" flexDirection="row" gap={2} paddingTop={5}>
+                    <Button fullWidth sx={{marginTop: "auto", backgroundColor: "#1c284c", color: "white"}} onClick={()=> {setWarnUserModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto", backgroundColor: "#1c284c", color: "white"}} onClick={() => {banUser(
                         user.id
                     )}}>Yes</Button>
                 </Box>
@@ -283,9 +287,9 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         return (
             <Box>
                 <Typography>{`Ban the creator of this group (${group.creatorId})?`}</Typography>
-                <Box display="flex" flexDirection="row" justifyContent="space-between">
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setBanUserModalOpen(false)}}>Cancel</Button>
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={() => {banUser(
+                <Box display="flex" flexDirection="row" gap={2} paddingTop={5}>
+                    <Button fullWidth sx={{marginTop: "auto", backgroundColor: "#1c284c", color: "white"}} onClick={()=> {setBanUserModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto", backgroundColor: "#1c284c", color: "white"}} onClick={() => {banUser(
                         group.creatorId
                     )}}>Yes</Button>
                 </Box>
@@ -312,9 +316,9 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         return (
             <Box>
                 <Typography>{`Ban the creator of this event (${eventInfo.creatorId})?`}</Typography>
-                <Box display="flex" flexDirection="row" justifyContent="space-between">
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setBanUserModalOpen(false)}}>Cancel</Button>
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={() => {banUser(
+                <Box display="flex" flexDirection="row" gap={2} paddingTop={5}>
+                    <Button fullWidth sx={{marginTop: "auto", backgroundColor: "#1c284c", color: "white"}} onClick={()=> {setBanUserModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto", backgroundColor: "#1c284c", color: "white"}} onClick={() => {banUser(
                         eventInfo.creatorId
                     )}}>Yes</Button>
                 </Box>
@@ -346,9 +350,9 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
             </Box> :
             <Box>
                 <Typography>{`Warn the author of this message (${message.senderId})?`}</Typography>
-                <Box display="flex" flexDirection="row" justifyContent="space-between">
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setWarnUserModalOpen(false)}}>Cancel</Button>
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={() => {warnUser(
+                <Box display="flex" flexDirection="row" gap={2} paddingTop={5}>
+                    <Button fullWidth sx={{marginTop: "auto", backgroundColor: "#1c284c", color: "white"}} onClick={()=> {setWarnUserModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto", backgroundColor: "#1c284c", color: "white"}} onClick={() => {warnUser(
                         message.senderId,
                         `A message you sent been reported by a user and reviewed by an admin:\n
                             (Message: ${message.messageContent})\n
@@ -383,9 +387,9 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
             </Box> :
             <Box>
                 <Typography>{`Warn ${user.fname} ${user.lname} (${user.id})?`}</Typography>
-                <Box display="flex" flexDirection="row" justifyContent="space-between">
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setWarnUserModalOpen(false)}}>Cancel</Button>
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={() => {warnUser(
+                <Box display="flex" flexDirection="row" gap={2} paddingTop={5}>
+                    <Button fullWidth sx={{marginTop: "auto", backgroundColor: "#1c284c", color: "white"}} onClick={()=> {setWarnUserModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto", backgroundColor: "#1c284c", color: "white"}} onClick={() => {warnUser(
                         user.id,
                         `Your profile has been reported by a user and reviewed by an admin.\n
                          The contents of your profile have warranted a warning. Subsequent reports may result in a ban from EventSync.
@@ -427,9 +431,9 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
             </Box> :
             <Box>
                 <Typography>{`Warn the creator of this group (${group.creatorId})?`}</Typography>
-                <Box display="flex" flexDirection="row" justifyContent="space-between">
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setWarnUserModalOpen(false)}}>Cancel</Button>
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={() => {warnUser(
+                <Box display="flex" flexDirection="row" gap={2} paddingTop={5}>
+                    <Button fullWidth sx={{marginTop: "auto", backgroundColor: "#1c284c", color: "white"}} onClick={()=> {setWarnUserModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto", backgroundColor: "#1c284c", color: "white"}} onClick={() => {warnUser(
                         group.creatorId,
                         `A group created by you has been reported by a user and reviewed by an admin:\n
                             (Group Name: ${group.groupName})\n
@@ -468,9 +472,9 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
             <Box>
                 {/* TODO: creatorId = AI study session */}
                 <Typography>{`Warn the creator of this event (${eventInfo.creatorId})?`}</Typography>
-                <Box display="flex" flexDirection="row" justifyContent="space-between">
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={()=> {setWarnUserModalOpen(false)}}>Cancel</Button>
-                    <Button fullWidth sx={{marginTop: "auto"}} onClick={() => {warnUser(
+                <Box display="flex" flexDirection="row" gap={2} paddingTop={5}>
+                    <Button fullWidth sx={{marginTop: "auto", backgroundColor: "#1c284c", color: "white"}} onClick={()=> {setWarnUserModalOpen(false)}}>Cancel</Button>
+                    <Button fullWidth sx={{marginTop: "auto", backgroundColor: "#1c284c", color: "white"}} onClick={() => {warnUser(
                         eventInfo.creatorId,
                         `An event created by you has been reported by a user and reviewed by an admin:\n
                             (Event Title: ${eventInfo.title}, \n

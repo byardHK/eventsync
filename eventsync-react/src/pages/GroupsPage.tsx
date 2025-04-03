@@ -124,8 +124,7 @@ function GroupsPage(){
                         justifyContent="center"
                         alignItems="center"
                     >
-                        <Typography>Loading...</Typography>
-                        <CircularProgress/>
+                        <Typography color="white">Loading Groups</Typography>
                     </Box>
                 }
             </Grid2>

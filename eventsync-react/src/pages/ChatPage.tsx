@@ -143,7 +143,7 @@ function ChatPage() {
         if (chat.chatType == chatType.INDIVIDUAL && nonGroupOtherUser) {
             return (
                 <Typography align="center" fontWeight="bold" color="white" variant="h5">
-                    <Link to={`/profile/${nonGroupOtherUser.id}`}>
+                    <Link style={{color:"#71A9F7"}} to={`/profile/${nonGroupOtherUser.id}`}>
                         {getName(nonGroupOtherUser.id)}
                     </Link>
                 </Typography>

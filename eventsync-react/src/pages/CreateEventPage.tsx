@@ -261,7 +261,7 @@ function CreateEventPage() {
                 </Box>
                     {eventId && (
                         <FormControlLabel
-                            label={<Typography>Edit all events in this group</Typography>}
+                            label={<Typography color="white">Edit all events in this group</Typography>}
                             control={
                                 <Checkbox
                                     checked={editAllEvents}
@@ -303,6 +303,20 @@ function CreateEventPage() {
                             <AccessAlarmIcon style={{color: "white"}}></AccessAlarmIcon>
                             <Typography color="white"> FROM </Typography>
                             <MobileDateTimePicker
+                                // slotProps={{
+                                //     toolbar: {
+                                //     sx: {
+                                //         "& .MuiPickersToolbarText-root": {
+                                //         color: "red"
+                                //         }
+                                //     }
+                                //     },
+                                //     day: {
+                                //     sx: {
+                                //         color: "red"
+                                //     }
+                                //     }
+                                // }}
                                 sx={{ input: { backgroundColor: "white" }, width: "80%" }}
                                 label="Start"
                                 value={startDateTime}

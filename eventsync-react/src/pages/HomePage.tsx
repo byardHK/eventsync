@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import axios from "axios";
-import { Button, Grid2, InputAdornment, TextField, Autocomplete, Checkbox, FormControlLabel, Collapse, Typography, IconButton } from '@mui/material';
+import { Button, Grid2, InputAdornment, TextField, Autocomplete, Checkbox, FormControlLabel, Collapse, Typography, IconButton, Card } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PersonIcon from '@mui/icons-material/Person';
 import BottomNavBar from '../components/BottomNavBar';
@@ -103,25 +103,36 @@ function HomePage() {
             <Box style={{ position: 'fixed', top: '0', backgroundColor: "#1c284c", width: "100%", right: 0, left: 0, marginRight: "0", marginLeft: "auto"}}>
                 <Box
                     display="flex"
-                    alignItems="right" 
-                    justifyContent="right"
-                    padding={2}
-                    gap={2}
+                    justifyContent="space-between"
+                    alignContent="center"
+                    padding={1}
                 >
-                    {userDetails.isAdmin ?
-                        <Link to="/admin">
+                    <Card 
+                        component="img"
+                        sx={{
+                            height: 60,
+                            width: 60,
+                            backgroundColor: "white",
+                            
+                        }}
+                        src={logo}
+                        square={false}
+                    />
+                    <Box display="flex" alignItems="center" gap={3}>
+                        {userDetails.isAdmin ?
+                            <Link to="/admin">
+                                <Button variant="contained">
+                                    <FlagIcon style={{ color: 'black'}}/>
+                                </Button>
+                            </Link> :
+                        <></>
+                        }
+                        <Link to={`/profile/${currentUserId}`}>
                             <Button variant="contained">
-                                <FlagIcon style={{ color: 'black'}}/>
+                                <PersonIcon style={{ color: 'black'}}/>
                             </Button>
-                        </Link> :
-                    <></>
-                    }
-                    <Link to={`/profile/${currentUserId}`}>
-                        <Button variant="contained">
-                            <PersonIcon style={{ color: 'black'}}/>
-                        </Button>
-                    </Link>
-                    
+                        </Link>
+                    </Box>
                 </Box>
                 <Box
                     display="flex"
@@ -159,7 +170,6 @@ function HomePage() {
                     <Box sx={{width: "95%", position: 'fixed', top: '150px', "z-index": 10, border: filtersVisible ? 2 : undefined, borderColor: "#1c284c" }}>
                         <Collapse in={filtersVisible} sx={{width: "100%"}} >
                             <Box 
-                                paddingTop={3}
                                 sx={{backgroundColor: 'white'}}
                                 display="flex"
                                 flexDirection="column"

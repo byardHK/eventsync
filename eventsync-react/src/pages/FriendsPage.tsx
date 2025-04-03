@@ -3,13 +3,14 @@ import { useEffect, useState } from 'react';
 import BottomNavBar from '../components/BottomNavBar';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../sso/UserContext';
-import { Button, Typography, Paper, Box, Dialog, DialogTitle, DialogContent, Fab, TextField, Grid2, Accordion, AccordionSummary, AccordionDetails, Card } from '@mui/material';
+import { Button, Typography, Paper, Box, Dialog, DialogTitle, DialogContent, Fab, TextField, Grid2, Accordion, AccordionSummary, AccordionDetails, Card, DialogActions, InputAdornment } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AddIcon from '@mui/icons-material/Add';
 import { BASE_URL } from '../components/Constants';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SearchIcon from '@mui/icons-material/Search';
 
 function FriendsPage() {
     const { userDetails } = useUser();
@@ -243,18 +244,28 @@ function FriendsPage() {
                         height="500px"
                         bgcolor="white"
                     >
-                        <Box>
+                        <Box sx={{backgroundColor: "white", position: "sticky", top: 0, paddingTop:"10px", paddingBottom:"10px", "z-index": 10}}>
                             <TextField
-                                sx={{ width: '200px' }}
+                                sx={{ width: '250px'}}
                                 value={searchInput}
                                 onChange={handleSearchChange}
-                                label="Search Users"
                                 variant="outlined"
                                 fullWidth
+                                slotProps={{
+                                    input: {
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <SearchIcon sx={{color: "#1c284c"}}/>
+                                        </InputAdornment>
+                                        ),
+                                    },
+                                }}
                             />
                         </Box>
-                        <Box>
+                        <Box paddingBottom="10px">
                             <UserList users={filteredUsers} refreshData={() => userDetails.email && refreshData(userDetails.email)} onAddFriend={handleCloseDialog} />
+                        </Box>
+                        <Box sx={{ width: "100%", backgroundColor: "white", position: "sticky", bottom: 0, paddingBottom:"10px"}}>
                             <Button variant="contained" sx={{backgroundColor: "#1c284c", width: "100%"}} onClick={handleCloseDialog}>Close</Button>
                         </Box>
                     </Box>
@@ -285,17 +296,19 @@ function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refre
 
     return (<Box>
             {Array.isArray(friends) && friends.map((friend, index) => (
-                <Box key={index}
+                <Card
                     onClick={() => {navigate(`/profile/${friend.id}`);}}
-                    display="flex"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    width="350px"
-                    padding="10px"
-                    border="1px solid #ccc"
-                    borderRadius="5px"
-                    margin="5px 0"
-                    bgcolor="white"
+                    key={index}
+                    sx={{
+                        width: "300px", 
+                        padding: "10px", 
+                        backgroundColor: "white", 
+                        display: "flex", 
+                        justifyContent: "space-between", 
+                        alignItems: "center", 
+                        margin: "5px 0"
+                    }}
+                    square={false}
                 >
                     <DeleteIcon style={{ color: '#ad1f39'}} 
                         onClick={(e) => {
@@ -303,9 +316,9 @@ function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refre
                             userDetails.email && removeFriend(userDetails.email, friend.id);
                     }}/>
                     <Box flexGrow={1} textAlign="left" marginLeft={5}>
-                            {`${friend.fname} ${friend.lname}`}
+                        {`${friend.fname} ${friend.lname}`}
                     </Box>
-                </Box>
+                </Card>
             ))}
         </Box>
     );
@@ -337,7 +350,7 @@ function UserList({ users, refreshData, onAddFriend }: { users: EventSyncUser[];
                     sx={{
                         width: "200px", 
                         padding: "10px", 
-                        backgroundColor: "white", 
+                        backgroundColor: "#71A9F7", 
                         display: "flex", 
                         justifyContent: "space-between", 
                         alignItems: "center",
