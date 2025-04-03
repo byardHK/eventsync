@@ -154,14 +154,16 @@ function ViewEventPage() {
                         justifyContent="center"
                         sx={{ width: "100%" }}
                         minWidth={300}
+                        paddingTop={3}
+                        paddingBottom={2}
                     >
-                        <Typography variant="h4">RSVP List</Typography>
+                        <Typography variant="h5" fontWeight="bold">RSVP List</Typography>
                         <ul style={{ listStyleType: 'none', padding: 0 }}>
                             {rsvpList.map(user => (
-                                <li key={user.userId} style={{ marginBottom: '10px' }}>{user.fname} {user.lname}</li>
+                                <li key={user.userId} style={{ marginBottom: '10px', backgroundColor: "#71A9F7"}}>{user.fname} {user.lname}</li>
                             ))}
                         </ul>
-                        <Button variant="outlined" fullWidth onClick={handleCloseRsvpList}>Close</Button>
+                        <Button variant="contained" sx={{backgroundColor: "#1c284c"}} fullWidth onClick={handleCloseRsvpList}>Close</Button>
                 </Box>
             </Dialog>
         </>
