@@ -276,7 +276,7 @@ function ProfilePage() {
                             {emojiMap[Number(userDetails.profilePicture) ?? 0] || "🧑"}
                         </span>
                         <Chip
-                            icon={<EditIcon />}
+                            icon={<EditIcon style={{color: "#71A9F7"}}/>}
                             label=""
                             size="small"
                             sx={{

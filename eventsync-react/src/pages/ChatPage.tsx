@@ -15,8 +15,8 @@ import chatType from '../types/chatType';
 import { Link } from 'react-router-dom';
 import BackButton from '../components/BackButton';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
-import Divider from '@mui/material/Divider';
 import { useRef } from 'react';
+import ClearIcon from '@mui/icons-material/Clear';
 
 dayjs.extend(isToday);
 
@@ -34,6 +34,26 @@ function ChatPage() {
     const currentUserId = userDetails.email ? userDetails.email : "";
     const channelName = `chat-${chatId}`;
     const [nonGroupOtherUser, setNonGroupOtherUser] = useState<User | null>(null);
+
+    async function msg_seen(msg_id: number) {
+          try {
+            const data = {
+              user_id: userDetails.email,
+              chat_id: chatId,
+              msg_id: msg_id,
+              chat_type: chat?.chatType
+            }
+            await axios.post(`${BASE_URL}/update_msg_last_seen/`, data, {
+              headers: {
+                  'Authorization': `Bearer ${userDetails.token}`,
+                  'Content-Type': 'application/json',
+              },
+          });
+            
+          } catch (error) {
+            console.error('Error fetching data:', error);
+          }
+    }
 
 	useEffect(() => {
         const fetchChat = async () => {
@@ -62,6 +82,7 @@ function ChatPage() {
 		const channel = pusher.subscribe(channelName);
 		channel.bind('new-message', async function(newMsg: Message) {
             setMsg(newMsg);
+            // TODO: update msg last seen
 		});
         channel.bind("pusher:subscription_succeeded", retrieveHistory);
 		
@@ -97,6 +118,12 @@ function ChatPage() {
     }
     }, [chat, users]);
 
+      useEffect(() => {
+        if(chat && messages && messages.length > 0) {
+            msg_seen(messages[messages.length - 1].id);
+        }
+      }, [messages, chat]);
+
     async function retrieveHistory() {
         const response = await axios.get<MessageList>(`${BASE_URL}/get_chat_hist/${chatId}`, {
             headers: {
@@ -104,7 +131,8 @@ function ChatPage() {
                 'Content-Type': 'application/json'
             }
         });
-        setMessages(response.data.chats);
+        const msgs = response.data.chats
+        setMessages(msgs);
     }
 
     //TODO: add if statement to change chat title if logged in user is an admin
@@ -113,7 +141,7 @@ function ChatPage() {
         if (chat.chatType == chatType.INDIVIDUAL && nonGroupOtherUser) {
             return (
                 <Typography align="center" fontWeight="bold" color="white" variant="h5">
-                    <Link to={`/profile/${nonGroupOtherUser.id}`}>
+                    <Link style={{color:"#71A9F7"}} to={`/profile/${nonGroupOtherUser.id}`}>
                         {getName(nonGroupOtherUser.id)}
                     </Link>
                 </Typography>
@@ -173,7 +201,12 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
                     <ReportModal input={message} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="message"/>
                     {groupChat && <p>{getName(message.senderId)}</p>}
                     <div>
-                        <ListItemText className="message">{message.messageContent}</ListItemText>
+                    <ListItemText className="message">{message.messageContent}</ListItemText>
+                        {message.id && message.imagePath &&
+                        <div>
+                            <ImageComponent id={message.id} />
+                        </div>
+                        }
                         <div className="date">{messageDateString(message.timeSent)}</div>
                     </div>
                 </div>
@@ -257,9 +290,10 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
         formData.append('senderId', props.currentUserId);
         formData.append('chatId', props.chatId);
         formData.append('timeSent', getCurDate());
+        formData.append('imageType', selectedImage.type ?? 'image/heic');
 
         try {
-            await axios.post('http://localhost:5000/upload/', formData, {
+            await axios.post(`${BASE_URL}/upload/`, formData, {
               headers: {
                 'Authorization': `Bearer ${userDetails.token}`,
                 'Content-Type': 'multipart/form-data',
@@ -268,6 +302,7 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
         } catch (error) {
             console.error('Error uploading image:', error);
         }
+        setSelectedImage(undefined)
     };
 
     const onSend = () => {
@@ -278,7 +313,10 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
     const hiddenFileInput = useRef<HTMLDivElement>(null);
 
     const handleClick = () => {
-        if (hiddenFileInput.current) {
+        if (selectedImage) {
+            setSelectedImage(undefined)
+        }
+        else if (hiddenFileInput.current) {
             hiddenFileInput.current.click();
         }
     }
@@ -296,7 +334,7 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
         }}
     >
         <Button onClick={handleClick} sx={{backgroundColor: "#71A9F7"}}>
-            <AttachFileIcon sx={{color: "#1c284c"}}></AttachFileIcon>
+            {selectedImage ? <ClearIcon sx={{color: "#1c284c"}}></ClearIcon> :  <AttachFileIcon sx={{color: "#1c284c"}}></AttachFileIcon>}
         </Button>
         <FormControl>
             <Input 
@@ -304,7 +342,7 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
                 onChange={handleImageChange}
                 inputRef={hiddenFileInput}
                 style={{display:'none'}}
-                inputProps={{accept: "image/*" }}
+                inputProps={{accept: "image/heic, image/jpeg, image/png" }}
             />
         </FormControl>
         <TextField 
@@ -316,6 +354,7 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
             sx={{backgroundColor: "#FFFFFF"}}
             fullWidth
         />
+            
         <Button onClick={onSend} sx={{backgroundColor: "#71A9F7"}}>
             <SendIcon sx={{color: "#1c284c"}}></SendIcon>
         </Button>
@@ -364,9 +403,19 @@ const ImageComponent = ({id} : {id: number}) => {
     );
   };
 
+export function getCurDateGMT() {
+    const date = new Date();
+    date.setHours(date.getHours() + 4);
+    return formatDate(date);    
+}
+
 export function getCurDate() {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`; 
+    return formatDate(new Date());
+}
+
+function formatDate(date: Date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`; 
+
 }
 
 type MessageList = {

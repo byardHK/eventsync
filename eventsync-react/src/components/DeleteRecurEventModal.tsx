@@ -57,9 +57,9 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged:
                             // style={{fontFamily: 'Times New Roman'}}
                         > 
                             <FormControlLabel value="one" /*style={{fontFamily: 'Times New Roman'}}*/
-                                control={<Radio />} label={<Typography /*style={{ fontFamily: 'Times New Roman' }}*/>This event</Typography>} /> 
-                            <FormControlLabel value="all" /*style={{fontFamily: 'Times New Roman'}}*/
-                                control={<Radio />} label={<Typography /*style={{ fontFamily: 'Times New Roman' }}*/>This event and all other occurrences of this event</Typography>} /> 
+                                control={<Radio style={{color:"#1c284c"}}/>} label={<Typography>This event</Typography>} /> 
+                            <FormControlLabel value="all" 
+                                control={<Radio style={{color:"#1c284c"}}/>} label={<Typography>This event and all other occurrences of this event</Typography>} /> 
                         </RadioGroup> 
                     </FormControl> 
                 </Box>
@@ -72,8 +72,8 @@ function DeleteRecurEventModal(props: { event: EventSyncEvent, setEventsChanged:
                 padding={2}
                 gap={2}
             >
-                <Button variant="contained" fullWidth onClick={handleClose}>No</Button>
-                <Button variant="contained" fullWidth onClick={handleDelete}>Yes</Button>
+                <Button sx={{backgroundColor:"#1c284c"}} variant="contained" fullWidth onClick={handleClose}>No</Button>
+                <Button sx={{backgroundColor:"#1c284c"}} variant="contained" fullWidth onClick={handleDelete}>Yes</Button>
             </Box>
         </Dialog>
     </>

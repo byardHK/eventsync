@@ -1,6 +1,6 @@
 import jwt
 import requests
-from flask import Flask, request, jsonify, Response, send_file
+from flask import Flask, request, jsonify, Response, send_file, send_file
 # INSTALL THESE:
 # pip install mysql-connector-python
 import mysql.connector
@@ -10,6 +10,8 @@ from dateutil.relativedelta import *
 import pusher
 import os
 import yagmail
+import pillow_heif
+from PIL import Image
 
 
 app = Flask(__name__)
@@ -2201,6 +2203,11 @@ def delete_group():
         body = request.json
         groupId = body.get("groupId")
 
+        removeReportsOfGroup = f"""
+            DELETE FROM Report WHERE reportedGroupId = {groupId};
+        """
+        mycursor.execute(removeReportsOfGroup)
+
         getChatId = f"SET @chatId = (SELECT chatId FROM GroupOfUserToChat WHERE groupOfUserId = {groupId});"
 
         removeGroupOfUserToChat = f"""
@@ -2538,15 +2545,20 @@ def message():
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+        
+        date = datetime.strptime(data['timeSent'], "%Y-%m-%d %H:%M:%S")
+        dateToStore = (date + timedelta(hours=4)).strftime("%Y-%m-%d %H:%M:%S")
+
         mycursor.execute(f""" 
             INSERT INTO Message (chatId, senderId, messageContent, timeSent) 
-                VALUES ({data['chatId']}, "{data["senderId"]}", "{data["messageContent"]}", "{data["timeSent"]}");
+                VALUES ({data['chatId']}, "{data["senderId"]}", "{data["messageContent"]}", "{dateToStore}");
         """)
+        chatId = mycursor.lastrowid
         conn.commit()
         mycursor.close()
         conn.close()
         pusher_client.trigger(f'chat-{data["chatId"]}', 'new-message', {'messageContent': data['messageContent'], 'senderId': data['senderId'],
-                                    'chatId': data['chatId'], 'timeSent': data['timeSent'], 'id': data['id']})
+                                    'chatId': data['chatId'], 'timeSent': data['timeSent'], 'id': data['id']}) # TODO: change id
         return "message sent"
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -2603,33 +2615,45 @@ def get_my_chats(user_id: str):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"""(SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType FROM Chat
-                            JOIN (SELECT GroupOfUser.chatId, GroupOfUser.groupName FROM GroupOfUserToChat
+        mycursor.execute(f"""(SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType, 
+                                groupStuff.lastMsgId, groupStuff.unreadMsgs FROM Chat
+                            JOIN (SELECT GroupOfUser.chatId, GroupOfUser.groupName, 
+                                    msg.lastMsgId, FALSE AS unreadMsgs FROM GroupOfUserToChat
                             JOIN GroupOfUserToUser ON GroupOfUserToChat.groupOfUserId = GroupOfUserToUser.groupId
                             JOIN GroupOfUser ON GroupOfUserToChat.groupOfUserId = GroupOfUser.id
-                            WHERE GroupOfUserToUser.userId = '{user_id}') AS groupStuff
-                            ON Chat.id = groupStuff.chatId WHERE Chat.chatType = 'Group')
+                            JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = GroupOfUserToChat.chatId
+                            WHERE GroupOfUserToUser.userId = '{user_id}'
+                            ) AS groupStuff
+                            ON Chat.id = groupStuff.chatId 
+                            WHERE Chat.chatType = 'Group')
                             UNION 
-                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
+                            (SELECT Chat.id, CONCAT(otherUser.fname, " ", otherUser.lname) AS name, Chat.chatType, msg.lastMsgId, 
+                                msg.lastMsgId IS NOT NULL AND msg.lastMsgId > 0 AND currUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs FROM Chat 
+                            JOIN ChatToUser AS currUser ON Chat.id = currUser.chatId
+                            LEFT JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) 
+                                AS msg ON msg.chatId = currUser.chatId
+                            JOIN (SELECT ChatToUser.chatId, ChatToUser.lastMsgSeen, User.fname, User.lname FROM ChatToUser 
+                                JOIN User ON ChatToUser.userId = User.id
+                                WHERE ChatToUser.userId != '{user_id}') AS otherUser
+                            ON currUser.chatId = otherUser.chatId
+                            WHERE currUser.userId = '{user_id}' AND Chat.chatType = 'Individual')
+                            UNION
+                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType, msg.lastMsgId, 
+                                msg.lastMsgId > 0 AND EventToUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs FROM Chat
                             JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
                             JOIN Event ON Event.eventInfoId = EventInfoToChat.eventInfoId
                             JOIN EventToUser ON EventToUser.eventId = Event.id
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
+                            JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = Chat.id
                             WHERE EventToUser.userId = "{user_id}" AND Chat.chatType = 'Event')
                             UNION
-                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
+                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType, 0 AS lastMsgId,
+                                FALSE AS unreadMsgs
+                            FROM Chat
                             JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
                             WHERE EventInfo.creatorId = "{user_id}" AND Chat.chatType = 'Event')
-                            UNION
-                            (SELECT Chat.id, CONCAT(otherUser.fname, " ", otherUser.lname) AS name, Chat.chatType FROM Chat 
-                            JOIN ChatToUser ON Chat.id = ChatToUser.chatId
-                            JOIN (SELECT * FROM ChatToUser 
-                                JOIN User ON ChatToUser.userId = User.id
-                                WHERE ChatToUser.userId != '{user_id}'
-                                ) AS otherUser
-                            ON ChatToUser.chatId = otherUser.chatId
-                            WHERE ChatToUser.userId = '{user_id}' AND Chat.chatType = 'Individual')""")
+                            """)
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
@@ -2738,6 +2762,48 @@ def get_event_chat_id(event_id: int):
         print(f"Error: {err}")
     return {}
 
+@app.route('/update_msg_last_seen/', methods=['POST'])
+def update_msg_last_seen():
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if request.json["user_id"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
+    try:
+        body = request.json
+        user_id = body["user_id"]
+        chat_id = body["chat_id"]
+        msg_id = body["msg_id"]
+        chat_type = body["chat_type"]
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+
+        if chat_type == 'Group':
+            mycursor.execute(f"""UPDATE GroupOfUserToUser 
+                             SET lastMsgSeen = {msg_id}
+                             WHERE chatId = {chat_id} AND userId = '{user_id}'""")
+        elif chat_type == 'Individual':
+            mycursor.execute(f"""UPDATE ChatToUser 
+                             SET lastMsgSeen = {msg_id}
+                             WHERE chatId = {chat_id} AND userId = '{user_id}'""")
+        elif chat_type == 'Event':
+            pass
+            # TODO 
+        else:
+            pass
+            # TODO
+
+        conn.commit()
+        mycursor.close()
+        conn.close()
+        return "Successfully update rows", 201
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
 from flask import request, jsonify
 import mysql.connector
 
@@ -2792,19 +2858,43 @@ def upload():
         try:
             conn = mysql.connector.connect(**db_config)
             mycursor = conn.cursor()
+
+            date = datetime.strptime(data['timeSent'], "%Y-%m-%d %H:%M:%S")
+            dateToStore = (date + timedelta(hours=4)).strftime("%Y-%m-%d %H:%M:%S")
+
             mycursor.execute(f""" 
                 INSERT INTO Message (chatId, senderId, imagePath, timeSent) 
-                    VALUES ({data.get('chatId')}, "{data.get("senderId")}", "{file.filename}", "{data.get("timeSent")}");
+                    VALUES ({data.get('chatId')}, "{data.get("senderId")}", "{data.get('imageType')}", "{dateToStore}");
             """)
-
             messageId = mycursor.lastrowid
-            filename = str(messageId) + '.jpg'
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(file_path)
             conn.commit()
             mycursor.close()
             conn.close()
-            pusher_client.trigger(f'chat-{data.get("chatId")}', 'new-message', {'imagePath': file.filename, 'senderId': request.form.get('senderId'),
+
+            type = data.get('imageType')
+
+            if(data.get('imageType') == 'image/png'):
+                filename = str(messageId) + '.png'
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+            elif(data.get('imageType') == 'image/jpeg'):
+                filename = str(messageId) + '.jpg'
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+            else: 
+                heif_file = pillow_heif.read_heif(file)
+                image = Image.frombytes(
+                    heif_file.mode,
+                    heif_file.size,
+                    heif_file.data,
+                    "raw",
+                )
+                filename = str(messageId) + '.jpg'
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                image.save(file_path, format("jpeg"))
+                type = 'image/jpeg'
+            
+            pusher_client.trigger(f'chat-{data.get("chatId")}', 'new-message', {'imagePath': type, 'senderId': request.form.get('senderId'),
                     'chatId': request.form.get('chatId'), 'timeSent': request.form.get('timeSent'), 'id': messageId})
             return jsonify({'message': 'File uploaded successfully', 'filename': filename}), 200
 
@@ -2820,7 +2910,12 @@ def get_image(message_id: int):
         return error_response, status_code  
    
     try:
-        return send_file(f"uploads/{message_id}.jpg", mimetype='image/jpeg'), 200
+        if os.path.exists(f"uploads/{message_id}.jpg"):
+            return send_file(f"uploads/{message_id}.jpg", mimetype='image/jpeg'), 200
+        elif os.path.exists(f"uploads/{message_id}.png"):
+            return send_file(f"uploads/{message_id}.png", mimetype='image/png'), 200
+        else:
+            return "No image found", 404
     except Exception as  e:
         print(f"Error: {e}")
         return {}, 404
@@ -2828,9 +2923,10 @@ def get_image(message_id: int):
 def delete_uploads(msg_ids):
     for msg_arr in msg_ids:
         msg_id = msg_arr[0]
-        img_path = f"uploads/{msg_id}.jpg"
-        if os.path.exists(img_path):
-            os.remove(img_path)
+        img_paths = [f"uploads/{msg_id}.jpg", f"uploads/{msg_id}.png"]
+        for path in img_paths:
+            if os.path.exists(path):
+                os.remove(path)
 
 def send_event_cancellation(event_id):
     conn = mysql.connector.connect(**db_config)
