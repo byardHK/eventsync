@@ -21,7 +21,7 @@ UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-CORS(app, origins=["http://localhost:3000"])
+CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
 
 db_config = {
     'host': '10.18.101.62',  
@@ -2668,43 +2668,6 @@ def get_my_chats(user_id: str):
         mycursor.close()
         conn.close()
         return sqlResponseToJson(response, headers)
-        # return [
-        #         {
-        #             "chatType": "Group",
-        #             "id": 46,
-        #             "name": "Another Chat Test Group",
-        #             "unreadMsgs": False,
-        #             "lastMsg": None
-        #         },
-        #         {
-        #             "chatType": "Event",
-        #             "id": 29,
-        #             "name": "AI Study Session",
-        #             "unreadMsgs": False,
-        #             "lastMsg": None
-        #         },
-        #         {
-        #             "chatType": "Event",
-        #             "id": 49,
-        #             "name": "Wolfe test",
-        #             "unreadMsgs": False,
-        #             "lastMsg": None
-        #         },
-        #         {
-        #             "chatType": "Individual",
-        #             "id": 134,
-        #             "name": "fake dude",
-        #             "unreadMsgs": True,
-        #             "lastMsg": {
-        #                 "chatId": 134,
-        #                 "id": 260,
-        #                 "imagePath": None,
-        #                 "messageContent": "Hi fake dude!",
-        #                 "senderId": "harnlyam20@gcc.edu",
-        #                 "timeSent": "Sat, 29 Mar 2025 14:59:48 GMT"
-        #             }
-        #         }
-        #     ]
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
@@ -2836,10 +2799,10 @@ def update_msg_last_seen():
                              WHERE chatId = {chat_id} AND userId = '{user_id}'""")
         elif chat_type == 'Event':
             pass
-            # TODO: this is a tricky case
+            # TODO 
         else:
             pass
-            # TODO: return error
+            # TODO
 
         conn.commit()
         mycursor.close()
