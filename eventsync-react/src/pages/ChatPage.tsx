@@ -288,7 +288,7 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
         formData.append('imageType', selectedImage.type ?? 'image/heic');
 
         try {
-            await axios.post('http://localhost:5000/upload/', formData, {
+            await axios.post(`${BASE_URL}/upload/`, formData, {
               headers: {
                 'Authorization': `Bearer ${userDetails.token}`,
                 'Content-Type': 'multipart/form-data',
