@@ -340,6 +340,7 @@ function ProfilePage() {
         const [user, setUser] = useState<User>();
         const { userDetails } = useUser();
         const currUserId = userDetails.email;
+        const [isFriend, setIsFriend] = useState<boolean>();
 
         useEffect(() => {
             const fetchData = async () => {
@@ -369,6 +370,15 @@ function ProfilePage() {
                     };
                     console.log("Updated profileDetails:", details);
                     setProfileDetails(details);
+
+                    const isFriend = await axios.get(`${BASE_URL}/is_friend/${userId}/${profileId}/`, {
+                        headers: {
+                            'Authorization': `Bearer ${userDetails.token}`,
+                            "Content-Type": "application/json"
+                        },
+                    });
+                    console.log("Fetched user data from API:", res.data);
+                    setIsFriend(isFriend.data.isFriend);
                 } catch (error) {
                     console.error("Error fetching tags:", error);
                 }
@@ -465,12 +475,12 @@ function ProfilePage() {
                         </Box>
                         <br />
                     </Box>
-
+                    {isFriend &&
                     <Box width="100%" mt={2} textAlign='center' paddingTop={5}>
                         <Button sx={{ backgroundColor: "#1c284c" }} variant="contained" onClick={goToMessages}>
                             Message
                         </Button>
-                    </Box>
+                    </Box> }
 
                 </Card>
             </Box>
