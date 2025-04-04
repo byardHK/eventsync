@@ -706,6 +706,38 @@ def get_friends(userId):
         print(f"Error: {err}")
     return {}
 
+@app.route('/is_friend/<user1Id>/<user2Id>/')
+def is_friend(user1Id, user2Id):
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        query = """
+            SELECT u.id
+            FROM User u
+            WHERE u.id IN (
+                SELECT user2ID 
+                FROM UserToUser 
+                WHERE user1ID = %s
+                AND isFriend = true
+                UNION
+                SELECT user1ID 
+                FROM UserToUser 
+                WHERE user2ID = %s
+                AND isFriend = true
+            )
+            AND id = %s;
+        """
+        mycursor.execute(query, (user1Id, user1Id, user2Id))
+        response = mycursor.fetchall()
+        result = len(response) > 0
+        mycursor.close()
+        conn.close()
+        return jsonify({'isFriend': result})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
+
 @app.route('/get_pending_friends/<userId>/')
 def get_pending_friends(userId):
     user_email, error_response, status_code = get_authenticated_user()
@@ -2159,11 +2191,6 @@ def add_users_to_group(users, groupId, mycursor):
             INSERT INTO GroupOfUserToUser (groupId, userId) VALUES ({groupId}, "{user["id"]}");
         """
         mycursor.execute(addUserToGroup)
-
-        addUserToChat = f"""
-            INSERT INTO ChatToUser (chatId, userId) VALUES ({chatId}, "{user["id"]}");
-        """
-        mycursor.execute(addUserToChat)
 
 @app.post('/remove_user_from_group')
 def remove_user_from_group():
