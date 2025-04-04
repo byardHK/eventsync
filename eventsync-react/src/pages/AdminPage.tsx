@@ -329,14 +329,40 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
 
     function ViewReportedMessage() {
         const [message, setMessage] = useState<Message>();
+        const [imageURL, setImageURL] = useState<string>();
 
         async function loadMessage() {
             const res = await axios.get(`${BASE_URL}/get_message/${report.reportedMessageId}`);
             setMessage(res.data[0]);
+            console.log(res.data[0]);
+            if(res.data[0].imagePath) {
+                loadImage(res.data[0].id);
+            }
+        }
+
+        async function loadImage(id: number) {
+            try {
+                const response = await axios.get<string>(`${BASE_URL}/get_image/${id}/`,  {
+                    responseType: 'blob',
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                    }
+                });
+                const blob = new Blob([response.data], { type: 'image/jpeg' });
+                setImageURL(URL.createObjectURL(blob));
+            }catch (error) {
+                console.error('Error retrieving image:', error);
+            }
         }
 
         useEffect(() => {
             loadMessage();
+
+            return () => {
+                if (imageURL) {
+                  URL.revokeObjectURL(imageURL);
+                }
+              };
         }, []);
 
         if(!message) {
@@ -345,7 +371,20 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
 
         return ( viewReportModalOpen ?
             <Box display="flex" flexDirection="column" gap={3} height={300} width={200} padding={3}>
-                <Typography variant="h6" fontWeight="bold">{`${message.messageContent}`}</Typography>
+                {message.messageContent && <Typography variant="h6" fontWeight="bold">{`${message.messageContent}`}</Typography>}
+                {message.imagePath && <div>
+                    {imageURL ?
+                <Box
+                    component="img"
+                    sx={{
+                    maxHeight: '100%',
+                    maxWidth: '100%',
+                    }}
+                    alt="Image in chat"
+                    src={imageURL}
+                />   : 
+                <Typography>Loading image</Typography>}
+                </div>}
                 <Typography>{`Sent by: ${message.senderId}` }</Typography>
             </Box> :
             <Box>
