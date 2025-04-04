@@ -320,7 +320,6 @@ function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents,
     }, [eventsChanged]);
 
     useEffect(() => {
-        // Reset pagination and scroll to top when filters change
         setCurrentPage(1);
         window.scrollTo(0, 0);
     }, [searchKeyword, tags, isComingSoon, hideFullEvents, afterDate, beforeDate, friends]);
@@ -394,7 +393,11 @@ function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents,
                 ))}
             </Grid2>
             {currentEvents.length < filteredEvents.length && (
-                <Button onClick={handlePageChange} variant="contained"  sx={{ marginTop: 0, marginBottom: 10, backgroundColor:"#71A9F7", color: "black" }}>
+                <Button 
+                    onClick={handlePageChange} 
+                    variant="contained"  
+                    sx={{ marginTop: 0, marginBottom: 10, backgroundColor:"#71A9F7", color: "black" }}
+                >
                     Load More
                 </Button>
             )}
