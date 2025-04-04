@@ -31,6 +31,7 @@ function ProfilePage() {
     const [user, setUser] = useState<User>();
     const [userTagsTrigger, setUserTagsTrigger] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
+    const [isFriend, setIsFriend] = useState<boolean>(false);
 
     const emojiMap: { [key: number]: string } = {
         1: "😀",
@@ -90,6 +91,21 @@ function ProfilePage() {
             }
         };
         fetchProfileDetails();
+
+        const isFriend = async () => {
+            try {
+                const data = await axios.get(`${BASE_URL}/is_friend/${userId}/${profileId}/`, {
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    "Content-Type": "application/json"
+                },
+            } )  
+            setIsFriend(data.data.isFriend);
+            } catch (error) {
+                console.error("Error fetching profile details:", error);
+            }
+        };
+        isFriend();
     }, [profileId, userId, userDetails]);
 
     useEffect(() => {
