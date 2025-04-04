@@ -2784,7 +2784,9 @@ def update_msg_last_seen():
         if chat_type == 'Group':
             mycursor.execute(f"""UPDATE GroupOfUserToUser 
                              SET lastMsgSeen = {msg_id}
-                             WHERE chatId = {chat_id} AND userId = '{user_id}'""")
+                             WHERE groupId = (SELECT groupOfUserId FROM GroupOfUserToChat WHERE groupOfUserId = 
+                                (SELECT groupOfUserId FROM GroupOfUserToChat WHERE chatId = {chat_id}))
+                            AND userId = '{user_id}'""")
         elif chat_type == 'Individual':
             mycursor.execute(f"""UPDATE ChatToUser 
                              SET lastMsgSeen = {msg_id}
