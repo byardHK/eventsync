@@ -2673,8 +2673,10 @@ def get_my_chats(user_id: str):
                             JOIN Event ON Event.eventInfoId = EventInfoToChat.eventInfoId
                             JOIN EventToUser ON EventToUser.eventId = Event.id
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = Chat.id
-                            WHERE EventToUser.userId = "{user_id}" AND Chat.chatType = 'Event')
+                            LEFT JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = Chat.id
+                            WHERE EventToUser.userId = "{user_id}" AND EventInfo.creatorId != "{user_id}"
+	                            AND Chat.chatType = 'Event'
+                            LIMIT 1)
                             UNION
                             (SELECT Chat.id, event.title AS name, Chat.chatType, msg.lastMsgId,
                                 msg.lastMsgId IS NOT NULL AND ((event.creatorLastMsgSeen IS NULL) OR
