@@ -35,7 +35,9 @@ function ChatPage() {
     const channelName = `chat-${chatId}`;
     const [nonGroupOtherUser, setNonGroupOtherUser] = useState<User | null>(null);
 
-    async function msg_seen(msg_id: number) {
+    async function msgSeen(msg_id: number) {
+        if(chat) {
+        console.log(chat?.chatType);
           try {
             const data = {
               user_id: userDetails.email,
@@ -53,6 +55,9 @@ function ChatPage() {
           } catch (error) {
             console.error('Error fetching data:', error);
           }
+        } else {
+            console.log("Could not update last message seen. Chat type is undefined.");
+        }
     }
 
 	useEffect(() => {
@@ -82,7 +87,7 @@ function ChatPage() {
 		const channel = pusher.subscribe(channelName);
 		channel.bind('new-message', async function(newMsg: Message) {
             setMsg(newMsg);
-            // TODO: update msg last seen
+            msgSeen(newMsg.id);
 		});
         channel.bind("pusher:subscription_succeeded", retrieveHistory);
 		
@@ -120,7 +125,7 @@ function ChatPage() {
 
       useEffect(() => {
         if(chat && messages && messages.length > 0) {
-            msg_seen(messages[messages.length - 1].id);
+            msgSeen(messages[messages.length - 1].id);
         }
       }, [messages, chat]);
 
