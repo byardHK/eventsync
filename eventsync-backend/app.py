@@ -2676,12 +2676,20 @@ def get_my_chats(user_id: str):
                             JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = Chat.id
                             WHERE EventToUser.userId = "{user_id}" AND Chat.chatType = 'Event')
                             UNION
-                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType, 0 AS lastMsgId,
-                                FALSE AS unreadMsgs
-                            FROM Chat
+                            (SELECT Chat.id, event.title AS name, Chat.chatType, msg.lastMsgId,
+                                msg.lastMsgId IS NOT NULL AND ((event.creatorLastMsgSeen IS NULL) OR
+                                    msg.lastMsgId > 0 AND event.creatorLastMsgSeen < msg.lastMsgId) AS unreadMsgs 
+                                FROM Chat
                             JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
-                            JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            WHERE EventInfo.creatorId = "{user_id}" AND Chat.chatType = 'Event')
+                            LEFT JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) 
+                                                            AS msg ON msg.chatId = EventInfoToChat.chatId
+                            JOIN (SELECT Event.eventInfoId, Event.creatorLastMsgSeen, EventInfo.title, EventInfo.creatorId 
+                                FROM Event 
+                                JOIN EventInfo ON EventInfo.id = Event.eventInfoId 
+                                WHERE EventInfo.creatorId = "{user_id}"
+                                LIMIT 1) AS event
+                            ON event.eventInfoId = EventInfoToChat.eventInfoId
+                            WHERE Chat.chatType = 'Event');
                             """)
         response = mycursor.fetchall()
         headers = mycursor.description
