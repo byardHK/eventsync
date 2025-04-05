@@ -81,7 +81,7 @@ pusher_client = pusher.Pusher(
 
 @app.route('/api/update_user_profile', methods=['POST'])
 def update_user_profile():
-     ###### validating email #####
+    ###### validating email #####
     user_email, error_response, status_code = get_authenticated_user()
     if error_response:
         return error_response, status_code  
@@ -102,10 +102,8 @@ def update_user_profile():
         email = data.get('userId')
         bio = data.get('bio')
         is_public = data.get('isPublic')
-        notification_frequency = data.get('notificationFrequency')
-        receive_friend_request = data.get('receiveFriendRequest')
-        invited_to_event = data.get('invitedToEvent')
         event_cancelled = data.get('eventCancelled')
+        profile_picture = data.get('profilePicture')
 
         # Validate required fields
         if not email:
@@ -120,16 +118,12 @@ def update_user_profile():
             UPDATE User SET 
                 bio = %s, 
                 isPublic = %s, 
-                notificationFrequency = %s, 
-                friendRequest = %s, 
-                eventInvite = %s, 
-                eventCancelled = %s
+                eventCancelled = %s,
+                profilePicture = %s
             WHERE id = %s
         """
         mycursor.execute(updateQuery, (
-            bio, is_public, notification_frequency, 
-            receive_friend_request, invited_to_event, 
-            event_cancelled, email
+            bio, is_public, event_cancelled, profile_picture, email
         ))
 
         # Commit the changes to the database
@@ -231,13 +225,11 @@ def add_user():
         fname = data.get("firstName")
         lname = data.get("lastName")
         bio = data.get("bio", "")
-        notification_frequency = data.get("notificationFrequency", "None")
+        profilePicture = data.get("profilePicture", 0) 
         is_public = int(data.get("isPublic", 0))
         is_banned = 0  # Default to 0
         num_times_reported = int(data.get("numTimesReported", 0))  # Default to 0
         notification_id = 1  # Default to 1
-        friend_request = int(data.get("receiveFriendRequest", 0))
-        event_invite = int(data.get("invitedToEvent", 0))
         event_cancelled = int(data.get("eventCancelled", 0))
         gender = data.get("gender", "Undefined")  # Default to "Undefined"
 
@@ -247,9 +239,9 @@ def add_user():
         event_invite = int(event_invite)
         event_cancelled = int(event_cancelled)
 
-        print("Final values:", (id, fname, lname, bio, isAdmin,
-                        notification_frequency, is_public, is_banned, num_times_reported, 
-                        notification_id, friend_request, event_invite, event_cancelled, gender))
+        print("Final values:", (id, fname, lname, bio, profilePicture, isAdmin,
+                        is_public, is_banned, num_times_reported, 
+                        notification_id, event_cancelled, gender))
 
         if not id or not fname or not lname:
             return jsonify({"error": "Missing required fields"}), 400
@@ -257,13 +249,13 @@ def add_user():
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
 
-        sql = """INSERT INTO User (id, fname, lname, bio, 
-                notificationFrequency, isAdmin, isPublic, isBanned, numTimesReported, 
-                notificationId, friendRequest, eventInvite, eventCancelled, gender) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+        sql = """INSERT INTO User (id, fname, lname, bio, profilePicture,
+                isAdmin, isPublic, isBanned, numTimesReported, 
+                notificationId, eventCancelled, gender) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
         
-        values = (id, fname, lname, bio, 
-                  notification_frequency, isAdmin, is_public, is_banned, num_times_reported, notification_id, friend_request, event_invite, event_cancelled, gender)
+        values = (id, fname, lname, bio, profilePicture,
+                  isAdmin, is_public, is_banned, num_times_reported, event_cancelled, gender)
 
         mycursor.execute(sql, values)
         conn.commit()
@@ -713,6 +705,38 @@ def get_friends(userId):
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
+
+@app.route('/is_friend/<user1Id>/<user2Id>/')
+def is_friend(user1Id, user2Id):
+    try:  
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor()
+        query = """
+            SELECT u.id
+            FROM User u
+            WHERE u.id IN (
+                SELECT user2ID 
+                FROM UserToUser 
+                WHERE user1ID = %s
+                AND isFriend = true
+                UNION
+                SELECT user1ID 
+                FROM UserToUser 
+                WHERE user2ID = %s
+                AND isFriend = true
+            )
+            AND id = %s;
+        """
+        mycursor.execute(query, (user1Id, user1Id, user2Id))
+        response = mycursor.fetchall()
+        result = len(response) > 0
+        mycursor.close()
+        conn.close()
+        return jsonify({'isFriend': result})
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    return {}
+
 
 @app.route('/get_pending_friends/<userId>/')
 def get_pending_friends(userId):
@@ -2168,11 +2192,6 @@ def add_users_to_group(users, groupId, mycursor):
         """
         mycursor.execute(addUserToGroup)
 
-        addUserToChat = f"""
-            INSERT INTO ChatToUser (chatId, userId) VALUES ({chatId}, "{user["id"]}");
-        """
-        mycursor.execute(addUserToChat)
-
 @app.post('/remove_user_from_group')
 def remove_user_from_group():
     try:
@@ -2792,7 +2811,9 @@ def update_msg_last_seen():
         if chat_type == 'Group':
             mycursor.execute(f"""UPDATE GroupOfUserToUser 
                              SET lastMsgSeen = {msg_id}
-                             WHERE chatId = {chat_id} AND userId = '{user_id}'""")
+                             WHERE groupId = (SELECT groupOfUserId FROM GroupOfUserToChat WHERE groupOfUserId = 
+                                (SELECT groupOfUserId FROM GroupOfUserToChat WHERE chatId = {chat_id}))
+                            AND userId = '{user_id}'""")
         elif chat_type == 'Individual':
             mycursor.execute(f"""UPDATE ChatToUser 
                              SET lastMsgSeen = {msg_id}
@@ -2994,5 +3015,5 @@ def send_event_cancellation(event_id):
         
         # Send emails
         yag.send(email, subject, body)
-        
-           
+
+

@@ -21,10 +21,7 @@ const OnboardingPage = () => {
     const [email, setEmail] = useState(userDetails.email);
     const [bio, setBio] = useState("");
     const [isPublic, setIsPublic] = useState(false);
-    const [notificationFrequency, setNotificationFrequency] = useState("None");
     const [gender, setGender] = useState("Undefined");
-    const [receiveFriendRequest, setReceiveFriendRequest] = useState(false);
-    const [invitedToEvent, setInvitedToEvent] = useState(false);
     const [eventCancelled, setEventCancelled] = useState(false);
 
 
@@ -35,10 +32,7 @@ const OnboardingPage = () => {
             email: email,
             bio: bio,
             isPublic: isPublic,
-            notificationFrequency: notificationFrequency,
             gender: gender,
-            receiveFriendRequest: receiveFriendRequest,
-            invitedToEvent: invitedToEvent, 
             eventCancelled: eventCancelled
         };
 

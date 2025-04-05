@@ -330,18 +330,43 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
 
     function ViewReportedMessage() {
         const [message, setMessage] = useState<Message>();
-        const [reportCount, setReportCount] = useState<number | undefined>(); 
+        const [imageURL, setImageURL] = useState<string>();
+        const [reportCount, setReportCount] = useState<number | undefined>();
 
         async function loadMessage() {
             const msg : Message = (await axios.get(`${BASE_URL}/get_message/${report.reportedMessageId}`)).data[0];
             const user : User = (await axios.get(`${BASE_URL}/api/get_user/${msg.senderId}`)).data[0];
-
             setMessage(msg);
             setReportCount(user.numTimesReported);
+            console.log(res.data[0]);
+            if(res.data[0].imagePath) {
+                loadImage(res.data[0].id);
+            }
+        }
+
+        async function loadImage(id: number) {
+            try {
+                const response = await axios.get<string>(`${BASE_URL}/get_image/${id}/`,  {
+                    responseType: 'blob',
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                    }
+                });
+                const blob = new Blob([response.data], { type: 'image/jpeg' });
+                setImageURL(URL.createObjectURL(blob));
+            }catch (error) {
+                console.error('Error retrieving image:', error);
+            }
         }
 
         useEffect(() => {
             loadMessage();
+
+            return () => {
+                if (imageURL) {
+                  URL.revokeObjectURL(imageURL);
+                }
+              };
         }, []);
 
         if(!message) {
@@ -350,8 +375,22 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
 
         return ( viewReportModalOpen ?
             <Box display="flex" flexDirection="column" gap={3} height={300} width={200} padding={3}>
-                <Typography variant="h6" fontWeight="bold">{`${message.messageContent}`}</Typography>
+                {message.messageContent && <Typography variant="h6" fontWeight="bold">{`${message.messageContent}`}</Typography>}
                 <Typography>{`Sent by: ${message.senderId}${ reportCount && reportCount >= 2 ? ` (reported ${reportCount-1} other times)` : ``}` }</Typography>
+                {message.imagePath && <div>
+                    {imageURL ?
+                <Box
+                    component="img"
+                    sx={{
+                    maxHeight: '100%',
+                    maxWidth: '100%',
+                    }}
+                    alt="Image in chat"
+                    src={imageURL}
+                />   : 
+                <Typography>Loading image</Typography>}
+                </div>}
+                <Typography>{`Sent by: ${message.senderId}` }</Typography>
             </Box> :
             <Box>
                 <Typography>{`Warn the author of this message (${message.senderId})?`}</Typography>

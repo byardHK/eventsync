@@ -320,7 +320,6 @@ function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents,
     }, [eventsChanged]);
 
     useEffect(() => {
-        // Reset pagination and scroll to top when filters change
         setCurrentPage(1);
         window.scrollTo(0, 0);
     }, [searchKeyword, tags, isComingSoon, hideFullEvents, afterDate, beforeDate, friends]);
