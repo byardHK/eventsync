@@ -156,6 +156,7 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                             <FormControlLabel
                                 control={
                                 <Checkbox
+                                    style={{color:"#1c284c"}}
                                     disabled={friend.id === userDetails.email}
                                     checked={!!group.users.find((user) => user.id === friend.id)}
                                     onChange={(event) => {

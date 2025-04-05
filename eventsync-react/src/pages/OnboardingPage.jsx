@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Card, Box, Button, TextField, Switch, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import { Card, Box, Button, TextField, Switch, Select, MenuItem, FormControl, InputLabel, Typography } from "@mui/material";
 import { useUser } from "../sso/UserContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -73,10 +73,10 @@ const OnboardingPage = () => {
             justifyContent="center" // Centers content horizontally
             alignItems="center" // Centers content vertically
             flexDirection="column"
-            bgcolor="rgb(66, 135, 245)"
-            padding="20px"
-            minHeight="100vh" // Ensure full page height
-            width="100vw" // Full width
+            bgcolor="#1c284c"
+            padding="10px"
+            minHeight="75vh" // Ensure full page height
+            width="90vw" // Full width
         >
     <Card
         sx={{
@@ -90,8 +90,9 @@ const OnboardingPage = () => {
             marginBottom: "20px",
         }}
     >
-                <h2>Welcome to EventSync.</h2>
-                <p>Sign up to start.</p>
+                <Typography variant="h5"fontWeight="bold">Welcome to EventSync!</Typography>
+                <br></br>
+                <Typography>Sign up to start.</Typography>
 
                 <TextField
                     fullWidth
@@ -142,8 +143,8 @@ const OnboardingPage = () => {
                 />
 
                 <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
-                    <span>Make profile public?</span>
-                    <Switch checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
+                    <Typography>Make profile public?</Typography>
+                    <Switch style={{ color: "#1c284c" }} checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
                 </Box>
 
                 <FormControl fullWidth margin="normal">
@@ -160,25 +161,24 @@ const OnboardingPage = () => {
                 </FormControl>
 
                 <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
-                    <span>Friend Request Notifications</span>
-                    <Switch checked={receiveFriendRequest} onChange={(e) => setReceiveFriendRequest(e.target.checked)} />
+                    <Typography>Friend Request Notifications</Typography>
+                    <Switch style={{ color: "#1c284c" }} checked={receiveFriendRequest} onChange={(e) => setReceiveFriendRequest(e.target.checked)} />
                 </Box>
 
                 <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
-                    <span>Event Invite Notifications</span>
-                    <Switch checked={invitedToEvent} onChange={(e) => setInvitedToEvent(e.target.checked)} />
+                    <Typography>Event Invite Notifications</Typography>
+                    <Switch style={{ color: "#1c284c" }} checked={invitedToEvent} onChange={(e) => setInvitedToEvent(e.target.checked)} />
                 </Box>
                 
                 <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
-                    <span>Event Cancellation Notifications</span>
-                    <Switch checked={eventCancelled} onChange={(e) => setEventCancelled(e.target.checked)} />
+                    <Typography>Event Cancellation Notifications</Typography>
+                    <Switch style={{ color: "#1c284c" }} checked={eventCancelled} onChange={(e) => setEventCancelled(e.target.checked)} />
                 </Box>
 
                 <Button
                     variant="contained"
-                    color="primary"
                     fullWidth
-                    sx={{ mt: 2 }}
+                    sx={{ mt: 2, backgroundColor: "#1c284c" }}
                     onClick={handleSubmit}
                 >
                     Sign up
