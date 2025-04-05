@@ -25,7 +25,7 @@ import { BASE_URL } from '../components/Constants';
 import ReportModal from '../components/ReportModal';
 
 function ChatPage() {
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [messages, setMessages] = useState<Message[] | undefined>();
     const { chatId } = useParams<{ chatId: string }>() ;
     const [msg, setMsg] = useState<Message>();
     const [chat, setChat] = useState<Chat>();
@@ -103,7 +103,7 @@ function ChatPage() {
 
     useEffect(() => {
         if(msg) {
-            setMessages([...messages,msg]);
+            setMessages(messages ? [...messages, msg] : [msg]);
         }
     }, [msg]);
 
@@ -167,13 +167,19 @@ function ChatPage() {
                 <BackButton/>
                 {chatTitle()}
             </Box>
-            <ChatList 
-                messages={messages} 
-                currentUserId={currentUserId} 
-                groupChat={!(chat?.chatType == chatType.INDIVIDUAL)!} 
-                getName={getName}
-            >
-            </ChatList>
+            {messages ? 
+                (messages.length === 0 ?
+                    <Typography color="white" align="center">No messages yet</Typography>
+                    :
+                    <ChatList 
+                        messages={messages} 
+                        currentUserId={currentUserId} 
+                        groupChat={!(chat?.chatType == chatType.INDIVIDUAL)!} 
+                        getName={getName}
+                    />
+                ) :
+                <Typography color="white" align="center">Loading messages...</Typography>
+            }
             <ChatInput channelName={""} currentUserId={currentUserId} chatId={chatId ?? "-1"}></ChatInput>
         </Grid2>
 	)

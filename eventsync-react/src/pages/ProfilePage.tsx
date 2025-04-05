@@ -23,7 +23,7 @@ function ProfilePage() {
     if (!userDetails || !userDetails.email) {
         return <div className="loading-container">
             <img src={logo} alt="EventSync Logo" className="logo" />
-            <Typography className="loading-text">Loading...</Typography>
+            <Typography color="white" className="loading-text">Loading...</Typography>
         </div>;
     }
     const userId = userDetails.email;

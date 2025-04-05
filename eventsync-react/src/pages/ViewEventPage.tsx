@@ -118,7 +118,7 @@ function ViewEventPage() {
     
     function RsvpListModal({ eventId }: { eventId: number }) {
         const [openRsvpList, setOpenRsvpList] = useState(false);
-        const [rsvpList, setRsvpList] = useState<Rsvp[]>([]);
+        const [rsvpList, setRsvpList] = useState<Rsvp[] | undefined>();
     
         const handleOpenRsvpList = () => {
             setOpenRsvpList(true);
@@ -142,12 +142,12 @@ function ViewEventPage() {
                 console.error('Error fetching RSVP list:', error);
             }
         };
-    
+
         return (
             <>
                 <Button variant="contained" onClick={handleOpenRsvpList} sx={{ width: "140px", height: "60px", backgroundColor: "#71A9F7", color: "black" }}>View RSVP List</Button>
                 <Dialog onClose={handleCloseRsvpList} open={openRsvpList}>
-                    <Box
+                    {/* <Box
                         display="flex"
                         flexDirection="column"
                         alignItems="center"
@@ -163,9 +163,53 @@ function ViewEventPage() {
                                 <li key={user.userId} style={{ marginBottom: '10px', backgroundColor: "#71A9F7"}}>{user.fname} {user.lname}</li>
                             ))}
                         </ul>
-                        <Button variant="contained" sx={{backgroundColor: "#1c284c"}} fullWidth onClick={handleCloseRsvpList}>Close</Button>
-                </Box>
-            </Dialog>
+                        <Box  display="flex" justifyContent="center">
+                            <Button variant="contained" sx={{backgroundColor: "#1c284c", width: "75%"}} onClick={handleCloseRsvpList}>Close</Button>
+                        </Box>
+                    </Box> */}
+                    <Typography variant="h5" fontWeight="bold" align="center">RSVP List</Typography>
+                            <Box
+                                display="flex"
+                                flexDirection="column"
+                                alignItems="center"
+                                justifyContent="center"
+                                sx={{ width: "100%" }}
+                                minWidth={300}
+                                minHeight={300}
+                                paddingTop={3}
+                                paddingBottom={2}
+                            >
+                                { rsvpList ?
+                                    (rsvpList.length === 0 ? 
+                                        <Typography>No one attending event</Typography> :
+                                        rsvpList.map(user => (
+                                            <Card
+                                                key={user.id}
+                                                sx={{
+                                                    width: "200px", 
+                                                    padding: "10px", 
+                                                    backgroundColor: "#71A9F7", 
+                                                    display: "flex", 
+                                                    justifyContent: "space-between", 
+                                                    alignItems: "center", 
+                                                    margin: "5px 0"
+                                                }}
+                                                square={false}
+                                                onClick={() => {navigate(`/profile/${user.id}`)}}
+                                            >
+                                                <Box flexGrow={1} textAlign="left" marginLeft={5}>
+                                                    {`${user.fname} ${user.lname}`}
+                                                </Box>
+                                            </Card>
+                                        ))
+                                    ) :
+                                    <Typography>Loading RSVPs...</Typography>
+                                }
+                            </Box>
+                        <Box  display="flex" justifyContent="center" paddingBottom="10px">
+                            <Button variant="contained" sx={{backgroundColor: "#1c284c", width: "75%"}} onClick={handleCloseRsvpList}>Close</Button>
+                        </Box>
+                </Dialog>
         </>
     );
 }
@@ -542,7 +586,7 @@ export type Event = {
 };
 
 interface Rsvp {
-    userId: string;
+    id: string;
     fname: string;
     lname: string;
 };

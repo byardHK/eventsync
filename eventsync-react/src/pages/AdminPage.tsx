@@ -176,10 +176,11 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
                 {report.reportedMessageId ? <ViewReportedMessage/> : <></>}
                 {report.reportedGroupId ? <ViewReportedGroup/> : <></>}
             </Box>
-            {viewReportModalOpen ? <Button variant="contained" sx={{backgroundColor: "#1c284c", width: "100%", marginBottom:2}} onClick={() => {setViewReportModalOpen(false)}}>Close</Button>
-            :
-            <></>}
-            
+            <Box display="flex" justifyContent="center">
+                {viewReportModalOpen ? <Button variant="contained" sx={{backgroundColor: "#1c284c", width: "75%", marginBottom:2}} onClick={() => {setViewReportModalOpen(false)}}>Close</Button>
+                :
+                <></>}
+            </Box>
         </Dialog>
     }
 
@@ -329,10 +330,14 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
 
     function ViewReportedMessage() {
         const [message, setMessage] = useState<Message>();
+        const [reportCount, setReportCount] = useState<number | undefined>(); 
 
         async function loadMessage() {
-            const res = await axios.get(`${BASE_URL}/get_message/${report.reportedMessageId}`);
-            setMessage(res.data[0]);
+            const msg : Message = (await axios.get(`${BASE_URL}/get_message/${report.reportedMessageId}`)).data[0];
+            const user : User = (await axios.get(`${BASE_URL}/api/get_user/${msg.senderId}`)).data[0];
+
+            setMessage(msg);
+            setReportCount(user.numTimesReported);
         }
 
         useEffect(() => {
@@ -346,7 +351,7 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         return ( viewReportModalOpen ?
             <Box display="flex" flexDirection="column" gap={3} height={300} width={200} padding={3}>
                 <Typography variant="h6" fontWeight="bold">{`${message.messageContent}`}</Typography>
-                <Typography>{`Sent by: ${message.senderId}` }</Typography>
+                <Typography>{`Sent by: ${message.senderId}${ reportCount && reportCount >= 2 ? ` (reported ${reportCount-1} other times)` : ``}` }</Typography>
             </Box> :
             <Box>
                 <Typography>{`Warn the author of this message (${message.senderId})?`}</Typography>
@@ -366,10 +371,13 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
 
     function ViewReportedUser() {
         const [user, setUser] = useState<User>();
+        const [reportCount, setReportCount] = useState<number | undefined>(); 
 
         async function loadUser() {
-            const res = await axios.get(`${BASE_URL}/api/get_user/${report.reportedUserId}`);
-            setUser(res.data[0]);
+            const userRes = (await axios.get(`${BASE_URL}/api/get_user/${report.reportedUserId}`)).data[0];
+            const user : User = (await axios.get(`${BASE_URL}/api/get_user/${userRes.id}`)).data[0];
+            setUser(userRes);
+            setReportCount(user.numTimesReported)
         }
 
         useEffect(() => {
@@ -383,7 +391,7 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         return (viewReportModalOpen ?
             <Box display="flex" flexDirection="column" gap={3} height={300} width={200} padding={3}>
                 <Typography variant="h6" fontWeight="bold">{`${user.fname} ${user.lname}`}</Typography>
-                <Typography>{`User Email: ${user.id}`}</Typography>
+                <Typography>{`User Email: ${user.id}${ reportCount && reportCount >= 2 ? ` (reported ${reportCount-1} other times)` : ``}`}</Typography>
             </Box> :
             <Box>
                 <Typography>{`Warn ${user.fname} ${user.lname} (${user.id})?`}</Typography>
@@ -402,9 +410,10 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
 
     function ViewReportedGroup() {
         const [group, setGroup] = useState<Group>();
+        const [reportCount, setReportCount] = useState<number | undefined>(); 
 
         async function loadGroup() {
-            const res = await axios.get(
+            const group = (await axios.get(
                 `${BASE_URL}/get_group/${report.reportedGroupId}`,
                 {
                     headers: {
@@ -412,8 +421,10 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
                         'Content-Type': 'application/json'
                     }
                 }
-            );
-            setGroup(res.data);
+            )).data;
+            const user : User = (await axios.get(`${BASE_URL}/api/get_user/${group.creatorId}`)).data[0];
+            setGroup(group);
+            setReportCount(user.numTimesReported);
         }
 
         useEffect(() => {
@@ -427,7 +438,7 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         return (viewReportModalOpen ?
             <Box display="flex" flexDirection="column" gap={3} height={300} width={200} padding={3}>
                 <Typography variant="h6" fontWeight="bold">{`${group.groupName}`}</Typography>
-                <Typography>{`Created by: ${group.creatorId}`}</Typography>
+                <Typography>{`Created by: ${group.creatorId}${ reportCount && reportCount >= 2 ? ` (reported ${reportCount-1} other times)` : ``}`}</Typography>
             </Box> :
             <Box>
                 <Typography>{`Warn the creator of this group (${group.creatorId})?`}</Typography>
@@ -447,10 +458,13 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
 
     function ViewReportedEvent() {
         const [eventInfo, setEventInfo] = useState<EventInfo>();
+        const [reportCount, setReportCount] = useState<number | undefined>(); 
 
         async function loadEvent() {
-            const res = await axios.get(`${BASE_URL}/get_event_info/${report.reportedEventInfoId}/`);
-            setEventInfo(res.data[0]);
+            const event = (await axios.get(`${BASE_URL}/get_event_info/${report.reportedEventInfoId}/`)).data[0];
+            const user : User = (await axios.get(`${BASE_URL}/api/get_user/${event.creatorId}`)).data[0];
+            setEventInfo(event);
+            setReportCount(user.numTimesReported);
         }
 
         useEffect(() => {
@@ -464,7 +478,7 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         return (viewReportModalOpen ?
             <Box display="flex" flexDirection="column" gap={3} height={300} width={200} padding={3}>
                 <Typography variant="h6" fontWeight="bold">{`${eventInfo.title}`}</Typography>
-                <Typography>{`Created by: ${eventInfo.creatorName} (${eventInfo.creatorId})`}</Typography>
+                <Typography>{`Created by: ${eventInfo.creatorName} (${eventInfo.creatorId})${ reportCount && reportCount >= 2 ? ` (reported ${reportCount-1} other times)` : ``}`}</Typography>
                 <Typography>{`Event Description: ${eventInfo.description}`}</Typography>
                 <Typography>{`Event Location: ${eventInfo.locationName} ${eventInfo.locationLink ? `(${eventInfo.locationLink})` : ``}`}</Typography>
                 {eventInfo.venmo ? <Typography>{`Venmo: ${eventInfo.venmo}`}</Typography> : <></>}

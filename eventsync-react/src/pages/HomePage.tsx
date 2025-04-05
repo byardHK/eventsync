@@ -389,11 +389,18 @@ function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents,
                 justifyContent="center"
                 paddingBottom={2}
             >
-                {currentEvents.map((event) => (
-                    <StyledCard key={event.id} event={event} viewEvent={viewEvent} showTags/>
-                ))}
+                { currentEvents.length === 0 ?
+                    !isComingSoon ?
+                        <Typography paddingTop={3} color="white">Select interests to see recommended events</Typography>
+                        :
+                        <></>
+                    :
+                    currentEvents.map((event) => (
+                        <StyledCard key={event.id} event={event} viewEvent={viewEvent} showTags/>
+                    ))
+                }
             </Grid2>
-            {currentEvents.length < filteredEvents.length && (
+            {currentEvents.length < filteredEvents.length && currentEvents.length !== 0 && (
                 <Button onClick={handlePageChange} variant="contained"  sx={{ marginTop: 0, marginBottom: 10, backgroundColor:"#71A9F7", color: "black" }}>
                     Load More
                 </Button>

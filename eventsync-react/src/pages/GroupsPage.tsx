@@ -221,7 +221,7 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
                     </MenuItem>
                   ))}
                   <br></br>
-                  <Button variant="contained" fullWidth sx={{marginTop: "auto", backgroundColor:"#1c284c"}} onClick={()=> {setViewGroupMembersModalOpen(false)}}>Cancel</Button>
+                  <Button variant="contained" fullWidth sx={{marginTop: "auto", backgroundColor:"#1c284c"}} onClick={()=> {setViewGroupMembersModalOpen(false)}}>Close</Button>
             </Box>
         </Dialog>
     }
