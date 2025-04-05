@@ -2643,9 +2643,11 @@ def get_my_chats(user_id: str):
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         mycursor.execute(f"""(SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType, 
-                                groupStuff.lastMsgId, groupStuff.unreadMsgs FROM Chat
+                                groupStuff.lastMsgId, groupStuff.unreadMsgs
+                                FROM Chat
                             JOIN (SELECT GroupOfUser.chatId, GroupOfUser.groupName, 
-                                    msg.lastMsgId, FALSE AS unreadMsgs FROM GroupOfUserToChat
+                                    msg.lastMsgId, GroupOfUserToUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs 
+                                    FROM GroupOfUserToChat
                             JOIN GroupOfUserToUser ON GroupOfUserToChat.groupOfUserId = GroupOfUserToUser.groupId
                             JOIN GroupOfUser ON GroupOfUserToChat.groupOfUserId = GroupOfUser.id
                             JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = GroupOfUserToChat.chatId
