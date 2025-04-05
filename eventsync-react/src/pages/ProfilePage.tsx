@@ -418,19 +418,6 @@ function ProfilePage() {
                                 onBlur={handleSaveChanges}  // Auto-save when focus is lost
                             />
                         </Box>
-                        <Box mt={3} textAlign="center">
-                            <Button
-                                variant="contained"
-                                sx={{ backgroundColor: "#1c284c", color: "white" }}
-                                onClick={() => {
-                                    handleSaveChanges();
-                                    handleSave([], []);// Adjust if there are changes in the tags as well
-                                    navigate("/home");
-                                }}
-                            >
-                                Save Changes
-                            </Button>
-                        </Box>
                     </Box>
                 </Box>
             </Card>

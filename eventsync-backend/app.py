@@ -21,7 +21,8 @@ UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
+# CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
+CORS(app, origins=["http://localhost:3000"])
 
 db_config = {
     'host': '10.18.101.62',  
@@ -37,39 +38,59 @@ cached_auth_info = { }
 
 def get_authenticated_user():
     """Fetches the authenticated user's email from Microsoft Graph API."""
-    
+
     auth_header = request.headers.get('Authorization')
     if not auth_header:
-        print("ERROR: Missing Authorization header")
+        print("[AUTH ERROR] Missing Authorization header")
         return None, jsonify({"error": "Missing Authorization header"}), 403
 
     try:
         encodedJwt = auth_header[7:]
+        print(f"[AUTH INFO] JWT received: {encodedJwt[:20]}...")  # Print only a slice for security
         jwtDecoder = jwt.JWT()
         decodedJwt = jwtDecoder.decode(encodedJwt, do_verify=False)
+        print("[AUTH INFO] JWT decoded (unverified)")
     except Exception as e:
+        print(f"[AUTH ERROR] JWT decoding failed: {e}")
         return None, jsonify({"error": "Invalid Authorization header"}), 403
 
     cached_info = cached_auth_info.get(auth_header)
-    if not cached_info:
+    if cached_info:
+        print("[CACHE HIT] Using cached user info")
+    else:
+        print("[CACHE MISS] Fetching from Microsoft Graph API")
         headers = {
             "Authorization": auth_header,
             "Accept": "application/json"
         }
 
-        response = requests.get(GRAPH_API_URL, headers=headers)
-        if response.status_code != 200:
-            return None, jsonify({"error": "Failed to fetch user profile", "details": response.text}), 403
+        try:
+            response = requests.get(GRAPH_API_URL, headers=headers)
+            print(f"[GRAPH API] Response code: {response.status_code}")
 
-        cached_info = response.json()
-        cached_auth_info[auth_header] = cached_info
+            if response.status_code != 200:
+                print(f"[GRAPH API ERROR] {response.text}")
+                return None, jsonify({
+                    "error": "Failed to fetch user profile",
+                    "details": response.text
+                }), 403
 
-    user_email = cached_info.get("mail")  # Extract user email
+            cached_info = response.json()
+            cached_auth_info[auth_header] = cached_info
+            print(f"[GRAPH API] User profile cached")
+
+        except Exception as e:
+            print(f"[GRAPH API ERROR] Request failed: {e}")
+            return None, jsonify({"error": "Failed to connect to Graph API"}), 500
+
+    user_email = cached_info.get("mail")
+    print(f"[USER INFO] Email fetched: {user_email}")
 
     if not user_email:
+        print("[AUTH ERROR] Email not found in Graph response")
         return None, jsonify({"error": "Email not found in token response"}), 403
 
-    return user_email, None, None  # No error, return email
+    return user_email, None, None  # Success
 
 pusher_client = pusher.Pusher(
   app_id='1939690',
@@ -167,14 +188,14 @@ def get_user(id):
 @app.route('/api/check_user/<string:id>', methods=['GET'])
 def check_user(id):
        
-    user_email, error_response, status_code = get_authenticated_user()
-    if error_response:
-        print(error_response)
-        return error_response, status_code   
+    # user_email, error_response, status_code = get_authenticated_user()
+    # if error_response:
+    #     print(error_response)
+    #     return error_response, status_code   
 
-    if id.lower() != user_email.lower():
-        print("Unauthorized: userId does not match token email")
-        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    # if id.lower() != user_email.lower():
+    #     print("Unauthorized: userId does not match token email")
+    #     return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
    
     try:
         conn = mysql.connector.connect(**db_config)
@@ -193,80 +214,83 @@ def check_user(id):
     
 @app.route('/api/add_user/', methods=['POST'])
 def add_user():
+    print("=== /api/add_user/ called ===")
 
     user_email, error_response, status_code = get_authenticated_user()
     if error_response:
-        return error_response, status_code  # Handle authentication errors
+        print(f"[AUTH ERROR] {status_code}: {error_response.get_json()}")
+        return error_response, status_code
 
     body = request.get_json()
+    print(f"[REQUEST BODY] {body}")
+
     if not body or "email" not in body:
+        print("[ERROR] Missing 'email' in request body")
         return jsonify({"error": "Missing required 'email' field in request body"}), 400
 
     if body.get("email").lower() != user_email.lower():
-        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
-
-
-    user_email, error_response, status_code = get_authenticated_user()
-    if error_response:
-        return error_response, status_code  # Handle authentication errors
-
-    body = request.get_json()
-    if not body or "email" not in body:
-        return jsonify({"error": "Missing required 'email' field in request body"}), 400
-
-    if body.get("email").lower() != user_email.lower():
+        print(f"[ERROR] Email mismatch: token={user_email}, body={body.get('email')}")
         return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
 
     try:
-        data = request.get_json()
-        print(data)
+        id = body.get("email")
+        fname = body.get("firstName")
+        lname = body.get("lastName")
+        bio = body.get("bio", "")
+        profilePicture = body.get("profilePicture", 0)
+        is_public = int(body.get("isPublic", 0))
+        is_banned = 0
+        num_times_reported = int(body.get("numTimesReported", 0))
+        notification_id = 1
+        event_cancelled = int(body.get("eventCancelled", 0))
+        gender = body.get("gender", "Undefined")
+        is_admin = 0
 
-        id = data.get("email")  
-        fname = data.get("firstName")
-        lname = data.get("lastName")
-        bio = data.get("bio", "")
-        profilePicture = data.get("profilePicture", 0) 
-        is_public = int(data.get("isPublic", 0))
-        is_banned = 0  # Default to 0
-        num_times_reported = int(data.get("numTimesReported", 0))  # Default to 0
-        notification_id = 1  # Default to 1
-        event_cancelled = int(data.get("eventCancelled", 0))
-        gender = data.get("gender", "Undefined")  # Default to "Undefined"
-
-        isAdmin = 0
-        is_public = int(is_public)
-        friend_request = int(friend_request)
-        event_invite = int(event_invite)
-        event_cancelled = int(event_cancelled)
-
-        print("Final values:", (id, fname, lname, bio, profilePicture, isAdmin,
-                        is_public, is_banned, num_times_reported, 
-                        notification_id, event_cancelled, gender))
+        print("✔️ Parsed user data:")
+        print(f"   ID: {id}")
+        print(f"   Name: {fname} {lname}")
+        print(f"   Public: {is_public}, Banned: {is_banned}")
+        print(f"   Reports: {num_times_reported}, EventCancelled: {event_cancelled}")
+        print(f"   Gender: {gender}, ProfilePic: {profilePicture}")
 
         if not id or not fname or not lname:
+            print("[ERROR] Missing required fields (email, firstName, lastName)")
             return jsonify({"error": "Missing required fields"}), 400
-        
+
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
 
-        sql = """INSERT INTO User (id, fname, lname, bio, profilePicture,
+        sql = """
+            INSERT INTO User (id, fname, lname, bio, profilePicture,
                 isAdmin, isPublic, isBanned, numTimesReported, 
                 notificationId, eventCancelled, gender) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-        
-        values = (id, fname, lname, bio, profilePicture,
-                  isAdmin, is_public, is_banned, num_times_reported, event_cancelled, gender)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
 
+        values = (
+            id, fname, lname, bio, profilePicture,
+            is_admin, is_public, is_banned,
+            num_times_reported, notification_id,
+            event_cancelled, gender
+        )
+
+        print("[DB QUERY] Executing INSERT into User...")
         mycursor.execute(sql, values)
         conn.commit()
+        print("[DB SUCCESS] User inserted successfully.")
+
         mycursor.close()
         conn.close()
 
         return jsonify({"message": "User added successfully"}), 201
 
     except mysql.connector.Error as err:
-        print(f"Error: {err}")
+        print(f"[MYSQL ERROR] {err}")
         return jsonify({"error": "Database insert failed"}), 500
+
+    except Exception as e:
+        print(f"[UNEXPECTED ERROR] {e}")
+        return jsonify({"error": "Unexpected error occurred"}), 500
 
 
 @app.route('/get_events/<string:id>')
