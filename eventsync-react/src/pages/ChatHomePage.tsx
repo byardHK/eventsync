@@ -78,7 +78,7 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
 
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
-    const [chats, setChats] = useState<ChatDisplay[]>([]); 
+    const [chats, setChats] = useState<ChatDisplay[] | undefined>(); 
     
     const navigate = useNavigate();
 
@@ -117,11 +117,11 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
         fetchData();
     }, []);
 
-    const filteredChats = chats.filter(chat => {
+    const filteredChats = chats ? chats.filter(chat => {
       return searchKeyword
           ? chat.name.toLowerCase().includes(searchKeyword.toLowerCase())
           : true;
-        });
+        }) : [];
 
     const sortedChats = (chats: ChatDisplay[]) => {
       const sortedChats = [...chats].sort((a, b) => {
@@ -148,9 +148,12 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
 
     return (
       <Box display="flex" flexDirection="column" paddingBottom={7} paddingTop={18}>
-        {filteredChats.map((chat, index) => (
-          <StyledCard key={index} chat={chat} viewChat={viewChat} chatName={chat.name}></StyledCard>
-        ))}
+        {chats ? 
+          filteredChats.map((chat, index) => (
+            <StyledCard key={index} chat={chat} viewChat={viewChat} chatName={chat.name}></StyledCard>
+          )) :
+          <Typography color="white" paddingTop={2}>Loading chats...</Typography>
+        }
       </Box>
   );
 }

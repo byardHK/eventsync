@@ -20,7 +20,6 @@ function ProfilePage() {
     const { id: profileId } = useParams();
     const { userDetails, setUserDetails } = useUser();
     const navigate = useNavigate();
-
     const [userTags, setUserTags] = useState<Tag[]>([]);
     const [aboutMe, setAboutMe] = useState<string>(userDetails?.bio || "");
     const [isPrivate, setIsPrivate] = useState<boolean>(!userDetails?.isPublic);

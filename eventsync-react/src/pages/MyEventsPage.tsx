@@ -25,7 +25,7 @@ function MyEventsPage() {
     if (!userDetails || !userDetails.email) {
         return <div className="loading-container">
         <img src={logo} alt="EventSync Logo" className="logo" />
-        <Typography className="loading-text">Loading...</Typography>
+        <Typography color="white" className="loading-text">Loading...</Typography>
         </div>;
     }
 
@@ -91,8 +91,8 @@ type EventListsProps = {
 };
 
 function EventLists({showingAttending}: EventListsProps) {
-    const [attendingEvents, setAttendingEvents] = useState<EventSyncEvent[]>([]);  
-    const [hostingEvents, setHostingEvents] = useState<EventSyncEvent[]>([]);    
+    const [attendingEvents, setAttendingEvents] = useState<EventSyncEvent[] | undefined>();  
+    const [hostingEvents, setHostingEvents] = useState<EventSyncEvent[] | undefined>();    
     const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
@@ -138,15 +138,15 @@ function EventLists({showingAttending}: EventListsProps) {
                 paddingBottom={8}
             >
                 {showingAttending ?
-                    <EventList events={attendingEvents} canDeleteEvents={false} setEventsChanged={setEventsChanged}/> :
-                    <EventList events={hostingEvents} canDeleteEvents={true} setEventsChanged={setEventsChanged}/>              
+                    <EventList events={attendingEvents ? attendingEvents : []} canDeleteEvents={false} setEventsChanged={setEventsChanged} loading={!attendingEvents}/> :
+                    <EventList events={hostingEvents ? hostingEvents : []} canDeleteEvents={true} setEventsChanged={setEventsChanged} loading={!hostingEvents}/>              
                 }
             </Box>
         </Box> 
     );
 };
 
-function EventList({ events, canDeleteEvents, setEventsChanged }: { events: EventSyncEvent[], canDeleteEvents: Boolean, setEventsChanged: React.Dispatch<React.SetStateAction<Boolean>> }) {
+function EventList({ events, canDeleteEvents, setEventsChanged, loading }: { events: EventSyncEvent[], canDeleteEvents: Boolean, setEventsChanged: React.Dispatch<React.SetStateAction<Boolean>>, loading: boolean }) {
     const navigate = useNavigate();
     const {userDetails} = useUser();
     async function viewEvent (event: EventSyncEvent) {
@@ -196,20 +196,28 @@ function EventList({ events, canDeleteEvents, setEventsChanged }: { events: Even
         justifyContent="center"
         // padding={2}
     >
-        {events.map(event =>  
-            <StyledCard height={canDeleteEvents ? 225 : undefined} key={event.id} event={event} viewEvent={viewEvent} showShareIcon={true} showViews>
-                {canDeleteEvents && (
-                    <Box display="flex" flexDirection="row" sx={{ '& button': { m: 1 }}}>
-                        <Button sx={{backgroundColor: "#1c284c"}} size="small" fullWidth variant="contained" onClick={() => editEvent(event)}>Edit</Button>
-                        {canDeleteEvents && (event.recurs > 1 ?
-                            <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}>
-                            </DeleteRecurEventModal>
-                            : <Button sx={{backgroundColor: "#1c284c"}} size="small" fullWidth variant="contained" onClick={() => deleteEvent(event)}>Delete</Button>
-                            )} 
-                    </Box>
-                )}   
-            </StyledCard>
-        )}
+        { loading ? <Typography color="white">Loading events...</Typography> :
+            (events.length === 0 ?
+                (canDeleteEvents ?
+                    <Typography color="white">Not hosting any events </Typography> :
+                    <Typography color="white">Not attending any events</Typography>
+                ) :
+                events.map(event =>  
+                    <StyledCard height={canDeleteEvents ? 225 : undefined} key={event.id} event={event} viewEvent={viewEvent} showShareIcon={true} showViews>
+                        {canDeleteEvents && (
+                            <Box display="flex" flexDirection="row" sx={{ '& button': { m: 1 }}}>
+                                <Button sx={{backgroundColor: "#1c284c"}} size="small" fullWidth variant="contained" onClick={() => editEvent(event)}>Edit</Button>
+                                {canDeleteEvents && (event.recurs > 1 ?
+                                    <DeleteRecurEventModal event={event} setEventsChanged={setEventsChanged}>
+                                    </DeleteRecurEventModal>
+                                    : <Button sx={{backgroundColor: "#1c284c"}} size="small" fullWidth variant="contained" onClick={() => deleteEvent(event)}>Delete</Button>
+                                    )} 
+                            </Box>
+                        )}   
+                    </StyledCard>
+                )
+            )
+        }
     </Grid2>;
 };
 
