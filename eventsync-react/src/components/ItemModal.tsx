@@ -68,14 +68,28 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
                                 sx={{width: 350}}
                                 margin="normal"
                             />
-                            <IconButton onClick={() => changeItemQuantity(-1, index)}>
+                            <IconButton 
+                                onClick={() => changeItemQuantity(-1, index)} 
+                                disabled={item.amountNeeded <= 1}
+                            >
                                 <RemoveIcon />
                             </IconButton>
                             <TextField
                                 type="number"
                                 value={item.amountNeeded}
-                                onChange={(e) => changeItemQuantity(Number(e.target.value) - item.amountNeeded, index)}
-                                inputProps={{ min: 1, style: { MozAppearance: 'textfield' } }}
+                                onChange={(e) => {
+                                    const value = Number(e.target.value);
+                                    if (value >= 1 && value <= 19) {
+                                        changeItemQuantity(value - item.amountNeeded, index);
+                                    }
+                                }}
+                                inputProps={{
+                                    min: 1,
+                                    max: 10,
+                                    style: {
+                                        MozAppearance: 'textfield'
+                                    }
+                                }}
                                 sx={{
                                     '& input[type=number]': {
                                         MozAppearance: 'textfield',
@@ -88,11 +102,11 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
                                 margin="normal"
                                 style={{ width: '150px' }}
                             />
-                            <IconButton onClick={() => changeItemQuantity(1, index)}>
+                            <IconButton 
+                                onClick={() => changeItemQuantity(1, index)} 
+                                disabled={item.amountNeeded >= 10}
+                            >
                                 <AddIcon />
-                            </IconButton>
-                            <IconButton onClick={() => deleteItem(index)}>
-                                <DeleteIcon style={{ color: '#ad1f39'}} />
                             </IconButton>
                         </Box>
                     ))}
