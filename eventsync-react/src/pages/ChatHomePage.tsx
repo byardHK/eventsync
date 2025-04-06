@@ -48,7 +48,13 @@ function ChatHomePage() {
               <TextField 
                 sx={{backgroundColor: 'white', width: "75%"}}
                 id="outlined-basic"
-                onChange={(e) => setSearchKeyword(e.target.value)}
+                value={searchKeyword}
+                onChange={(e) => {
+                  const val = e.target.value
+                  if (val.length <= 35) {
+                    setSearchKeyword(e.target.value);
+                  }
+                }}
                 slotProps={{
                     input: {
                       startAdornment: (
