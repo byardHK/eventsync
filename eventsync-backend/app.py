@@ -1889,9 +1889,15 @@ def rsvp():
 
         if rsvpLimit != 0 and numRsvps >= rsvpLimit:
             return jsonify({"message": "RSVP limit reached"}), 400
-        insertRsvp = """
-            INSERT INTO EventToUser (userId, eventId)
-            VALUES (%s, %s);
+        
+        getLastMsgSeen = f"""SET @lastMsg = 
+                            (SELECT MAX(lastMsgSeen) FROM EventToUser WHERE eventId IN 
+                                (SELECT eventId FROM Event WHERE eventInfoId = 
+                                    (SELECT eventInfoId WHERE id = {eventId})));"""
+        mycursor.execute(getLastMsgSeen)
+        insertRsvp = f"""
+            INSERT INTO EventToUser (userId, eventId, lastMsgSeen)
+            VALUES ('{userId}', {eventId}, @lastMsg);
         """
         mycursor.execute(insertRsvp, (userId, eventId))
 
@@ -2603,15 +2609,14 @@ def message():
 
         mycursor.execute("""
             INSERT INTO Message (chatId, senderId, messageContent, timeSent) 
-            VALUES (%s, %s, %s, %s);
-        """, (data['chatId'], data['senderId'], data['messageContent'], dateToStore))
-
-        chatId = mycursor.lastrowid
+                VALUES ({data['chatId']}, "{data["senderId"]}", "{data["messageContent"]}", "{dateToStore}");
+        """)
+        msgId = mycursor.lastrowid
         conn.commit()
         mycursor.close()
         conn.close()
         pusher_client.trigger(f'chat-{data["chatId"]}', 'new-message', {'messageContent': data['messageContent'], 'senderId': data['senderId'],
-                                    'chatId': data['chatId'], 'timeSent': data['timeSent'], 'id': data['id']}) 
+                                    'chatId': data['chatId'], 'timeSent': data['timeSent'], 'id': msgId}) # TODO: change id
         return "message sent"
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -2668,10 +2673,12 @@ def get_my_chats(user_id: str):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute("""(SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType, 
-                                groupStuff.lastMsgId, groupStuff.unreadMsgs FROM Chat
+        mycursor.execute(f"""(SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType, 
+                                groupStuff.lastMsgId, groupStuff.unreadMsgs
+                                FROM Chat
                             JOIN (SELECT GroupOfUser.chatId, GroupOfUser.groupName, 
-                                    msg.lastMsgId, FALSE AS unreadMsgs FROM GroupOfUserToChat
+                                    msg.lastMsgId, GroupOfUserToUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs 
+                                    FROM GroupOfUserToChat
                             JOIN GroupOfUserToUser ON GroupOfUserToChat.groupOfUserId = GroupOfUserToUser.groupId
                             JOIN GroupOfUser ON GroupOfUserToChat.groupOfUserId = GroupOfUser.id
                             JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = GroupOfUserToChat.chatId
@@ -2697,16 +2704,26 @@ def get_my_chats(user_id: str):
                             JOIN Event ON Event.eventInfoId = EventInfoToChat.eventInfoId
                             JOIN EventToUser ON EventToUser.eventId = Event.id
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = Chat.id
-                            WHERE EventToUser.userId = %s AND Chat.chatType = 'Event')
+                            LEFT JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = Chat.id
+                            WHERE EventToUser.userId = "{user_id}" AND EventInfo.creatorId != "{user_id}"
+	                            AND Chat.chatType = 'Event'
+                            LIMIT 1)
                             UNION
-                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType, 0 AS lastMsgId,
-                                FALSE AS unreadMsgs
-                            FROM Chat
+                            (SELECT Chat.id, event.title AS name, Chat.chatType, msg.lastMsgId,
+                                msg.lastMsgId IS NOT NULL AND ((event.creatorLastMsgSeen IS NULL) OR
+                                    msg.lastMsgId > 0 AND event.creatorLastMsgSeen < msg.lastMsgId) AS unreadMsgs 
+                                FROM Chat
                             JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
-                            JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            WHERE EventInfo.creatorId = %s AND Chat.chatType = 'Event')
-                            """, (user_id, user_id, user_id, user_id,user_id))
+                            LEFT JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) 
+                                                            AS msg ON msg.chatId = EventInfoToChat.chatId
+                            JOIN (SELECT Event.eventInfoId, Event.creatorLastMsgSeen, EventInfo.title, EventInfo.creatorId 
+                                FROM Event 
+                                JOIN EventInfo ON EventInfo.id = Event.eventInfoId 
+                                WHERE EventInfo.creatorId = "{user_id}"
+                                LIMIT 1) AS event
+                            ON event.eventInfoId = EventInfoToChat.eventInfoId
+                            WHERE Chat.chatType = 'Event');
+                            """)
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
@@ -2845,11 +2862,31 @@ def update_msg_last_seen():
                              SET lastMsgSeen = %s
                              WHERE chatId = %s AND userId = %s""", (msg_id, chat_id, user_id))
         elif chat_type == 'Event':
-            pass
-            # TODO 
+            mycursor.execute(f"""SET @eventInfoId = (SELECT eventInfoId FROM EventInfoToChat
+                                WHERE chatId = {chat_id});""")
+            mycursor.execute(f"""SELECT creatorId FROM EventInfo WHERE id = @eventInfoId""")
+            response = mycursor.fetchall()
+            headers = mycursor.description
+            creatorList = sqlResponseToList(response, headers)
+            eventCreator = creatorList[0]["creatorId"]
+            userIsCreator = (eventCreator.lower() == user_email.lower())
+
+            mycursor.execute(f"""SELECT id FROM Event WHERE eventInfoId = @eventInfoId""")
+            response = mycursor.fetchall()
+            headers = mycursor.description
+            events = sqlResponseToList(response, headers)
+            for event in events:
+                eventId = event["id"]
+                if userIsCreator:
+                    mycursor.execute(f"""UPDATE Event
+                                    SET Event.creatorLastMsgSeen = {msg_id}
+                                    WHERE id = {eventId}""") 
+                else:
+                    mycursor.execute(f"""UPDATE EventToUser
+                                        SET EventToUser.lastMsgSeen = {msg_id}
+                                        WHERE eventId = {eventId} AND userId = '{user_id}'""")
         else:
-            pass
-            # TODO
+            return "Invalid chat type", 404
 
         conn.commit()
         mycursor.close()
