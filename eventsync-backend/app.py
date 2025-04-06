@@ -1864,9 +1864,15 @@ def rsvp():
 
         if rsvpLimit != 0 and numRsvps >= rsvpLimit:
             return jsonify({"message": "RSVP limit reached"}), 400
+        
+        getLastMsgSeen = f"""SET @lastMsg = 
+                            (SELECT MAX(lastMsgSeen) FROM EventToUser WHERE eventId IN 
+                                (SELECT eventId FROM Event WHERE eventInfoId = 
+                                    (SELECT eventInfoId WHERE id = {eventId})));"""
+        mycursor.execute(getLastMsgSeen)
         insertRsvp = f"""
-            INSERT INTO EventToUser (userId, eventId)
-            VALUES ('{userId}', {eventId});
+            INSERT INTO EventToUser (userId, eventId, lastMsgSeen)
+            VALUES ('{userId}', {eventId}, @lastMsg);
         """
         mycursor.execute(insertRsvp)
 
@@ -2853,8 +2859,7 @@ def update_msg_last_seen():
                 else:
                     mycursor.execute(f"""UPDATE EventToUser
                                         SET EventToUser.lastMsgSeen = {msg_id}
-                                        WHERE eventId = {eventId} AND userId = {user_id}""")
-            # return {"events": events, "creator": userIsCreator, "eventCreator": userIsCreator}, 200
+                                        WHERE eventId = {eventId} AND userId = '{user_id}'""")
         else:
             return "Invalid chat type", 404
 
