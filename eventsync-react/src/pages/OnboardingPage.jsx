@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Card, Box, Button, TextField, Switch, Select, MenuItem, FormControl, InputLabel, Typography } from "@mui/material";
+import { Card, Box, Button, TextField, Switch, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 import { useUser } from "../sso/UserContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -22,7 +22,7 @@ const OnboardingPage = () => {
     const [bio, setBio] = useState("");
     const [isPublic, setIsPublic] = useState(false);
     const [gender, setGender] = useState("Undefined");
-    const [eventCancelled, setEventCancelled] = useState(false);
+    const [eventCancelled, setEventCancelled] = useState(false)
 
 
     const addNewUser = async () => {
@@ -63,9 +63,6 @@ const OnboardingPage = () => {
             console.error("Error submitting new user:", error);
         }
     };
-    
-
-
 
     return (
         <Box
@@ -73,10 +70,10 @@ const OnboardingPage = () => {
             justifyContent="center" // Centers content horizontally
             alignItems="center" // Centers content vertically
             flexDirection="column"
-            bgcolor="#1c284c"
-            padding="10px"
-            minHeight="75vh" // Ensure full page height
-            width="90vw" // Full width
+            bgcolor="rgb(66, 135, 245)"
+            padding="20px"
+            minHeight="100vh" // Ensure full page height
+            width="100vw" // Full width
         >
     <Card
         sx={{
@@ -90,15 +87,19 @@ const OnboardingPage = () => {
             marginBottom: "20px",
         }}
     >
-                <Typography variant="h5"fontWeight="bold">Welcome to EventSync!</Typography>
-                <br></br>
-                <Typography>Sign up to start.</Typography>
+                <h2>Welcome to EventSync.</h2>
+                <p>Sign up to start.</p>
 
                 <TextField
                     fullWidth
                     label="First Name"
                     value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
+                    onChange={(e) => {
+                        const val = e.target.value
+                        if(val.length <= 20){
+                            setFirstName(val)
+                        }                       
+                    }}
                     margin="normal"
                 />
                 
@@ -106,7 +107,12 @@ const OnboardingPage = () => {
                     fullWidth
                     label="Last Name"
                     value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
+                    onChange={(e) => {
+                        const val = e.target.value
+                        if(val.length <= 20){
+                            setLastName(val)
+                        }                       
+                    }}
                     margin="normal"
                 />
                 
@@ -138,47 +144,30 @@ const OnboardingPage = () => {
                     multiline
                     rows={3}
                     value={bio}
-                    onChange={(e) => setBio(e.target.value)}
+                    onChange={(e) => {
+                        const val = e.target.value
+                        if(val.length <= 200){
+                            setBio(val)
+                        }                       
+                    }}
                     margin="normal"
                 />
 
                 <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
-                    <Typography>Make profile public?</Typography>
-                    <Switch style={{ color: "#1c284c" }} checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
-                </Box>
-
-                <FormControl fullWidth margin="normal">
-                    <InputLabel>Notification Frequency</InputLabel>
-                    <Select
-                        value={notificationFrequency}
-                        onChange={(e) => setNotificationFrequency(e.target.value)}
-                    >
-                        <MenuItem value="None">None</MenuItem>
-                        <MenuItem value="Daily">Daily</MenuItem>
-                        <MenuItem value="Weekly">Weekly</MenuItem>
-                        <MenuItem value="Monthly">Monthly</MenuItem>
-                    </Select>
-                </FormControl>
-
-                <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
-                    <Typography>Friend Request Notifications</Typography>
-                    <Switch style={{ color: "#1c284c" }} checked={receiveFriendRequest} onChange={(e) => setReceiveFriendRequest(e.target.checked)} />
-                </Box>
-
-                <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
-                    <Typography>Event Invite Notifications</Typography>
-                    <Switch style={{ color: "#1c284c" }} checked={invitedToEvent} onChange={(e) => setInvitedToEvent(e.target.checked)} />
+                    <span>Make profile public?</span>
+                    <Switch checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
                 </Box>
                 
                 <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
-                    <Typography>Event Cancellation Notifications</Typography>
-                    <Switch style={{ color: "#1c284c" }} checked={eventCancelled} onChange={(e) => setEventCancelled(e.target.checked)} />
+                    <span>Event Cancellation Notifications</span>
+                    <Switch checked={eventCancelled} onChange={(e) => setEventCancelled(e.target.checked)} />
                 </Box>
 
                 <Button
                     variant="contained"
+                    color="primary"
                     fullWidth
-                    sx={{ mt: 2, backgroundColor: "#1c284c" }}
+                    sx={{ mt: 2 }}
                     onClick={handleSubmit}
                 >
                     Sign up

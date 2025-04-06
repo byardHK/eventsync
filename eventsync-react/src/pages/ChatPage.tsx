@@ -35,7 +35,9 @@ function ChatPage() {
     const channelName = `chat-${chatId}`;
     const [nonGroupOtherUser, setNonGroupOtherUser] = useState<User | null>(null);
 
-    async function msg_seen(msg_id: number) {
+    async function msgSeen(msg_id: number) {
+        if(chat) {
+        console.log(chat?.chatType);
           try {
             const data = {
               user_id: userDetails.email,
@@ -53,10 +55,17 @@ function ChatPage() {
           } catch (error) {
             console.error('Error fetching data:', error);
           }
+        } else {
+            console.log("Could not update last message seen. Chat type is undefined.");
+        }
     }
 
 	useEffect(() => {
         const fetchChat = async () => {
+            if (!userDetails || !userDetails.email) {
+                console.error('User details are missing');
+                return; 
+            }
             try {
                 const response = await axios.get<{chat: chatResponse, users: User[]}>(`${BASE_URL}/get_chat/${chatId}`, {
                     headers: {
@@ -82,14 +91,14 @@ function ChatPage() {
 		const channel = pusher.subscribe(channelName);
 		channel.bind('new-message', async function(newMsg: Message) {
             setMsg(newMsg);
-            // TODO: update msg last seen
+            msgSeen(newMsg.id);
 		});
         channel.bind("pusher:subscription_succeeded", retrieveHistory);
 		
 		return (() => {
 			pusher.unsubscribe(channelName)
 		})
-	}, []);
+	}, [userDetails]);
 
     function stringToEnum(value: String): chatType {
         if (value === "Individual") {
@@ -120,11 +129,15 @@ function ChatPage() {
 
       useEffect(() => {
         if(chat && messages && messages.length > 0) {
-            msg_seen(messages[messages.length - 1].id);
+            msgSeen(messages[messages.length - 1].id);
         }
       }, [messages, chat]);
 
     async function retrieveHistory() {
+        if (!userDetails || !userDetails.email) {
+            console.error('User details are missing');
+            return; 
+        }
         const response = await axios.get<MessageList>(`${BASE_URL}/get_chat_hist/${chatId}`, {
             headers: {
                 'Authorization': `Bearer ${userDetails.token}`,
@@ -356,7 +369,12 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
             // multiline
             // maxRows={2}
             value={message} 
-            onChange={(event) => setMessage(event.target.value)}
+            onChange={(event) => {
+                const val = event.target.value
+                if(val.length <= 200){
+                    setMessage(event.target.value)
+                }
+            }}
             sx={{backgroundColor: "#FFFFFF"}}
             fullWidth
         />
