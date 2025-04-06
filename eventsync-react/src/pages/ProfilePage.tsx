@@ -23,8 +23,10 @@ function ProfilePage() {
     const [userTags, setUserTags] = useState<Tag[]>([]);
     const [aboutMe, setAboutMe] = useState<string>(userDetails?.bio || "");
     const [isPrivate, setIsPrivate] = useState<boolean>(!userDetails?.isPublic);
-    const [eventCancelled, setEventCancelled] = useState<boolean>(userDetails?.eventCancelled || false);
+    const [eventCancelled, setEventCancelled] = useState<boolean>(!!userDetails.eventCancelled);
     const [profilePictureModalOpen, setProfilePictureModalOpen] = useState(false);
+    const [bioModalOpen, setBioModalOpen] = useState(false);
+    const [bioInput, setBioInput] = useState<string>(aboutMe);
     const [profileDetails, setProfileDetails] = useState<any>({});
     const [reportModalOpen, setReportModalOpen] = useState<boolean>(false);
     const [user, setUser] = useState<User>();
@@ -108,13 +110,11 @@ function ProfilePage() {
     }, [profileId, userId, userDetails]);
 
     useEffect(() => {
-        if (userDetails) {
-            setAboutMe(userDetails.bio || "");
-            setIsPrivate(!userDetails.isPublic);
-            setEventCancelled(userDetails.eventCancelled || false);
-            setLoading(false);
+        if (userDetails?.bio) {
+            setAboutMe(userDetails.bio);
+            setBioInput(userDetails.bio);
         }
-    }, [userDetails]);
+    }, [userDetails?.bio]);
 
     const handleProfilePictureChange = async (emoji: string) => {
         try {
@@ -154,13 +154,15 @@ function ProfilePage() {
         }
     };
 
-    const handleSaveChanges = async () => {
+    const handleSaveChanges = async (updatedFields: Partial<UserDetails> = {}) => {
         try {
             const data = {
                 userId: userId,
                 bio: aboutMe,
                 isPublic: !isPrivate,
-                eventCancelled: eventCancelled
+                eventCancelled: eventCancelled,
+                profilePicture: userDetails?.profilePicture,
+                ...updatedFields,
             };
 
             // update the db
@@ -190,12 +192,9 @@ function ProfilePage() {
                     isBanned: res.data[0].isBanned,
                     isPublic: res.data[0].isPublic,
                     bio: res.data[0].bio,
-                    notificationFrequency: res.data[0].notificationFrequency,
                     notificationId: res.data[0].notificationId,
                     numTimesReported: res.data[0].numTimesReported,
                     profilePicture: res.data[0].profilePicture,
-                    friendRequest: res.data[0].friendRequest,
-                    eventInvite: res.data[0].eventInvite,
                     eventCancelled: res.data[0].eventCancelled,
                 };
                 return updatedDetails;
@@ -369,17 +368,104 @@ function ProfilePage() {
 
                 {/* About Me */}
                 <Box width="100%" mt={2} paddingTop={3}>
-                    <Typography fontWeight="bold" variant="h5">Bio</Typography>
-                    <TextField
-                        fullWidth
-                        multiline
-                        rows={3}
-                        variant="outlined"
-                        value={aboutMe}
-                        onChange={(e) => setAboutMe(e.target.value)}
-                        onBlur={handleSaveChanges}  // Auto-save when focus is lost
-                    />
+                    <Typography fontWeight="bold" variant="h5" style={{ display: 'flex', alignItems: 'center' }}>
+                        Bio
+                        <Chip
+                            icon={<EditIcon style={{ color: "#71A9F7" }} />}
+                            label=""
+                            size="small"
+                            sx={{
+                                marginLeft: "10px",
+                                backgroundColor: "#1c284c",
+                                color: "white",
+                                cursor: "pointer",
+                            }}
+                            onClick={() => setBioModalOpen(true)}
+                        />
+                    </Typography>
+                    <Box
+                        sx={{
+                            width: '92.5%',
+                            padding: '10px',
+                            border: '1px solid rgba(0, 0, 0, 0.23)',
+                            borderRadius: '4px',
+                            backgroundColor: 'white',
+                            color: 'black',
+                            minHeight: '56px',
+                            display: 'flex',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <Typography>{aboutMe || ""}</Typography>
+                    </Box>
                 </Box>
+
+                {/* Bio Modal */}
+                <Modal
+                    open={bioModalOpen}
+                    onClose={() => setBioModalOpen(false)}
+                    aria-labelledby="bio-modal-title"
+                    aria-describedby="bio-modal-description"
+                >
+                    <Box
+                        sx={{
+                            position: "absolute",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            width: 400,
+                            bgcolor: "background.paper",
+                            borderRadius: 2,
+                            boxShadow: 24,
+                            p: 4,
+                        }}
+                    >
+                        <Typography id="bio-modal-title" variant="h6" component="h2" textAlign="center" mb={2}>
+                            Edit Bio
+                        </Typography>
+                        <TextField
+                            fullWidth
+                            multiline
+                            rows={4}
+                            variant="outlined"
+                            value={bioInput}
+                            onChange={(e) => setBioInput(e.target.value)}
+                        />
+                        <Box mt={3} textAlign="center">
+                            <Button
+                                variant="contained"
+                                sx={{ backgroundColor: "#1c284c", color: "white" }}
+                                onClick={async () => {
+                                    try {
+                                        setAboutMe(bioInput);
+                                        const data = {
+                                            userId: userId,
+                                            bio: bioInput,
+                                            isPublic: !isPrivate,
+                                            eventCancelled: eventCancelled,
+                                            profilePicture: userDetails?.profilePicture,
+                                        };
+                                        await axios.post(`${BASE_URL}/api/update_user_profile`, data, {
+                                            headers: {
+                                                Authorization: `Bearer ${userDetails?.token}`,
+                                                "Content-Type": "application/json",
+                                            },
+                                        });
+                                        setUserDetails((prevDetails: any) => ({
+                                            ...prevDetails,
+                                            bio: bioInput,
+                                        }));
+                                        setBioModalOpen(false);
+                                    } catch (error) {
+                                        console.error("Error saving bio:", error);
+                                    }
+                                }}
+                            >
+                                Save
+                            </Button>
+                        </Box>
+                    </Box>
+                </Modal>
 
                 {/* Interests (Tags) */}
                 <Box width="100%" mt={2} paddingTop={3}>
@@ -404,18 +490,43 @@ function ProfilePage() {
                     {/* Privacy Toggle */}
                     <Box display="flex" alignItems="center" justifyContent="space-between" paddingTop={3}>
                         <Typography>Keep info private?</Typography>
-                        <Switch style={{ color: "#1c284c" }} checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} onBlur={handleSaveChanges} />
+                        <Switch
+                            style={{ color: "#1c284c" }}
+                            checked={isPrivate}
+                            onChange={async (e) => {
+                                const newValue = e.target.checked;
+                                setIsPrivate(newValue);
+                                try {
+                                    await handleSaveChanges({
+                                        isPublic: !newValue,
+                                        eventCancelled,
+                                    });
+                                } catch (error) {
+                                    console.error("Error saving privacy setting:", error);
+                                }
+                            }}
+                        />
                     </Box>
 
-                    {/* Instant Notifications */}
+                    {/* Notifications */}
                     <Box mt={2}>
                         <Box display="flex" justifyContent="space-between">
                             <Typography>Notifications for Event Cancelled</Typography>
                             <Switch
                                 style={{ color: "#1c284c" }}
                                 checked={eventCancelled}
-                                onChange={(e) => setEventCancelled(e.target.checked)}
-                                onBlur={handleSaveChanges}  // Auto-save when focus is lost
+                                onChange={async (e) => {
+                                    const newValue = e.target.checked;
+                                    setEventCancelled(newValue);
+                                    try {
+                                        await handleSaveChanges({
+                                            isPublic: !isPrivate,
+                                            eventCancelled: newValue,
+                                        });
+                                    } catch (error) {
+                                        console.error("Error saving notification setting:", error);
+                                    }
+                                }}
                             />
                         </Box>
                     </Box>
