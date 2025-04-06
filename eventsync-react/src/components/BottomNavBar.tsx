@@ -16,7 +16,6 @@ function BottomNavBar({ userId }: { userId: string }) {
     const location = useLocation();
     const currentPage = location.pathname;
 
-    
     useEffect(() => {
         async function fetchFriendRequests() {
             if (!userDetails.email) {
