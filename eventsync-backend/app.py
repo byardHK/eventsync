@@ -159,12 +159,12 @@ def update_user_profile():
 @app.route('/api/get_user/<string:id>', methods=['GET'])
 def get_user(id):
     
-    # user_email, error_response, status_code = get_authenticated_user()
-    # if error_response:
-    #     return error_response, status_code  
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
 
-    # if id.lower() != user_email.lower():
-    #     return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    if not user_email:
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
    
     try:
         conn = mysql.connector.connect(**db_config)
@@ -644,7 +644,7 @@ def get_user_tags(userId):
     if error_response:
         return error_response, status_code  
 
-    if userId.lower() != user_email.lower():
+    if not user_email:
         return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     
     try:  
@@ -739,7 +739,7 @@ def is_friend(user1Id, user2Id):
     if error_response:
         return error_response, status_code  
 
-    if user1Id.lower() != user_email.lower() or user2Id.lower() != user_email.lower():
+    if user1Id.lower() != user_email.lower() and user2Id.lower() != user_email.lower():
         return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:  
         conn = mysql.connector.connect(**db_config)
@@ -2272,7 +2272,9 @@ def remove_user_from_group():
     user_email, error_response, status_code = get_authenticated_user()
     if error_response:
         return error_response, status_code  
-
+    
+    if not user_email:
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     
     try:
         conn = mysql.connector.connect(**db_config)
@@ -2303,6 +2305,17 @@ def remove_user_from_group():
 
 @app.post('/delete_group')
 def delete_group():
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+    
+    body = request.json
+    if not body or "creatorId" not in body:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
+    if body["creatorId"].lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -2547,12 +2560,32 @@ def reportUser():
 
 @app.post('/delete_report')
 def delete_report():
+
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code 
+    
+    if not user_email:
+        return jsonify({"error": "Unauthorized: Missing valid authenticated user"}), 403
+
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
 
         body = request.json
         reportId = body.get("reportId")
+
+        # make sure user is an admin!
+        query = """
+                SELECT isAdmin FROM User WHERE id = %s
+        """
+
+        mycursor.execute(query, (user_email,))
+        result = mycursor.fetchone()
+        isAdmin = result[0]
+        print("isAdmin ", isAdmin)
+        if(isAdmin == 0):
+           return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
 
         removeGroupUsers = """
             DELETE FROM Report WHERE id = %s;
@@ -2572,12 +2605,28 @@ def warn_user():
     user_email, error_response, status_code = get_authenticated_user()
     if error_response:
         return error_response, status_code
+    
+    if not user_email:
+        return jsonify({"error": "Unauthorized: Missing valid authenticated user"}), 403
 
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
 
         body = request.json
+
+        # make sure user is an admin!
+        query = """
+                SELECT isAdmin FROM User WHERE id = %s
+        """
+
+        mycursor.execute(query, (user_email,))
+        result = mycursor.fetchone()
+        isAdmin = result[0]
+        print("isAdmin ", isAdmin)
+        if(isAdmin == 0):
+           return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
         reportedUserId = body.get("reportedUserId")
         warningMessage = body.get("warningMessage")
         timeSent = body.get("timeSent")
@@ -2691,16 +2740,20 @@ def get_message(message_id: int):
 def get_chat_hist(chat_id: int):
     user_email, error_response, status_code = get_authenticated_user()
     if error_response:
+        print(error_response)
         return error_response, status_code  
 
     if not user_email:
+        print("no user email")
         return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+        
         mycursor.execute("SELECT * FROM Message WHERE chatId = %s", (chat_id,))
         response = mycursor.fetchall()
         headers = mycursor.description
+
         conn.commit()
         mycursor.close()
         conn.close()
@@ -2712,22 +2765,20 @@ def get_chat_hist(chat_id: int):
 @app.route('/get_my_chats/<string:user_id>', methods=['GET'])
 def get_my_chats(user_id: str):
 
-    user_email, error_response, status_code = get_authenticated_user()
-    if error_response:
-        return error_response, status_code  
+    # user_email, error_response, status_code = get_authenticated_user()
+    # if error_response:
+    #     return error_response, status_code  
 
-    if user_id.lower() != user_email.lower():
-        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    # if user_id.lower() != user_email.lower():
+    #     return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
 
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         mycursor.execute("""(SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType, 
-                                groupStuff.lastMsgId, groupStuff.unreadMsgs
-                                FROM Chat
+                                groupStuff.lastMsgId, groupStuff.unreadMsgs FROM Chat
                             JOIN (SELECT GroupOfUser.chatId, GroupOfUser.groupName, 
-                                    msg.lastMsgId, GroupOfUserToUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs 
-                                    FROM GroupOfUserToChat
+                                    msg.lastMsgId, FALSE AS unreadMsgs FROM GroupOfUserToChat
                             JOIN GroupOfUserToUser ON GroupOfUserToChat.groupOfUserId = GroupOfUserToUser.groupId
                             JOIN GroupOfUser ON GroupOfUserToChat.groupOfUserId = GroupOfUser.id
                             JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = GroupOfUserToChat.chatId
@@ -2753,31 +2804,23 @@ def get_my_chats(user_id: str):
                             JOIN Event ON Event.eventInfoId = EventInfoToChat.eventInfoId
                             JOIN EventToUser ON EventToUser.eventId = Event.id
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            LEFT JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = Chat.id
-                            WHERE EventToUser.userId = %s AND EventInfo.creatorId != %s
-	                            AND Chat.chatType = 'Event'
-                            LIMIT 1)
+                            JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = Chat.id
+                            WHERE EventToUser.userId = %s AND Chat.chatType = 'Event')
                             UNION
-                            (SELECT Chat.id, event.title AS name, Chat.chatType, msg.lastMsgId,
-                                msg.lastMsgId IS NOT NULL AND ((event.creatorLastMsgSeen IS NULL) OR
-                                    msg.lastMsgId > 0 AND event.creatorLastMsgSeen < msg.lastMsgId) AS unreadMsgs 
-                                FROM Chat
+                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType, 0 AS lastMsgId,
+                                FALSE AS unreadMsgs
+                            FROM Chat
                             JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
-                            LEFT JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) 
-                                                            AS msg ON msg.chatId = EventInfoToChat.chatId
-                            JOIN (SELECT Event.eventInfoId, Event.creatorLastMsgSeen, EventInfo.title, EventInfo.creatorId 
-                                FROM Event 
-                                JOIN EventInfo ON EventInfo.id = Event.eventInfoId 
-                                WHERE EventInfo.creatorId = %s
-                                LIMIT 1) AS event
-                            ON event.eventInfoId = EventInfoToChat.eventInfoId
-                            WHERE Chat.chatType = 'Event');
-                            """, (user_id, user_id, user_id, user_id, user_id, user_id))
+                            JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
+                            WHERE EventInfo.creatorId = %s AND Chat.chatType = 'Event')
+                            """, (user_id, user_id, user_id, user_id, user_id))
         response = mycursor.fetchall()
+        print(response)
         headers = mycursor.description
         conn.commit()
         mycursor.close()
         conn.close()
+        
         return sqlResponseToJson(response, headers)
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -2838,6 +2881,13 @@ def get_chat(chat_id: str):
 
 @app.route('/get_individual_chat_id/<string:curr_user_id>/<string:other_user_id>', methods=['GET'])
 def get_individual_chat_id(curr_user_id: str, other_user_id: str):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+
+    if curr_user_id.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
@@ -2988,6 +3038,9 @@ def upload():
     user_email, error_response, status_code = get_authenticated_user()
     if error_response:
         return error_response, status_code  
+    
+    if not user_email:
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403  
 
     if 'file' not in request.files:
         return jsonify({'message': 'No file part'}), 400
@@ -3049,7 +3102,10 @@ def get_image(message_id: int):
 
     user_email, error_response, status_code = get_authenticated_user()
     if error_response:
-        return error_response, status_code  
+        return error_response, status_code
+
+    if not user_email:
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403    
    
     try:
         if os.path.exists(f"uploads/{message_id}.jpg"):

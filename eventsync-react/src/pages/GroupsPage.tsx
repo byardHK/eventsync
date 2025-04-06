@@ -229,7 +229,8 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
     async function deleteGroup(){
         try {
             await axios.post(`${BASE_URL}/delete_group`, {
-                groupId: group.id
+                groupId: group.id,
+                creatorId: group.creatorId
             });
         } catch (error) {
             console.error('Error fetching data:', error);
