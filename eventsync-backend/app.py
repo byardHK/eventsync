@@ -998,7 +998,7 @@ def delete_one_event(eventId):
         setChatId = "SET @chatId = (SELECT chatId FROM EventInfoToChat WHERE eventInfoId = @eventInfoId);"
         deleteEventInfoToChat = f"DELETE FROM EventInfoToChat WHERE eventInfoId = @eventInfoId"
         deleteChat = f"DELETE FROM Chat WHERE id = @chatId"
-        mycursor.execute(setEventInfoId, (eventId))
+        mycursor.execute(setEventInfoId, (eventId,))
         mycursor.execute(setChatId)
         mycursor.execute(deleteEventInfoToChat)
         mycursor.execute(deleteChat)
@@ -1086,7 +1086,7 @@ def delete_mult_event(eventId):
         mycursor.execute("""
                         SET @eventInfoId = (SELECT eventInfoId FROM Event WHERE id = %s);
                         
-                     """, (eventId))
+                     """, (eventId,))
         
         # send email notifications
         mycursor.execute(f"""
@@ -1766,7 +1766,7 @@ def edit_event(eventId):
 
             itemIds = []
             for item in data["items"]:
-                mycursor.execute("INSERT INTO Item (name, creatorId) VALUES (%s, %s)", (item["description"], "minnichjs21@gcc.edu"))
+                mycursor.execute("INSERT INTO Item (name, creatorId) VALUES (%s, %s)", (item["description"], data["creatorId"]))
                 mycursor.execute("SELECT LAST_INSERT_ID()")
                 itemIds.append((mycursor.fetchone()[0], item))
 
@@ -1829,8 +1829,6 @@ def edit_user_to_item():
                 data["quantity"],
                 data["quantity"]
             ))
-
-            mycursor.execute(updateUserToitem)
         conn.commit()
         return jsonify({"message": "Quantity signed up for was updated successfully"})
     except mysql.connector.Error as err:
@@ -1875,12 +1873,12 @@ def rsvp():
         """
         mycursor.execute(insertRsvp, (userId, eventId))
 
-        updateNumRsvps = f"""
+        updateNumRsvps = """
             UPDATE Event
             SET numRsvps = numRsvps + 1
-            WHERE id = {eventId};
+            WHERE id = %s;
         """
-        mycursor.execute(updateNumRsvps)
+        mycursor.execute(updateNumRsvps, (eventId,))
         
         conn.commit()
         mycursor.close()
@@ -2014,7 +2012,7 @@ def get_my_groups(userId):
             INNER JOIN GroupOfUser 
             ON GroupOfUserToUser.groupId = GroupOfUser.id 
             WHERE GroupOfUserToUser.userId = %s
-            """, (userId)
+            """, (userId,)
         )
         group_responses = mycursor.fetchall()
         headers = [x[0] for x in mycursor.description]
@@ -2238,25 +2236,25 @@ def delete_group():
         removeReportsOfGroup = """
             DELETE FROM Report WHERE reportedGroupId = %s;
         """
-        mycursor.execute(removeReportsOfGroup, (groupId))
+        mycursor.execute(removeReportsOfGroup, (groupId,))
 
         getChatId = f"SET @chatId = (SELECT chatId FROM GroupOfUserToChat WHERE groupOfUserId = {groupId});"
 
         removeGroupOfUserToChat = """
             DELETE FROM GroupOfUserToChat WHERE groupOfUserId = %s;
         """
-        mycursor.execute(getChatId, (groupId))
+        mycursor.execute(getChatId, (groupId,))
         mycursor.execute(removeGroupOfUserToChat)
 
         removeGroupUsers = """
             DELETE FROM GroupOfUserToUser WHERE groupId = %s;
         """
-        mycursor.execute(removeGroupUsers, (groupId))
+        mycursor.execute(removeGroupUsers, (groupId,))
 
         removeGroup = """
             DELETE FROM GroupOfUser WHERE id = %s;
         """
-        mycursor.execute(removeGroup, (groupId))
+        mycursor.execute(removeGroup, (groupId,))
 
         removeChat = f"""
             DELETE FROM Chat WHERE id = @chatId;
@@ -2338,7 +2336,7 @@ def reportEvent():
 
         mycursor.execute(""" 
             SELECT eventInfoId FROM Event WHERE id = %s;
-        """, (eventId))
+        """, (eventId,))
         eventInfoId = mycursor.fetchone()[0]
 
         reportEvent = """
@@ -2381,7 +2379,7 @@ def reportGroup():
 
         mycursor.execute(""" 
             SELECT id FROM GroupOfUser WHERE id = %s;
-        """, (groupId))
+        """, (groupId,))
         reportedGroupId = mycursor.fetchone()[0]
 
         reportGroup = """
@@ -2482,7 +2480,7 @@ def delete_report():
         removeGroupUsers = """
             DELETE FROM Report WHERE id = %s;
         """
-        mycursor.execute(removeGroupUsers, (reportId))
+        mycursor.execute(removeGroupUsers, (reportId,))
 
         conn.commit()
         mycursor.close()
@@ -2581,16 +2579,17 @@ def message():
         date = datetime.strptime(data['timeSent'], "%Y-%m-%d %H:%M:%S")
         dateToStore = (date + timedelta(hours=4)).strftime("%Y-%m-%d %H:%M:%S")
 
-        mycursor.execute(f""" 
+        mycursor.execute("""
             INSERT INTO Message (chatId, senderId, messageContent, timeSent) 
-                VALUES ({data['chatId']}, "{data["senderId"]}", "{data["messageContent"]}", "{dateToStore}");
-        """)
+            VALUES (%s, %s, %s, %s);
+        """, (data['chatId'], data['senderId'], data['messageContent'], dateToStore))
+
         chatId = mycursor.lastrowid
         conn.commit()
         mycursor.close()
         conn.close()
         pusher_client.trigger(f'chat-{data["chatId"]}', 'new-message', {'messageContent': data['messageContent'], 'senderId': data['senderId'],
-                                    'chatId': data['chatId'], 'timeSent': data['timeSent'], 'id': data['id']}) # TODO: change id
+                                    'chatId': data['chatId'], 'timeSent': data['timeSent'], 'id': data['id']}) 
         return "message sent"
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -2601,7 +2600,7 @@ def get_message(message_id: int):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"SELECT * FROM Message WHERE id={message_id};")
+        mycursor.execute("SELECT * FROM Message WHERE id = %s", (message_id,))
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
@@ -2623,7 +2622,7 @@ def get_chat_hist(chat_id: int):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"SELECT * FROM Message WHERE chatId={chat_id};")
+        mycursor.execute("SELECT * FROM Message WHERE chatId = %s", (chat_id,))
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
@@ -2647,14 +2646,14 @@ def get_my_chats(user_id: str):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"""(SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType, 
+        mycursor.execute("""(SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType, 
                                 groupStuff.lastMsgId, groupStuff.unreadMsgs FROM Chat
                             JOIN (SELECT GroupOfUser.chatId, GroupOfUser.groupName, 
                                     msg.lastMsgId, FALSE AS unreadMsgs FROM GroupOfUserToChat
                             JOIN GroupOfUserToUser ON GroupOfUserToChat.groupOfUserId = GroupOfUserToUser.groupId
                             JOIN GroupOfUser ON GroupOfUserToChat.groupOfUserId = GroupOfUser.id
                             JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = GroupOfUserToChat.chatId
-                            WHERE GroupOfUserToUser.userId = '{user_id}'
+                            WHERE GroupOfUserToUser.userId = %s
                             ) AS groupStuff
                             ON Chat.id = groupStuff.chatId 
                             WHERE Chat.chatType = 'Group')
@@ -2666,9 +2665,9 @@ def get_my_chats(user_id: str):
                                 AS msg ON msg.chatId = currUser.chatId
                             JOIN (SELECT ChatToUser.chatId, ChatToUser.lastMsgSeen, User.fname, User.lname FROM ChatToUser 
                                 JOIN User ON ChatToUser.userId = User.id
-                                WHERE ChatToUser.userId != '{user_id}') AS otherUser
+                                WHERE ChatToUser.userId != %s) AS otherUser
                             ON currUser.chatId = otherUser.chatId
-                            WHERE currUser.userId = '{user_id}' AND Chat.chatType = 'Individual')
+                            WHERE currUser.userId = %s AND Chat.chatType = 'Individual')
                             UNION
                             (SELECT Chat.id, EventInfo.title AS name, Chat.chatType, msg.lastMsgId, 
                                 msg.lastMsgId > 0 AND EventToUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs FROM Chat
@@ -2677,15 +2676,15 @@ def get_my_chats(user_id: str):
                             JOIN EventToUser ON EventToUser.eventId = Event.id
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
                             JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = Chat.id
-                            WHERE EventToUser.userId = "{user_id}" AND Chat.chatType = 'Event')
+                            WHERE EventToUser.userId = %s AND Chat.chatType = 'Event')
                             UNION
                             (SELECT Chat.id, EventInfo.title AS name, Chat.chatType, 0 AS lastMsgId,
                                 FALSE AS unreadMsgs
                             FROM Chat
                             JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            WHERE EventInfo.creatorId = "{user_id}" AND Chat.chatType = 'Event')
-                            """)
+                            WHERE EventInfo.creatorId = %s AND Chat.chatType = 'Event')
+                            """, (user_id, user_id, user_id, user_id,user_id))
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
@@ -2707,37 +2706,37 @@ def get_chat(chat_id: str):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"""(SELECT Chat.id, GroupOfUser.groupName AS name, Chat.chatType FROM Chat
+        mycursor.execute("""(SELECT Chat.id, GroupOfUser.groupName AS name, Chat.chatType FROM Chat
                             JOIN GroupOfUser ON GroupOfUser.chatId = Chat.id 
-                            WHERE Chat.id = {chat_id})
+                            WHERE Chat.id = %s)
                             UNION 
                             (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
                             JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            WHERE Chat.id = {chat_id})
+                            WHERE Chat.id = %s)
                             UNION
                             (SELECT Chat.id, "" AS name, Chat.chatType FROM Chat 
                             JOIN ChatToUser ON Chat.id = ChatToUser.chatId
-                            WHERE Chat.id = {chat_id})
-                            LIMIT 1""")
+                            WHERE Chat.id = %s)
+                            LIMIT 1""", (chat_id, chat_id, chat_id))
         response = mycursor.fetchall()
         headers = mycursor.description
         chat = sqlResponseToList(response, headers)[0]
-        mycursor.execute(f"""(SELECT id, fname, lname FROM User
+        mycursor.execute("""(SELECT id, fname, lname FROM User
                                 JOIN GroupOfUserToUser ON User.id = GroupOfUserToUser.userId
                                 JOIN GroupOfUserToChat ON GroupOfUserToUser.groupId = GroupOfUserToChat.groupOfUserId
-                                WHERE GroupOfUserToChat.chatId = {chat_id})
+                                WHERE GroupOfUserToChat.chatId = %s)
                             UNION
                             (SELECT User.id, fname, lname FROM User
                                 JOIN EventToUser ON User.id = EventToUser.userId
                                 JOIN Event ON EventToUser.eventId = Event.id
                                 JOIN EventInfoToChat ON EventInfoToChat.eventInfoId = Event.eventInfoId
-                                WHERE EventInfoToChat.chatId = {chat_id})
+                                WHERE EventInfoToChat.chatId = %s)
                             UNION
                             (SELECT id, fname, lname 
                                 FROM User WHERE id IN (
                                 SELECT userId FROM ChatToUser
-                                WHERE chatId = {chat_id}))""")
+                                WHERE chatId = %s))""", (chat_id, chat_id, chat_id))
         response = mycursor.fetchall()
         headers = mycursor.description
         users = sqlResponseToList(response, headers)
@@ -2754,11 +2753,11 @@ def get_individual_chat_id(curr_user_id: str, other_user_id: str):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"""SELECT ChatToUser.chatId FROM ChatToUser 
-                            JOIN (SELECT * FROM ChatToUser WHERE userId = '{other_user_id}') AS otherUserTable
+        mycursor.execute("""SELECT ChatToUser.chatId FROM ChatToUser 
+                            JOIN (SELECT * FROM ChatToUser WHERE userId = %s) AS otherUserTable
                             ON ChatToUser.chatId = otherUserTable.chatId
-                            WHERE ChatToUser.userId = '{curr_user_id}'
-                            LIMIT 1;""")
+                            WHERE ChatToUser.userId = %s
+                            LIMIT 1;""", (other_user_id, curr_user_id))
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
@@ -2780,10 +2779,10 @@ def get_event_chat_id(event_id: int):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"""SELECT chatId FROM Event
+        mycursor.execute("""SELECT chatId FROM Event
                                 JOIN EventInfoToChat ON Event.eventInfoId = EventInfoToChat.eventInfoId
-                                WHERE Event.id = {event_id}
-                                LIMIT 1""")
+                                WHERE Event.id = %s
+                                LIMIT 1""", (event_id,))
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
@@ -2814,15 +2813,15 @@ def update_msg_last_seen():
         mycursor = conn.cursor()
 
         if chat_type == 'Group':
-            mycursor.execute(f"""UPDATE GroupOfUserToUser 
-                             SET lastMsgSeen = {msg_id}
+            mycursor.execute("""UPDATE GroupOfUserToUser 
+                             SET lastMsgSeen = %s
                              WHERE groupId = (SELECT groupOfUserId FROM GroupOfUserToChat WHERE groupOfUserId = 
-                                (SELECT groupOfUserId FROM GroupOfUserToChat WHERE chatId = {chat_id}))
-                            AND userId = '{user_id}'""")
+                                (SELECT groupOfUserId FROM GroupOfUserToChat WHERE chatId = %s))
+                            AND userId = %s""", (msg_id, chat_id, user_id))
         elif chat_type == 'Individual':
-            mycursor.execute(f"""UPDATE ChatToUser 
-                             SET lastMsgSeen = {msg_id}
-                             WHERE chatId = {chat_id} AND userId = '{user_id}'""")
+            mycursor.execute("""UPDATE ChatToUser 
+                             SET lastMsgSeen = %s
+                             WHERE chatId = %s AND userId = %s""", (msg_id, chat_id, user_id))
         elif chat_type == 'Event':
             pass
             # TODO 
@@ -2896,10 +2895,11 @@ def upload():
             date = datetime.strptime(data['timeSent'], "%Y-%m-%d %H:%M:%S")
             dateToStore = (date + timedelta(hours=4)).strftime("%Y-%m-%d %H:%M:%S")
 
-            mycursor.execute(f""" 
-                INSERT INTO Message (chatId, senderId, imagePath, timeSent) 
-                    VALUES ({data.get('chatId')}, "{data.get("senderId")}", "{data.get('imageType')}", "{dateToStore}");
-            """)
+            mycursor.execute("""
+                INSERT INTO Message (chatId, senderId, imagePath, timeSent)
+                VALUES (%s, %s, %s, %s)
+            """, (data.get('chatId'), data.get('senderId'), data.get('imageType'), dateToStore))
+
             messageId = mycursor.lastrowid
             conn.commit()
             mycursor.close()
