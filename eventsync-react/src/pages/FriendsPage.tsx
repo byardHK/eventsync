@@ -81,7 +81,9 @@ function FriendsPage() {
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
-        setSearchInput(value);
+        if(value.length <= 30){
+            setSearchInput(value);
+        }
         setFilteredUsers(users.filter(user => `${user.fname} ${user.lname}`.toLowerCase().includes(value.toLowerCase())));
     };
 
