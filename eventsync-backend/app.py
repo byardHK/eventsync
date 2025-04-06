@@ -21,7 +21,8 @@ UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
+# CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
+CORS(app, origins=["http://localhost:3000"])
 
 db_config = {
     'host': '10.18.101.62',  
@@ -2673,7 +2674,7 @@ def get_my_chats(user_id: str):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"""(SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType, 
+        mycursor.execute("""(SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType, 
                                 groupStuff.lastMsgId, groupStuff.unreadMsgs
                                 FROM Chat
                             JOIN (SELECT GroupOfUser.chatId, GroupOfUser.groupName, 
@@ -2705,7 +2706,7 @@ def get_my_chats(user_id: str):
                             JOIN EventToUser ON EventToUser.eventId = Event.id
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
                             LEFT JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = Chat.id
-                            WHERE EventToUser.userId = "{user_id}" AND EventInfo.creatorId != "{user_id}"
+                            WHERE EventToUser.userId = %s AND EventInfo.creatorId != %s
 	                            AND Chat.chatType = 'Event'
                             LIMIT 1)
                             UNION
@@ -2719,11 +2720,11 @@ def get_my_chats(user_id: str):
                             JOIN (SELECT Event.eventInfoId, Event.creatorLastMsgSeen, EventInfo.title, EventInfo.creatorId 
                                 FROM Event 
                                 JOIN EventInfo ON EventInfo.id = Event.eventInfoId 
-                                WHERE EventInfo.creatorId = "{user_id}"
+                                WHERE EventInfo.creatorId = %s
                                 LIMIT 1) AS event
                             ON event.eventInfoId = EventInfoToChat.eventInfoId
                             WHERE Chat.chatType = 'Event');
-                            """)
+                            """, (user_id, user_id, user_id, user_id, user_id, user_id))
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
