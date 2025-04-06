@@ -87,6 +87,10 @@ function ViewEventPage() {
 
     useEffect(() => {
         const checkRsvpStatus = async () => {
+            if (!userDetails || !userDetails.email) {
+                console.error('User details are missing');
+                return; 
+            }
             try {
                 const response = await axios.post(`${BASE_URL}/check_rsvp`, {
                     userId: currentUserId,
@@ -196,6 +200,10 @@ function ViewEventPage() {
 
     useEffect(() => {
         const fetchEvent = async () => {
+            if (!currentUserId) {
+                console.error('User ID is missing');
+                return;  
+            }
             try {
                 const response = await axios.get(`${BASE_URL}/get_event/${intEventId}/${currentUserId}`,{
                     headers: {
@@ -209,7 +217,7 @@ function ViewEventPage() {
             }
         }
         fetchEvent();
-    }, [eventId, isRsvped]);
+    }, [eventId, isRsvped, userDetails]);
 
     const handleChange = (panel: string) => (_SyntheticEvent: React.SyntheticEvent, isExpanded: boolean) => {
         setExpanded(isExpanded ? panel : false);
@@ -299,7 +307,7 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
     useEffect(() => {
         setItems(initialItems)
         setItemSignUpChanged(new Array(items.length).fill(false))
-    }, [event]);
+    }, [userDetails, event]);
 
     function ListTags(){
         return <>
