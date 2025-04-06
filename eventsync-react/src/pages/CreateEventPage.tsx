@@ -489,6 +489,7 @@ function CreateEventPage() {
                                         label="End Date"
                                         value={endRecurDateTime}
                                         onChange={(newValue) => setEndRecurDateTime(newValue)} 
+                                        minDateTime={startDateTime || dayjs()}
                                     />
                                     </Box>
                                 </div>
