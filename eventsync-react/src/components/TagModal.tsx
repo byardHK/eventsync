@@ -88,7 +88,12 @@ function TagModal({savedTags, handleSave}: TagModalProps){
 
     async function deleteCustomTag (tag: Tag) {
         try {
-            await axios.delete(`${BASE_URL}/delete_custom_tag/${tag.id}/`);
+            await axios.delete(`${BASE_URL}/delete_custom_tag/${tag.id}/`, {
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
             setGetTagsTrigger(getTagsTrigger+1);
         } catch (error) {
             console.error('Error deleting tag:', error);
