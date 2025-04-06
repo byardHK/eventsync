@@ -33,6 +33,8 @@ function ProfilePage() {
     const [userTagsTrigger, setUserTagsTrigger] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
     const [isFriend, setIsFriend] = useState<boolean>(false);
+    const [bioError, setBioError] = useState('');
+
 
     const emojiMap: { [key: number]: string } = {
         1: "😀",
@@ -429,7 +431,18 @@ function ProfilePage() {
                             rows={4}
                             variant="outlined"
                             value={bioInput}
-                            onChange={(e) => setBioInput(e.target.value)}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                if (value.length <= 200) {
+                                    setBioInput(value);
+                                    setBioError('');
+                                } else {
+                                    setBioError('Bio cannot exceed 200 characters.');
+                                }
+                            }}
+                            error={!!bioError}
+                            helperText={bioError || `${bioInput.length}/200 characters`}
+                            inputProps={{ maxLength: 200 }}
                         />
                         <Box mt={3} textAlign="center">
                             <Button
