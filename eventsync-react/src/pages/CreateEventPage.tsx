@@ -409,6 +409,7 @@ function CreateEventPage() {
                             label="Location" 
                             variant="outlined" 
                             type="text" 
+                            value={locationText}
                             onChange={(event) => {
                                 const value = event.target.value;
                                 if (value.length <= 50) {
