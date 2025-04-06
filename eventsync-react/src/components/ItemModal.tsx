@@ -53,7 +53,7 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
                 variant="contained"
                 sx={{ color: "black", minWidth: '40px', minHeight: '40px', padding: 0 }}
                 onClick={handleOpen}
-                title="edit tags"
+                title="Edit Items"
             >
                 <AddIcon/>
             </Button>

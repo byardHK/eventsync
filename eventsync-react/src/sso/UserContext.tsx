@@ -2,8 +2,6 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-type NotificationFrequency = "None" | "Low" | "Normal" | "High";
-
 export interface UserDetails {
   isOnboardingComplete: boolean | null;
   email: string | null;
@@ -13,14 +11,11 @@ export interface UserDetails {
   isAdmin: boolean | null;
   bio: string | null;
   profilePicture: string | null;
-  notificationFrequency: NotificationFrequency | null;
-  isPublic: boolean | null;
+  isPublic: boolean;
   isBanned: boolean | null;
   numTimesReported: number | null;
   notificationId: number | null;
-  friendRequest: boolean | null,
-  eventInvite: boolean | null,
-  eventCancelled: boolean | null,
+  eventCancelled: boolean;
   token: string | null
 };
 
@@ -41,14 +36,11 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       bio: null,
       microsoftId: null,
       profilePicture: null,
-      notificationFrequency: null,
-      isPublic: null,
+      isPublic: false,
       isBanned: null,
       numTimesReported: null,
       notificationId: null,
-      friendRequest: null,
-      eventInvite: null,
-      eventCancelled: null,
+      eventCancelled: false,
       token: null
   });
 
