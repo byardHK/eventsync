@@ -328,7 +328,12 @@ function CreateEventPage() {
                             variant="outlined" 
                             type="text" 
                             value={titleText} 
-                            onChange={(event) => setTitleText(event.target.value)}  
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                if (value.length <= 50) {
+                                    setTitleText(value);
+                                } 
+                            }}
                             error={titleError}
                             helperText={titleError ? "Title is required" : ""}
                         />
@@ -389,7 +394,12 @@ function CreateEventPage() {
                             variant="outlined" 
                             type="text" 
                             value={descriptionText} 
-                            onChange={(event) => setDescriptionText(event.target.value)}  
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                if (value.length <= 100) {
+                                    setDescriptionText(value);
+                                } 
+                            }}
                             error={descriptionError}
                             helperText={descriptionError ? "Description is required" : ""}
                         />
@@ -399,8 +409,13 @@ function CreateEventPage() {
                             label="Location" 
                             variant="outlined" 
                             type="text" 
-                            value={locationText} 
-                            onChange={(event) => setLocationText(event.target.value)}  
+                            value={locationText}
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                if (value.length <= 50) {
+                                    setLocationText(value);
+                                } 
+                            }}
                             error={locationError}
                             helperText={locationError ? "Location is required" : ""}
                         />
@@ -487,7 +502,13 @@ function CreateEventPage() {
                             variant="outlined" 
                             type="text" 
                             value={venmoText} 
-                            onChange={(event) => setVenmoText(event.target.value)}  
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                if (value.length <= 25) {
+                                    setVenmoText(value);
+                                } 
+                            }}
+                            
                         />
                     </Box>
                     <br></br>
@@ -523,7 +544,7 @@ function CreateEventPage() {
                             value={rsvpLimit !== null ? rsvpLimit : ''} 
                             onChange={(event) => {
                                 const value = event.target.value === '' ? null : Number(event.target.value);
-                                if (value === null || value >= 0) {
+                                if (value === null || (value >= 0 && value <= 999)) {
                                     setRsvpLimit(value);
                                 }
                             }}  

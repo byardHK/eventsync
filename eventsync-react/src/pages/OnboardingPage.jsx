@@ -94,7 +94,12 @@ const OnboardingPage = () => {
                     fullWidth
                     label="First Name"
                     value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
+                    onChange={(e) => {
+                        const val = e.target.value
+                        if(val.length <= 20){
+                            setFirstName(val)
+                        }                       
+                    }}
                     margin="normal"
                 />
                 
@@ -102,7 +107,12 @@ const OnboardingPage = () => {
                     fullWidth
                     label="Last Name"
                     value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
+                    onChange={(e) => {
+                        const val = e.target.value
+                        if(val.length <= 20){
+                            setLastName(val)
+                        }                       
+                    }}
                     margin="normal"
                 />
                 
@@ -134,7 +144,12 @@ const OnboardingPage = () => {
                     multiline
                     rows={3}
                     value={bio}
-                    onChange={(e) => setBio(e.target.value)}
+                    onChange={(e) => {
+                        const val = e.target.value
+                        if(val.length <= 200){
+                            setBio(val)
+                        }                       
+                    }}
                     margin="normal"
                 />
 

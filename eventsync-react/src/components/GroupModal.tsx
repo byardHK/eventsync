@@ -114,14 +114,23 @@ function GroupModal({groupId, open, onClose, onSave}: GroupModalProps) {
                         value={group.groupName}
                         fullWidth
                         onChange={(event) => {
-                            setGroup({...group, groupName: event.target.value})
+                            const value = event.target.value;
+                            if (value.length <= 35) {
+                                setGroup({...group, groupName: value});
+                            }
                         }}
                     />
                     <Typography sx={{ marginTop: 2 }}>Choose friends to add to group: </Typography>
                     <TextField 
                         sx={{backgroundColor: 'white', marginTop: 1}}
                         id="outlined-basic"
-                        onChange={(e) => setSearchKeyword(e.target.value)}
+                        value={searchKeyword}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            if (value.length <= 30) {
+                                setSearchKeyword(e.target.value);
+                            }
+                        }}
                         slotProps={{
                             input: {
                             startAdornment: (

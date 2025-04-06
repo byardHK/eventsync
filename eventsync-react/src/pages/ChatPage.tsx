@@ -364,7 +364,12 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
             // multiline
             // maxRows={2}
             value={message} 
-            onChange={(event) => setMessage(event.target.value)}
+            onChange={(event) => {
+                const val = event.target.value
+                if(val.length <= 200){
+                    setMessage(event.target.value)
+                }
+            }}
             sx={{backgroundColor: "#FFFFFF"}}
             fullWidth
         />

@@ -134,7 +134,13 @@ function ReportModal({input, open, onClose, type}: ReportModalProps){
                     multiline
                     maxRows={4}
                     value={reportText} 
-                    onChange={(event) => setReportText(event.target.value)}
+                    onChange={(event) => {
+                        const val = event.target.value;
+                        if (val.length <= 200){
+                            setReportText(val);
+                        }
+                    }}
+                       
                 />
                 <Box
                     display="flex"
