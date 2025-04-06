@@ -57,6 +57,10 @@ function ChatPage() {
 
 	useEffect(() => {
         const fetchChat = async () => {
+            if (!userDetails || !userDetails.email) {
+                console.error('User details are missing');
+                return; 
+            }
             try {
                 const response = await axios.get<{chat: chatResponse, users: User[]}>(`${BASE_URL}/get_chat/${chatId}`, {
                     headers: {
@@ -89,7 +93,7 @@ function ChatPage() {
 		return (() => {
 			pusher.unsubscribe(channelName)
 		})
-	}, []);
+	}, [userDetails]);
 
     function stringToEnum(value: String): chatType {
         if (value === "Individual") {
@@ -125,6 +129,10 @@ function ChatPage() {
       }, [messages, chat]);
 
     async function retrieveHistory() {
+        if (!userDetails || !userDetails.email) {
+            console.error('User details are missing');
+            return; 
+        }
         const response = await axios.get<MessageList>(`${BASE_URL}/get_chat_hist/${chatId}`, {
             headers: {
                 'Authorization': `Bearer ${userDetails.token}`,

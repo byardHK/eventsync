@@ -27,60 +27,62 @@ type Report = {
     reportDate: string;
 };
 
-function AdminPage(){
-    
-    const [reports, setReports] = useState<Report[]>();
-    const {userDetails} = useUser();
+function AdminPage() {
+  const { userDetails } = useUser(); // Fetch user details from context
+  const [reports, setReports] = useState<Report[] | null>(null);
+  const [loading, setLoading] = useState(true); // Track loading state for reports
 
-    async function reloadReports() {
-        try {
-          const response = await axios.get(`${BASE_URL}/get_reports/${userDetails.email}`, {
-            headers: {
-                'Authorization': `Bearer ${userDetails.token}`,
-                'Content-Type': 'application/json'
-            }
-          });
-          const res: Report[] = response.data;
-          setReports(res);
-        } catch (error) {
-          console.error('Error fetching data:', error);
-        }
-      };
+  const reloadReports = async () => {
+    if (!userDetails.email || !userDetails.token) return;
 
-    useEffect(() => {
-        reloadReports();
-    }, []);
+    try {
+      const response = await axios.get(`${BASE_URL}/get_reports/${userDetails.email}`, {
+        headers: {
+          'Authorization': `Bearer ${userDetails.token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      setReports(response.data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false); 
+    }
+  };
 
-    return (userDetails.isAdmin ?
-        <>
-            <Box display="flex" flexDirection="row" gap={8} paddingTop={2} paddingBottom={1} sx={{ position: 'fixed', top: '0', backgroundColor: "#1c284c", width: "100%", right: 0, left: 0, marginRight: "0", marginLeft: "auto", "z-index": 10}}>
-                <BackButton></BackButton>
-                <Typography variant="h4" fontWeight="bold" color="white">Reports</Typography>
-            </Box>
-            <Box
-                display="flex"
-                flexDirection="column"
-                alignItems="center"
-                gap={2}
-                paddingTop={9}
-            >
-                {reports ?
-                    reports.map(report =>
-                        <AdminReportCard report={report} key={report.id} reloadReports={reloadReports} userDetails={userDetails}/>
-                    ) :
-                    <Box
-                        display="flex"
-                        flexDirection="column"
-                        justifyContent="center"
-                        alignItems="center"
-                    >
-                        <Typography color="white">Loading Reports</Typography>
-                    </Box>
-                }
-            </Box>
-        </> :
-        <Typography color="white">You don't have access to this page.</Typography>
-    );
+  useEffect(() => {
+    reloadReports();
+  }, [userDetails.email, userDetails.token]); 
+
+  if (loading) {
+    return (
+    <Box display="flex" flexDirection="column" alignItems="center" gap={2} paddingTop={9}>
+        <Typography color="white">Loading reports...</Typography>;
+    </Box>)
+  }
+
+  if (!userDetails || !userDetails.isAdmin) {
+    return <Typography color="white">You don't have access to this page.</Typography>;
+  }
+
+  return (
+    <>
+      <Box display="flex" flexDirection="row" gap={8} paddingTop={2} paddingBottom={1} sx={{ position: 'fixed', top: '0', backgroundColor: "#1c284c", width: "100%", right: 0, left: 0, marginRight: "0", marginLeft: "auto", "z-index": 10 }}>
+        <BackButton />
+        <Typography variant="h4" fontWeight="bold" color="white">Reports</Typography>
+      </Box>
+
+      <Box display="flex" flexDirection="column" alignItems="center" gap={2} paddingTop={9}>
+        {reports && reports.length > 0 ? (
+          reports.map((report) => (
+            <AdminReportCard key={report.id} report={report} reloadReports={() => reloadReports()} userDetails={userDetails} />
+          ))
+        ) : (
+          <Typography color="white">No reports available.</Typography>
+        )}
+      </Box>
+    </>
+  );
 }
 
 type AdminReportCardProps = {

@@ -129,7 +129,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
             variant="contained" 
             sx={{ color: "black", minWidth: '40px', minHeight: '40px', padding: 0 }}
             onClick={handleOpenModal}
-            title="edit tags"
+            title="Edit Tags"
         >
             <AddIcon />
         </Button>

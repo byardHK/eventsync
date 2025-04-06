@@ -87,6 +87,10 @@ function ViewEventPage() {
 
     useEffect(() => {
         const checkRsvpStatus = async () => {
+            if (!userDetails || !userDetails.email) {
+                console.error('User details are missing');
+                return; 
+            }
             try {
                 const response = await axios.post(`${BASE_URL}/check_rsvp`, {
                     userId: currentUserId,
@@ -147,26 +151,6 @@ function ViewEventPage() {
             <>
                 <Button variant="contained" onClick={handleOpenRsvpList} sx={{ width: "140px", height: "60px", backgroundColor: "#71A9F7", color: "black" }}>View RSVP List</Button>
                 <Dialog onClose={handleCloseRsvpList} open={openRsvpList}>
-                    {/* <Box
-                        display="flex"
-                        flexDirection="column"
-                        alignItems="center"
-                        justifyContent="center"
-                        sx={{ width: "100%" }}
-                        minWidth={300}
-                        paddingTop={3}
-                        paddingBottom={2}
-                    >
-                        <Typography variant="h5" fontWeight="bold">RSVP List</Typography>
-                        <ul style={{ listStyleType: 'none', padding: 0 }}>
-                            {rsvpList.map(user => (
-                                <li key={user.userId} style={{ marginBottom: '10px', backgroundColor: "#71A9F7"}}>{user.fname} {user.lname}</li>
-                            ))}
-                        </ul>
-                        <Box  display="flex" justifyContent="center">
-                            <Button variant="contained" sx={{backgroundColor: "#1c284c", width: "75%"}} onClick={handleCloseRsvpList}>Close</Button>
-                        </Box>
-                    </Box> */}
                     <Typography variant="h5" fontWeight="bold" align="center">RSVP List</Typography>
                             <Box
                                 display="flex"
@@ -216,6 +200,10 @@ function ViewEventPage() {
 
     useEffect(() => {
         const fetchEvent = async () => {
+            if (!currentUserId) {
+                console.error('User ID is missing');
+                return;  
+            }
             try {
                 const response = await axios.get(`${BASE_URL}/get_event/${intEventId}/${currentUserId}`,{
                     headers: {
@@ -229,7 +217,7 @@ function ViewEventPage() {
             }
         }
         fetchEvent();
-    }, [eventId, isRsvped]);
+    }, [eventId, isRsvped, userDetails]);
 
     const handleChange = (panel: string) => (_SyntheticEvent: React.SyntheticEvent, isExpanded: boolean) => {
         setExpanded(isExpanded ? panel : false);
@@ -251,35 +239,63 @@ function ViewEventPage() {
         }
     }
 
-    return <>
-        <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center" 
-            justifyContent="center"
-            height="100%"
-        >
-            {event ? (
-                <GetEvent event={event} initialItems={event.items} expanded={expanded} handleChange={handleChange} isRsvped={isRsvped}/>
-            ) : (
-                <Typography color='white'>Loading Event</Typography>
-            )}
+    return (
+        <>
             <Box
                 display="flex"
-                flexDirection="row"
-                width="100%"
-                paddingBottom={2}
-                paddingTop={2}
-                sx={{backgroundColor: "#1c284c"}}
-                justifyContent="space-around"
-                style={{ position: 'fixed', bottom: '0' }}
+                flexDirection="column"
+                alignItems="center"
+                justifyContent="center"
+                height="100%"
             >
-                <RsvpModal/>     
-                <RsvpListModal eventId={intEventId}/>  
-                <Button variant="contained" onClick={navigateToChat} sx={{ width: "100px", height: "60px", backgroundColor: "#71A9F7", color: "black"}}>Event Chat</Button>
+                <Box
+                    display="flex"
+                    justifyContent="flex-start"
+                    width="100%"
+                    padding={2}
+                    sx={{ position: 'fixed', top: 0, backgroundColor: "#1c284c", zIndex: 10 }}
+                >
+                    <BackButton />
+                </Box>
+
+                {event === null ? (
+                    <Typography color="white" fontWeight="bold" variant="h4" align="center" sx={{ paddingY: 10 }}>
+                        Event not found or no longer exists.
+                    </Typography>
+                ) : event ? (
+                    <GetEvent
+                        event={event}
+                        initialItems={event.items}
+                        expanded={expanded}
+                        handleChange={handleChange}
+                        isRsvped={isRsvped}
+                    />
+                ) : (
+                    <Typography color="white">Loading Event...</Typography>
+                )}
+                <Box
+                    display="flex"
+                    flexDirection="row"
+                    width="100%"
+                    paddingBottom={2}
+                    paddingTop={2}
+                    sx={{ backgroundColor: "#1c284c" }}
+                    justifyContent="space-around"
+                    style={{ position: 'fixed', bottom: '0' }}
+                >
+                    <RsvpModal />
+                    <RsvpListModal eventId={intEventId} />
+                    <Button
+                        variant="contained"
+                        onClick={navigateToChat}
+                        sx={{ width: "100px", height: "60px", backgroundColor: "#71A9F7", color: "black" }}
+                    >
+                        Event Chat
+                    </Button>
+                </Box>
             </Box>
-        </Box>
-    </>;
+        </>
+    );
 };
 
 function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { event: Event, initialItems: Item[], expanded: string | false, handleChange: (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => void, isRsvped: Boolean}) {
@@ -291,7 +307,7 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
     useEffect(() => {
         setItems(initialItems)
         setItemSignUpChanged(new Array(items.length).fill(false))
-    }, [event]);
+    }, [userDetails, event]);
 
     function ListTags(){
         return <>
@@ -476,88 +492,6 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
                 <></>
                 }
             </Box>
-            {/* <Typography align="center" color="white" variant="h3">{event.title}</Typography>
-            <Box sx={{backgroundColor: "white", width: "100%", height: "100%"}}>
-                <ReportModal input={event} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="event"/>
-                <Box display="flex" alignItems="right" justifyContent="right">
-                    <IconButton onClick={()=>setReportModalOpen(true)}>
-                        <FlagIcon style={{ color: '#ad1f39'}}></FlagIcon>
-                    </IconButton>
-                </Box>
-                <Accordion defaultExpanded disableGutters>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography>Overview</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                        <Typography>{timeToString2Date(dayjs(event.startTime), dayjs(event.endTime))}</Typography>
-                        <Typography>{timeToString2Time(dayjs(event.startTime), dayjs(event.endTime))}</Typography>
-                        <Typography>{`Where?: ${event.locationName}`}</Typography>
-                        <Typography>{"Created By: "}<Link to={`/profile/${event.creatorId}`}>{event.creatorName}</Link></Typography>
-                        <ListTags></ListTags>
-                    </AccordionDetails>
-                </Accordion>
-                {event.description && (
-                    <Accordion disableGutters expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                            <Typography>Description</Typography>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <Typography>{event.description}</Typography>
-                        </AccordionDetails>
-                    </Accordion>
-                )}
-                {items && items.length > 0 && (
-                    <Accordion disableGutters expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                            <Typography>Items to Bring</Typography>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            {items.map((item, index) => (
-                                <Typography key={index} style={{ display: 'flex', flexDirection: 'row', alignItems: "center" }}>
-                                <div >{`${item.name}: ${item.othersQuantitySignedUpFor + item.myQuantitySignedUpFor}/${item.amountNeeded}`}</div>
-                                {isRsvped && (
-                                <div style={{display: 'flex', flexDirection: 'row' }}>
-                                    <Button sx={{ m: 1 }} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="contained" onClick={() => changeItemQuantity(-1, index)}>
-                                        <RemoveIcon style={{ fontSize: 15 }}></RemoveIcon>
-                                    </Button>
-                                    <Box display="flex" alignItems="center">
-                                    {item.myQuantitySignedUpFor}
-                                    </Box>
-                                    <Button sx={{ m: 1 }} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="contained" onClick={() => changeItemQuantity(1, index)}>
-                                        <AddIcon style={{ fontSize: 15 }}></AddIcon> 
-                                    </Button>
-                                    <Button sx={{ m: 1 }} style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}} variant="text"
-                                        onClick={() => postItemSignedUpFor(item, index)}
-                                        disabled={!itemSignUpChanged[index]}>
-                                        <CheckCircleOutlineRoundedIcon style={{ fontSize: 30 }}></CheckCircleOutlineRoundedIcon>
-                                    </Button>
-                                </div>
-                                )}
-                                </Typography>))}
-                        </AccordionDetails>
-                    </Accordion>
-                )}
-                {event.files && event.files.length > 0 && (
-                    <Accordion disableGutters expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                            <Typography>Files</Typography>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <Typography>Files placeholder</Typography>
-                        </AccordionDetails>
-                    </Accordion>
-                )}
-                {event.venmo && (
-                    <Accordion disableGutters expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                            <Typography>Payments</Typography>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <Typography>{event.venmo}</Typography>
-                        </AccordionDetails>
-                    </Accordion>
-                )}
-            </Box> */}
         </>
     );
 }

@@ -44,6 +44,13 @@ function CreateEventPage() {
     const [editAllEvents, setEditAllEvents] = useState<boolean>(true);
     const [creatorName, setCreatorName] = useState<String>(userDetails.firstName + " " + userDetails.lastName);
     const [eventTagsTrigger, setEventTagsTrigger] = useState<number>(0);
+    const [isGeneralAccordionOpen, setIsGeneralAccordionOpen] = useState(true);
+
+    const [titleError, setTitleError] = useState(false);
+    const [startDateTimeError, setStartDateTimeError] = useState(false);
+    const [endDateTimeError, setEndDateTimeError] = useState(false);
+    const [descriptionError, setDescriptionError] = useState(false);
+    const [locationError, setLocationError] = useState(false);
 
     function reloadEventTags() {
         setEventTagsTrigger(eventTagsTrigger+1);
@@ -177,6 +184,25 @@ function CreateEventPage() {
 
     const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault();
+
+        setTitleError(false);
+        setStartDateTimeError(false);
+        setEndDateTimeError(false);
+        setDescriptionError(false);
+        setLocationError(false);
+
+        if (!titleText.trim()) setTitleError(true);
+        if (!startDateTime) setStartDateTimeError(true);
+        if (!endDateTime) setEndDateTimeError(true);
+        if (!descriptionText.trim()) setDescriptionError(true);
+        if (!locationText.trim()) setLocationError(true);
+
+        if (!titleText.trim() || !startDateTime || !endDateTime || !descriptionText.trim() || !locationText.trim()) {
+            setIsGeneralAccordionOpen(true);
+            window.scrollTo(0, 0);
+            return;
+        }
+
         try {
             const postPath = eventId ? `${BASE_URL}/editEvent/${eventId}` : (checked ? `${BASE_URL}/post_recurring_event` : `${BASE_URL}/post_event`);
             const data = {
@@ -270,7 +296,12 @@ function CreateEventPage() {
                             }
                         />
                     )}
-            <Accordion defaultExpanded disableGutters sx={{backgroundColor: "#1c284c", width: "100%", border: "1px solid #FFF"}}>
+            <Accordion 
+                defaultExpanded 
+                disableGutters             
+                expanded={isGeneralAccordionOpen}
+                onChange={() => setIsGeneralAccordionOpen(!isGeneralAccordionOpen)}
+                sx={{backgroundColor: "#1c284c", width: "100%", border: "1px solid #FFF"}}>
                 <AccordionSummary
                     expandIcon={<ExpandMoreIcon style={{color: "white"}}/>}
                     aria-controls="panel1-content"
@@ -298,6 +329,8 @@ function CreateEventPage() {
                             type="text" 
                             value={titleText} 
                             onChange={(event) => setTitleText(event.target.value)}  
+                            error={titleError}
+                            helperText={titleError ? "Title is required" : ""}
                         />
                         <Box gap={2} display="flex" flexDirection="row" width="100%" justifyContent="flex-end">
                             <AccessAlarmIcon style={{color: "white"}}></AccessAlarmIcon>
@@ -324,8 +357,14 @@ function CreateEventPage() {
                                     setStartDateTime(newValue);
                                     setEndDateTime(newValue ? newValue.add(1, "hour") : null);
                                 }}
+                                minDateTime={dayjs()}
+                                slotProps={{
+                                    textField: {
+                                        error: startDateTimeError,
+                                        helperText: startDateTimeError ? "Start date and time are required" : "",
+                                    },
+                                }}
                             />
-                            
                         </Box>
                         <Box gap={2} display="flex" flexDirection="row" width="100%" justifyContent="flex-end">
                             <Typography sx={{paddingLeft:8.25}} color="white"> TO </Typography>
@@ -334,6 +373,13 @@ function CreateEventPage() {
                                 label="End"
                                 value={endDateTime}
                                 onChange={(newValue) => setEndDateTime(newValue)} 
+                                minDateTime={startDateTime || dayjs()}
+                                slotProps={{
+                                    textField: {
+                                        error: endDateTimeError,
+                                        helperText: endDateTimeError ? "End date and time are required" : "",
+                                    },
+                                }}
                             />
                         </Box>
                         <TextField 
@@ -344,6 +390,8 @@ function CreateEventPage() {
                             type="text" 
                             value={descriptionText} 
                             onChange={(event) => setDescriptionText(event.target.value)}  
+                            error={descriptionError}
+                            helperText={descriptionError ? "Description is required" : ""}
                         />
                         <TextField 
                             sx={{input: {backgroundColor: 'white'}, width: "100%"}}
@@ -353,6 +401,8 @@ function CreateEventPage() {
                             type="text" 
                             value={locationText} 
                             onChange={(event) => setLocationText(event.target.value)}  
+                            error={locationError}
+                            helperText={locationError ? "Location is required" : ""}
                         />
                     </Box>
                     </LocalizationProvider>
