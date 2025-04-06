@@ -2831,11 +2831,32 @@ def update_msg_last_seen():
                              SET lastMsgSeen = {msg_id}
                              WHERE chatId = {chat_id} AND userId = '{user_id}'""")
         elif chat_type == 'Event':
-            pass
-            # TODO 
+            mycursor.execute(f"""SET @eventInfoId = (SELECT eventInfoId FROM EventInfoToChat
+                                WHERE chatId = {chat_id});""")
+            mycursor.execute(f"""SELECT creatorId FROM EventInfo WHERE id = @eventInfoId""")
+            response = mycursor.fetchall()
+            headers = mycursor.description
+            creatorList = sqlResponseToList(response, headers)
+            eventCreator = creatorList[0]["creatorId"]
+            userIsCreator = (eventCreator.lower() == user_email.lower())
+
+            mycursor.execute(f"""SELECT id FROM Event WHERE eventInfoId = @eventInfoId""")
+            response = mycursor.fetchall()
+            headers = mycursor.description
+            events = sqlResponseToList(response, headers)
+            for event in events:
+                eventId = event["id"]
+                if userIsCreator:
+                    mycursor.execute(f"""UPDATE Event
+                                    SET Event.creatorLastMsgSeen = {msg_id}
+                                    WHERE id = {eventId}""") 
+                else:
+                    mycursor.execute(f"""UPDATE EventToUser
+                                        SET EventToUser.lastMsgSeen = {msg_id}
+                                        WHERE eventId = {eventId} AND userId = {user_id}""")
+            # return {"events": events, "creator": userIsCreator, "eventCreator": userIsCreator}, 200
         else:
-            pass
-            # TODO
+            return "Invalid chat type", 404
 
         conn.commit()
         mycursor.close()
