@@ -37,39 +37,59 @@ cached_auth_info = { }
 
 def get_authenticated_user():
     """Fetches the authenticated user's email from Microsoft Graph API."""
-    
+
     auth_header = request.headers.get('Authorization')
     if not auth_header:
-        print("ERROR: Missing Authorization header")
+        print("[AUTH ERROR] Missing Authorization header")
         return None, jsonify({"error": "Missing Authorization header"}), 403
 
     try:
         encodedJwt = auth_header[7:]
+        print(f"[AUTH INFO] JWT received: {encodedJwt[:20]}...")  # Print only a slice for security
         jwtDecoder = jwt.JWT()
         decodedJwt = jwtDecoder.decode(encodedJwt, do_verify=False)
+        print("[AUTH INFO] JWT decoded (unverified)")
     except Exception as e:
+        print(f"[AUTH ERROR] JWT decoding failed: {e}")
         return None, jsonify({"error": "Invalid Authorization header"}), 403
 
     cached_info = cached_auth_info.get(auth_header)
-    if not cached_info:
+    if cached_info:
+        print("[CACHE HIT] Using cached user info")
+    else:
+        print("[CACHE MISS] Fetching from Microsoft Graph API")
         headers = {
             "Authorization": auth_header,
             "Accept": "application/json"
         }
 
-        response = requests.get(GRAPH_API_URL, headers=headers)
-        if response.status_code != 200:
-            return None, jsonify({"error": "Failed to fetch user profile", "details": response.text}), 403
+        try:
+            response = requests.get(GRAPH_API_URL, headers=headers)
+            print(f"[GRAPH API] Response code: {response.status_code}")
 
-        cached_info = response.json()
-        cached_auth_info[auth_header] = cached_info
+            if response.status_code != 200:
+                print(f"[GRAPH API ERROR] {response.text}")
+                return None, jsonify({
+                    "error": "Failed to fetch user profile",
+                    "details": response.text
+                }), 403
 
-    user_email = cached_info.get("mail")  # Extract user email
+            cached_info = response.json()
+            cached_auth_info[auth_header] = cached_info
+            print(f"[GRAPH API] User profile cached")
+
+        except Exception as e:
+            print(f"[GRAPH API ERROR] Request failed: {e}")
+            return None, jsonify({"error": "Failed to connect to Graph API"}), 500
+
+    user_email = cached_info.get("mail")
+    print(f"[USER INFO] Email fetched: {user_email}")
 
     if not user_email:
+        print("[AUTH ERROR] Email not found in Graph response")
         return None, jsonify({"error": "Email not found in token response"}), 403
 
-    return user_email, None, None  # No error, return email
+    return user_email, None, None  # Success
 
 pusher_client = pusher.Pusher(
   app_id='1939690',
@@ -167,14 +187,14 @@ def get_user(id):
 @app.route('/api/check_user/<string:id>', methods=['GET'])
 def check_user(id):
        
-    user_email, error_response, status_code = get_authenticated_user()
-    if error_response:
-        print(error_response)
-        return error_response, status_code   
+    # user_email, error_response, status_code = get_authenticated_user()
+    # if error_response:
+    #     print(error_response)
+    #     return error_response, status_code   
 
-    if id.lower() != user_email.lower():
-        print("Unauthorized: userId does not match token email")
-        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    # if id.lower() != user_email.lower():
+    #     print("Unauthorized: userId does not match token email")
+    #     return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
    
     try:
         conn = mysql.connector.connect(**db_config)
@@ -193,80 +213,83 @@ def check_user(id):
     
 @app.route('/api/add_user/', methods=['POST'])
 def add_user():
+    print("=== /api/add_user/ called ===")
 
     user_email, error_response, status_code = get_authenticated_user()
     if error_response:
-        return error_response, status_code  # Handle authentication errors
+        print(f"[AUTH ERROR] {status_code}: {error_response.get_json()}")
+        return error_response, status_code
 
     body = request.get_json()
+    print(f"[REQUEST BODY] {body}")
+
     if not body or "email" not in body:
+        print("[ERROR] Missing 'email' in request body")
         return jsonify({"error": "Missing required 'email' field in request body"}), 400
 
     if body.get("email").lower() != user_email.lower():
-        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
-
-
-    user_email, error_response, status_code = get_authenticated_user()
-    if error_response:
-        return error_response, status_code  # Handle authentication errors
-
-    body = request.get_json()
-    if not body or "email" not in body:
-        return jsonify({"error": "Missing required 'email' field in request body"}), 400
-
-    if body.get("email").lower() != user_email.lower():
+        print(f"[ERROR] Email mismatch: token={user_email}, body={body.get('email')}")
         return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
 
     try:
-        data = request.get_json()
-        print(data)
+        id = body.get("email")
+        fname = body.get("firstName")
+        lname = body.get("lastName")
+        bio = body.get("bio", "")
+        profilePicture = body.get("profilePicture", 0)
+        is_public = int(body.get("isPublic", 0))
+        is_banned = 0
+        num_times_reported = int(body.get("numTimesReported", 0))
+        notification_id = 1
+        event_cancelled = int(body.get("eventCancelled", 0))
+        gender = body.get("gender", "Undefined")
+        is_admin = 0
 
-        id = data.get("email")  
-        fname = data.get("firstName")
-        lname = data.get("lastName")
-        bio = data.get("bio", "")
-        profilePicture = data.get("profilePicture", 0) 
-        is_public = int(data.get("isPublic", 0))
-        is_banned = 0  # Default to 0
-        num_times_reported = int(data.get("numTimesReported", 0))  # Default to 0
-        notification_id = 1  # Default to 1
-        event_cancelled = int(data.get("eventCancelled", 0))
-        gender = data.get("gender", "Undefined")  # Default to "Undefined"
-
-        isAdmin = 0
-        is_public = int(is_public)
-        friend_request = int(friend_request)
-        event_invite = int(event_invite)
-        event_cancelled = int(event_cancelled)
-
-        print("Final values:", (id, fname, lname, bio, profilePicture, isAdmin,
-                        is_public, is_banned, num_times_reported, 
-                        notification_id, event_cancelled, gender))
+        print("✔️ Parsed user data:")
+        print(f"   ID: {id}")
+        print(f"   Name: {fname} {lname}")
+        print(f"   Public: {is_public}, Banned: {is_banned}")
+        print(f"   Reports: {num_times_reported}, EventCancelled: {event_cancelled}")
+        print(f"   Gender: {gender}, ProfilePic: {profilePicture}")
 
         if not id or not fname or not lname:
+            print("[ERROR] Missing required fields (email, firstName, lastName)")
             return jsonify({"error": "Missing required fields"}), 400
-        
+
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
 
-        sql = """INSERT INTO User (id, fname, lname, bio, profilePicture,
+        sql = """
+            INSERT INTO User (id, fname, lname, bio, profilePicture,
                 isAdmin, isPublic, isBanned, numTimesReported, 
                 notificationId, eventCancelled, gender) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-        
-        values = (id, fname, lname, bio, profilePicture,
-                  isAdmin, is_public, is_banned, num_times_reported, event_cancelled, gender)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
 
+        values = (
+            id, fname, lname, bio, profilePicture,
+            is_admin, is_public, is_banned,
+            num_times_reported, notification_id,
+            event_cancelled, gender
+        )
+
+        print("[DB QUERY] Executing INSERT into User...")
         mycursor.execute(sql, values)
         conn.commit()
+        print("[DB SUCCESS] User inserted successfully.")
+
         mycursor.close()
         conn.close()
 
         return jsonify({"message": "User added successfully"}), 201
 
     except mysql.connector.Error as err:
-        print(f"Error: {err}")
+        print(f"[MYSQL ERROR] {err}")
         return jsonify({"error": "Database insert failed"}), 500
+
+    except Exception as e:
+        print(f"[UNEXPECTED ERROR] {e}")
+        return jsonify({"error": "Unexpected error occurred"}), 500
 
 
 @app.route('/get_events/<string:id>')
@@ -296,12 +319,17 @@ def get_events(id):
         events = [dict(zip(headers, row)) for row in events_response]
 
         for event in events:
-            mycursor.execute(f"""
+            event_info_id = event['eventInfoId'] 
+
+            query = """
                 SELECT Tag.id, Tag.name
                 FROM Tag
                 JOIN EventInfoToTag ON Tag.id = EventInfoToTag.tagId
-                WHERE EventInfoToTag.eventInfoId = {event['eventInfoId']}
-            """)
+                WHERE EventInfoToTag.eventInfoId = %s
+            """
+
+            mycursor.execute(query, (event_info_id,))
+
             tags_response = mycursor.fetchall()
             tags = [{
                 "id": tag[0],
@@ -413,33 +441,32 @@ def save_user_selected_tags():
     if body["userId"].lower() != user_email.lower():
         return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
     
-    
     userId = body["userId"]
-    values: str = ""
-
     selectedTags = body["selectedTags"]
     if len(selectedTags) == 0:
         return {}
 
-    for tag in selectedTags:
-        values += f'("{userId}", {tag["id"]}), '
+    values = [(userId, tag["id"]) for tag in selectedTags]
 
-    #Remove extra comma and space afterwards
-    values = values[:-2]
+    query = """
+        INSERT INTO UserToTag (userId, tagId)
+        VALUES (%s, %s)
+    """
 
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        query = f"""
-            INSERT INTO UserToTag (userId, tagId)
-            VALUES {values};
-        """
-        mycursor.execute(query)
+
+        # Execute the query with the values passed as a list of tuples
+        mycursor.executemany(query, values)
+
         conn.commit()
         mycursor.close()
         conn.close()
+
     except mysql.connector.Error as err:
         print(f"Save Selected Tags Error: {err}")
+
     return {}
 
 @app.post('/delete_user_deselected_tags/')
@@ -470,10 +497,10 @@ def delete_user_deselected_tags():
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        query = f"""
-            DELETE FROM UserToTag WHERE (userId, tagId) IN ({values});
+        query = """
+            DELETE FROM UserToTag WHERE (userId, tagId) IN %s;
         """
-        mycursor.execute(query)
+        mycursor.execute(query, values)
         conn.commit()
         rowcount: int = mycursor.rowcount
         mycursor.close()
@@ -630,12 +657,12 @@ def get_user_tags(userId):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        query = f"""
+        query = """
             SELECT Tag.id, Tag.name, Tag.userId FROM Tag INNER JOIN (
-                SELECT UserToTag.tagId FROM UserToTag WHERE UserToTag.userId = "{userId}"
+                SELECT UserToTag.tagId FROM UserToTag WHERE UserToTag.userId = %s
             ) AS UserToTag ON Tag.id = UserToTag.tagId;
         """
-        mycursor.execute(query)
+        mycursor.execute(query,(userId,))
         response = mycursor.fetchall()
         headers = mycursor.description
         res = sqlResponseToJson(response, headers)
@@ -658,12 +685,12 @@ def get_event_tags(eventInfoId):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        query = f"""
+        query = """
             SELECT Tag.id, Tag.name, Tag.userId FROM Tag INNER JOIN (
-                SELECT EventInfoToTag.tagId FROM EventInfoToTag WHERE EventInfoToTag.eventInfoId = {eventInfoId}
+                SELECT EventInfoToTag.tagId FROM EventInfoToTag WHERE EventInfoToTag.eventInfoId = %s
             ) AS EventInfoToTag ON Tag.id = EventInfoToTag.tagId;
         """
-        mycursor.execute(query)
+        mycursor.execute(query,(eventInfoId,))
         response = mycursor.fetchall()
         headers = mycursor.description
         res = sqlResponseToJson(response, headers)
@@ -835,14 +862,11 @@ def accept_friend_request(userId, friendId):
         chatId = mycursor.lastrowid
 
         # add relationships in ChatToUser
-        chatToUser = f"""
-                INSERT INTO ChatToUser (chatId, userId) VALUES ({chatId}, '{friendId}');
+        chatToUser = """
+                INSERT INTO ChatToUser (chatId, userId) VALUES (%s, %s);
             """
-        mycursor.execute(chatToUser)
-        chatToUser = f"""
-            INSERT INTO ChatToUser (chatId, userId) VALUES ({chatId}, '{userId}');
-            """
-        mycursor.execute(chatToUser)
+        mycursor.execute(chatToUser, (chatId, friendId))
+        mycursor.execute(chatToUser, (chatId, userId))
 
         conn.commit()
         mycursor.close()
@@ -938,13 +962,13 @@ def remove_friend(userId, friendId):
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
 
-        query = f"""SET @chatId = (SELECT ChatToUser.chatId FROM ChatToUser 
+        query = """SET @chatId = (SELECT ChatToUser.chatId FROM ChatToUser 
             JOIN (SELECT * FROM ChatToUser WHERE
-                userId = '{userId}' OR userId = '{userId}' ) AS table2
+                userId = %s OR userId = %s ) AS table2
             ON ChatToUser.chatId = table2.chatId
-            WHERE ChatToUser.userId = '{friendId}' OR ChatToUser.userId = '{friendId}');
+            WHERE ChatToUser.userId = %s OR ChatToUser.userId = %s);
                 """
-        mycursor.execute(query)
+        mycursor.execute(query, (userId, userId, friendId, friendId))
         mycursor.execute("DELETE FROM Chat WHERE id = @chatId")
         mycursor.execute("DELETE FROM ChatToUser WHERE chatId = @chatId")
         mycursor.execute("SELECT id FROM Message WHERE chatId = @chatId")
@@ -992,11 +1016,11 @@ def delete_one_event(eventId):
         send_event_cancellation(eventId)
 
         
-        setEventInfoId = f"SET @eventInfoId = (SELECT eventInfoId FROM Event WHERE id = {eventId});"
+        setEventInfoId = "SET @eventInfoId = (SELECT eventInfoId FROM Event WHERE id = %s);"
         setChatId = "SET @chatId = (SELECT chatId FROM EventInfoToChat WHERE eventInfoId = @eventInfoId);"
         deleteEventInfoToChat = f"DELETE FROM EventInfoToChat WHERE eventInfoId = @eventInfoId"
         deleteChat = f"DELETE FROM Chat WHERE id = @chatId"
-        mycursor.execute(setEventInfoId)
+        mycursor.execute(setEventInfoId, (eventId,))
         mycursor.execute(setChatId)
         mycursor.execute(deleteEventInfoToChat)
         mycursor.execute(deleteChat)
@@ -1081,10 +1105,10 @@ def delete_mult_event(eventId):
 
        
 
-        mycursor.execute(f"""
-                        SET @eventInfoId = (SELECT eventInfoId FROM Event WHERE id = {eventId});
+        mycursor.execute("""
+                        SET @eventInfoId = (SELECT eventInfoId FROM Event WHERE id = %s);
                         
-                     """)
+                     """, (eventId,))
         
         # send email notifications
         mycursor.execute(f"""
@@ -1203,7 +1227,7 @@ def post_event():
         return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
 
     data = request.json
-    try:  
+    try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -1213,65 +1237,90 @@ def post_event():
 
         db_startDateTime = datetime.strptime(startDateTime, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
         db_endDateTime = datetime.strptime(endDateTime, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
-       
-        insertEventInfo = f"""
-                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency, creatorName)
-                        VALUES ("{data["creatorId"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", {data["rsvpLimit"]}, {data["isPublic"]}, {data["isWeatherSensitive"]}, 0, "{currentDateTime}", "{data["venmo"]}", "{data["recurFrequency"]}", "{data["creatorName"]}");
-                     """
-        mycursor.execute(insertEventInfo)
-        eventInfoId = mycursor.lastrowid
-        
-        # Create chat for event
-        createChat = f"""
-            INSERT INTO Chat (name, chatType) VALUES ("{data["title"]}", 'Event');
+
+        insertEventInfo = """
+            INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency, creatorName)
+            VALUES (%s, 0, %s, %s, %s, %s, %s, %s, %s, 0, %s, %s, %s, %s);
         """
-        mycursor.execute(createChat)
+        values = (
+            data["creatorId"],
+            data["title"],
+            data["description"],
+            data["locationName"],
+            "",
+            data["rsvpLimit"],
+            data["isPublic"],
+            data["isWeatherSensitive"],
+            currentDateTime,
+            data["venmo"],
+            data["recurFrequency"],
+            data["creatorName"]
+        )
+        mycursor.execute(insertEventInfo, values)
+        eventInfoId = mycursor.lastrowid
+
+        # Create chat for event
+        createChat = """
+            INSERT INTO Chat (name, chatType) VALUES (%s, 'Event');
+        """
+        mycursor.execute(createChat, (data["title"],))  # Make sure to pass as a tuple
         chatId = mycursor.lastrowid
 
-        # add relationship from chat to eventInfo
-        addEventInfoToChat = f"""
-                INSERT INTO EventInfoToChat (chatId, eventInfoId) VALUES ({chatId}, {eventInfoId});
-            """
-        mycursor.execute(addEventInfoToChat)
+        # Add relationship from chat to eventInfo
+        addEventInfoToChat = """
+            INSERT INTO EventInfoToChat (chatId, eventInfoId) 
+            VALUES (%s, %s);
+        """
+        mycursor.execute(addEventInfoToChat, (chatId, eventInfoId))
 
-        insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views, numRsvps)
-                        VALUES ({eventInfoId}, "{db_startDateTime}", "{db_endDateTime}", "{currentDateTime}", 0, 0);"""
+        insertEvent = """
+            INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views, numRsvps)
+            VALUES (%s, %s, %s, %s, 0, 0);
+        """
+        mycursor.execute(insertEvent, (eventInfoId, db_startDateTime, db_endDateTime, currentDateTime))
+
+        # Update tags
         tags = data["tags"]
         for tag in tags:
-            updateTag = f"""
-                            UPDATE Tag
-                            SET numTimesUsed = numTimesUsed + 1
-                            WHERE name="{tag["name"]}"
-                        """
-            mycursor.execute(updateTag)
-        mycursor.execute(insertEvent)
+            updateTag = """
+                UPDATE Tag
+                SET numTimesUsed = numTimesUsed + 1
+                WHERE name = %s;
+            """
+            mycursor.execute(updateTag, (tag["name"],))  # Ensure this is passed as a tuple
+
         mycursor.execute("SET @eventId = last_insert_id();")
 
+        # Insert items for the event
         for item in data["items"]:
-            insertItem = f"""
-                            INSERT INTO Item (name, creatorId)
-                            VALUES ("{item["description"]}", "minnichjs21@gcc.edu"); 
-                        """ # TODO: change creator
-            insertEventToItem = f"""
-                            INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
-                            VALUES (@eventId, LAST_INSERT_ID(), "{item["amountNeeded"]}", 0);
-                        """
-            mycursor.execute(insertItem)
-            mycursor.execute(insertEventToItem)
+            insertItem = """
+                INSERT INTO Item (name, creatorId)
+                VALUES (%s, %s); 
+            """
+            mycursor.execute(insertItem, (item["description"], data["creatorId"]))  # Pass as tuple
+            insertEventToItem = """
+                INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
+                VALUES (@eventId, LAST_INSERT_ID(), %s, 0);
+            """
+            mycursor.execute(insertEventToItem, (item["amountNeeded"],))  # Pass as tuple
 
+        # Insert tags to event info
         for tag in tags:
-            updateTag = f"""
-                            INSERT INTO EventInfoToTag(eventInfoId, tagId)
-                            VALUES ({eventInfoId} , {tag["id"]});
-                        """
-            print(updateTag)
-            mycursor.execute(updateTag)
+            updateTag = """
+                INSERT INTO EventInfoToTag (eventInfoId, tagId)
+                VALUES (%s, %s);
+            """
+            mycursor.execute(updateTag, (eventInfoId, tag["id"]))  # Pass as tuple
+
         conn.commit()
         mycursor.close()
-        conn.close()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
-    return data, 201
+        conn.rollback()
+    finally:
+        conn.close()
+    return {}
+
 
 # for each event return: name, location, date/time, (views/rsvps), viewing link
 @app.route('/get_my_events/<string:user_id>')
@@ -1287,24 +1336,24 @@ def get_my_events(user_id: str):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"""
+        mycursor.execute("""
                         SELECT Event.startTime, Event.endTime, EventInfo.title as eventName, Event.id, EventInfo.locationName, Event.views, (
                             SELECT COUNT(*) FROM Event WHERE Event.eventInfoId = EventInfo.id ) AS recurs
                         FROM Event
                         JOIN EventInfo 
                         ON Event.eventInfoId = EventInfo.id
-                        WHERE EventInfo.creatorId = '{user_id}'
-                     """)
+                        WHERE EventInfo.creatorId = %s
+                     """, (user_id,))
         response = mycursor.fetchall()
         headers = mycursor.description
         hosting_events = sqlResponseToList(response, headers)
-        mycursor.execute(f"""
+        mycursor.execute("""
                         SELECT Event.startTime, Event.endTime, EventInfo.title as eventName, Event.id, EventInfo.locationName, Event.views
                         FROM Event
                         JOIN EventInfo
                         ON Event.eventInfoId = EventInfo.id
-                        WHERE Event.id IN (SELECT EventToUser.eventId FROM EventToUser WHERE EventToUser.userId = '{user_id}')
-                     """)
+                        WHERE Event.id IN (SELECT EventToUser.eventId FROM EventToUser WHERE EventToUser.userId = %s)
+                     """, (user_id,))
         response = mycursor.fetchall()
         headers = mycursor.description
         attending_events = sqlResponseToList(response, headers)
@@ -1328,109 +1377,135 @@ def post_recurring_event():
     
     if body["creatorId"].lower() != user_email.lower():
         return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+
     data = request.json
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         reqStrFormat = '%Y-%m-%dT%H:%M:%S.%fZ'
         dateCreated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        insertEventInfo = f"""
-                        INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency, creatorName)
-                        VALUES ("{data["creatorId"]}", 0, "{data["title"]}", "{data["description"]}", "{data["locationName"]}", "", 10, True, False, 0, "{dateCreated}", "{data["venmo"]}", "{data["recurFrequency"]}", "{data["creatorName"]}");
-                     """
-        mycursor.execute(insertEventInfo)
+
+        # Insert EventInfo into the database
+        insertEventInfo = """
+            INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency, creatorName)
+            VALUES (%s, 0, %s, %s, %s, "", %s, %s, %s, 0, %s, %s, %s, %s);
+        """
+        event_info_values = (
+            data["creatorId"],
+            data["title"],
+            data["description"],
+            data["locationName"],
+            10,
+            True,
+            False,
+            dateCreated,
+            data["venmo"],
+            data["recurFrequency"],
+            data["creatorName"]
+        )
+        mycursor.execute(insertEventInfo, event_info_values)
         eventInfoId = mycursor.lastrowid
         mycursor.execute("SET @eventInfoId = last_insert_id();")
 
         # Create chat for event
-        createChat = f"""
-            INSERT INTO Chat (name, chatType) VALUES ("{data["title"]}", 'Event');
-        """
-        mycursor.execute(createChat)
+        createChat = "INSERT INTO Chat (name, chatType) VALUES (%s, 'Event');"
+        mycursor.execute(createChat, (data["title"],))
         chatId = mycursor.lastrowid
 
-        # add relationship from chat to eventInfo
-        addEventInfoToChat = f"""
-                INSERT INTO EventInfoToChat (chatId, eventInfoId) VALUES ({chatId}, {eventInfoId});
-            """
-        mycursor.execute(addEventInfoToChat)
+        # Add relationship from chat to eventInfo
+        addEventInfoToChat = """
+            INSERT INTO EventInfoToChat (chatId, eventInfoId) VALUES (%s, %s);
+        """
+        mycursor.execute(addEventInfoToChat, (chatId, eventInfoId))
 
-        
+        # Insert tags into EventInfoToTag table
         tags = data["tags"]
         for tag in tags:
-            updateTag = f"""
-                            INSERT INTO EventInfoToTag(eventInfoId, tagId)
-                            VALUES ({eventInfoId} , {tag["id"]});
-                        """
-            mycursor.execute(updateTag)
-        # get event dates through start date and end date
+            updateTag = """
+                INSERT INTO EventInfoToTag(eventInfoId, tagId)
+                VALUES (%s , %s);
+            """
+            mycursor.execute(updateTag, (eventInfoId, tag["id"]))
+
+        # Get event dates through start date and end date
         curStartDate = datetime.strptime(data["startDateTime"], reqStrFormat)
         curEndDate = datetime.strptime(data["endDateTime"], reqStrFormat)
         endDate = datetime.strptime(data["endRecurDateTime"], reqStrFormat)
         delta = data["recurFrequency"]
         duration = curEndDate - curStartDate
+
         if delta == "Monthly":
             weekdays = [MO, TU, WE, TH, FR, SA, SU]
             dayOfWeek = weekdays[curStartDate.weekday()] # day of the week of event
             nthWeekday = (curStartDate.day // 7) + 1 # what number ___day of the month is this event on?
         
         itemIds = []
-
         for item in data["items"]:
-            insertItem = f"""
-                            INSERT INTO Item (name, creatorId)
-                            VALUES ("{item["description"]}", "minnichjs21@gcc.edu"); 
-                        """ # TODO: change creator
-            getItemId = "SELECT LAST_INSERT_ID();"
-            mycursor.execute(insertItem)
-            mycursor.execute(getItemId)
+            insertItem = """
+                INSERT INTO Item (name, creatorId)
+                VALUES (%s, %s);
+            """
+            mycursor.execute(insertItem, (item["description"], data["creatorId"]))  
+            mycursor.execute("SELECT LAST_INSERT_ID();")
             itemIds.append((mycursor.fetchone()[0], item))
 
-
+        # Insert recurring events
         while curStartDate <= endDate:
-            insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views, numRsvps)
-                        VALUES (@eventInfoId, "{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}", "{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}", "{dateCreated}", 0, 0);"""
-            mycursor.execute(insertEvent)
+            insertEvent = """
+                INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views, numRsvps)
+                VALUES (%s, %s, %s, %s, 0, 0);
+            """
+            mycursor.execute(insertEvent, (eventInfoId, curStartDate.strftime("%Y-%m-%d %H:%M:%S"), curEndDate.strftime("%Y-%m-%d %H:%M:%S"), dateCreated))
             mycursor.execute("SET @eventId = last_insert_id();")
+            
             for el in itemIds:
-                insertItem = f"""
-                                INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
-                                VALUES (@eventId, {el[0]}, {el[1]["amountNeeded"]}, 0);
-                            """
-                mycursor.execute(insertItem)
-                
+                insertEventToItem = """
+                    INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
+                    VALUES (@eventId, %s, %s, 0);
+                """
+                mycursor.execute(insertEventToItem, (el[0], el[1]["amountNeeded"]))
+
             if delta == "Daily":
-                curStartDate = curStartDate + timedelta(days=1)
+                curStartDate += timedelta(days=1)
             elif delta == "Weekly":
-                curStartDate = curStartDate + timedelta(weeks=1)
+                curStartDate += timedelta(weeks=1)
             elif delta == "Monthly":
-                curStartDate = (curStartDate + relativedelta(months=1)).replace(day=1) # first day of the next month
-                curStartDate = curStartDate + relativedelta(weekday=dayOfWeek(nthWeekday)) # next event date
+                curStartDate = (curStartDate + relativedelta(months=1)).replace(day=1)  # first day of the next month
+                curStartDate = curStartDate + relativedelta(weekday=dayOfWeek(nthWeekday))  # Adjust to the nth weekday
             else:
                 return "Invalid recurring frequency", 400
+
             curEndDate = curStartDate + duration
+
+            # Update tags usage count
             for tag in tags:
-                updateTag = f"""
-                                UPDATE Tag
-                                SET numTimesUsed = numTimesUsed + 1
-                                WHERE name="{tag["name"]}"
-                            """
-                mycursor.execute(updateTag)
+                updateTag = """
+                    UPDATE Tag
+                    SET numTimesUsed = numTimesUsed + 1
+                    WHERE name = %s;
+                """
+                mycursor.execute(updateTag, (tag["name"],))
+
         conn.commit()
         mycursor.close()
         conn.close()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
+        conn.rollback()
+    finally:
+        conn.close()
+    
     return data, 201
+
 
 @app.route('/get_event_creator_name/<string:user_id>/', methods=['GET'])
 def get_user_name(user_id: str):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"""SELECT CONCAT(fname, ' ', lname) AS fullName
+        mycursor.execute("""SELECT CONCAT(fname, ' ', lname) AS fullName
                             FROM User
-                            WHERE id = '{user_id}';""")
+                            WHERE id = %s;""", (user_id,))
         response = mycursor.fetchall()
       
         headers = [x[0] for x in mycursor.description]
@@ -1448,7 +1523,7 @@ def get_event_info(event_info_id):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"""SELECT * FROM EventInfo WHERE id = {event_info_id}""")
+        mycursor.execute("""SELECT * FROM EventInfo WHERE id = %s""", (event_info_id,))
         response = mycursor.fetchall()
         headers = mycursor.description
 
@@ -1472,7 +1547,7 @@ def get_event(event_id: int, user_id: str):
     try:  
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"""
+        mycursor.execute("""
                         SELECT 
                         Event.id, 
                         Event.eventInfoId,
@@ -1493,18 +1568,18 @@ def get_event(event_id: int, user_id: str):
                         EventInfo.creatorName
                         FROM Event
                         JOIN EventInfo ON Event.eventInfoId = EventInfo.id
-                        WHERE Event.id = {event_id}
-                     """)
+                        WHERE Event.id = %s
+                     """, (event_id,))
         response = mycursor.fetchall()
         headers = [x[0] for x in mycursor.description]
         event = dict(zip(headers, response[0]))
 
-        mycursor.execute(f"""
+        mycursor.execute("""
                         SELECT Tag.id, Tag.name, Tag.userId
                         FROM Tag
                         JOIN EventInfoToTag ON Tag.id = EventInfoToTag.tagId
-                        WHERE EventInfoToTag.eventInfoId = {event['eventInfoId']}
-                     """)
+                        WHERE EventInfoToTag.eventInfoId = %s
+                     """, (event['eventInfoId'],))
         tags_response = mycursor.fetchall()
         tags = [{
             "id": tag[0],
@@ -1513,15 +1588,15 @@ def get_event(event_id: int, user_id: str):
         } for tag in tags_response]
         event['tags'] = tags
 
-        mycursor.execute(f"""
+        mycursor.execute("""
                         SELECT Item.name, EventToItem.amountNeeded, EventToItem.quantitySignedUpFor, COALESCE(UserToItem.quantity, 0), Item.id 
                         FROM Item
                         JOIN EventToItem ON Item.id = EventToItem.itemId
                         LEFT OUTER JOIN (SELECT * FROM UserToItem 
-                                        WHERE (userId, eventId) = ('{user_id}', {event_id})) 
+                                        WHERE (userId, eventId) = (%s, %s)) 
                             AS UserToItem ON Item.id = UserToItem.itemId
-                        WHERE EventToItem.eventId = {event_id}
-                     """)
+                        WHERE EventToItem.eventId = %s
+                     """, (user_id, event_id, event_id,))
         items_response = mycursor.fetchall()
         items = [{'name': item[0], 'amountNeeded': item[1], 'othersQuantitySignedUpFor': item[2] - item[3], 'myQuantitySignedUpFor': item[3], 'id': item[4]} for item in items_response]
         event['items'] = items
@@ -1548,15 +1623,16 @@ def edit_event(eventId):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"""
+        mycursor.execute("""
                         SELECT Event.eventInfoId
                         FROM Event
                         JOIN EventInfo ON Event.eventInfoId = EventInfo.id
-                        WHERE Event.id = {eventId}
-                    """)
-        eventInfoId = mycursor.fetchone()[0]
-        if not eventInfoId:
+                        WHERE Event.id = %s
+                    """, (eventId,))
+        row = mycursor.fetchone()
+        if not row:
             return jsonify({"error": "Event not found"}), 404
+        eventInfoId = row[0]
 
         data = request.json
 
@@ -1565,230 +1641,167 @@ def edit_event(eventId):
 
         db_startDateTime = datetime.strptime(startDateTime, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
         db_endDateTime = datetime.strptime(endDateTime, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
+
         if data.get("editAllEvents"):
-            eventInfoUpdate = f"""
-                                UPDATE EventInfo
-                                SET title = '{data["title"]}',
-                                    description = '{data["description"]}',
-                                    locationName = '{data["locationName"]}',
-                                    RSVPLimit = {data["rsvpLimit"]},
-                                    isPublic = {int(data["isPublic"])},
-                                    isWeatherDependant = {int(data["isWeatherSensitive"])},
-                                    venmo = '{data["venmo"]}',
-                                    recurFrequency = '{data["recurFrequency"]}'
-                                WHERE id = {eventInfoId}
-                            """
-            mycursor.execute(eventInfoUpdate)
+            eventInfoUpdate = """
+                UPDATE EventInfo
+                SET title = %s,
+                    description = %s,
+                    locationName = %s,
+                    RSVPLimit = %s,
+                    isPublic = %s,
+                    isWeatherDependant = %s,
+                    venmo = %s,
+                    recurFrequency = %s
+                WHERE id = %s;
+            """
+            eventInfoValues = (
+                data["title"],
+                data["description"],
+                data["locationName"],
+                data["rsvpLimit"],
+                int(data["isPublic"]),
+                int(data["isWeatherSensitive"]),
+                data["venmo"],
+                data["recurFrequency"],
+                eventInfoId
+            )
+            mycursor.execute(eventInfoUpdate, eventInfoValues)
 
             reqStrFormat = '%Y-%m-%dT%H:%M:%S.%fZ'
             dateCreated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             curStartDate = datetime.strptime(data["startDateTime"], reqStrFormat)
             curEndDate = datetime.strptime(data["endDateTime"], reqStrFormat)
-            mycursor.execute(f"""
+            mycursor.execute("""
                     SELECT id, startTime, endTime
                     FROM Event
-                    WHERE eventInfoId = {eventInfoId}
+                    WHERE eventInfoId = %s
                     ORDER BY startTime
-                """)
+                """, (eventInfoId,))
             existing_events = mycursor.fetchall()
             existing_event_index = 0
 
             if len(existing_events) > 1:
-                print("Updating all events")
-                endDate = ""
-                if data["endRecurDateTime"]:
-                    endDate = datetime.strptime(data["endRecurDateTime"], reqStrFormat)
-                else:
-                    endDate = existing_events[-1][2]
+                endDate = datetime.strptime(data["endRecurDateTime"], reqStrFormat) if data["endRecurDateTime"] else existing_events[-1][2]
 
-                delta = ""
-                if data["recurFrequency"] == "":
-                    newDelta = f"""
-                                    SELECT EventInfo.recurFrequency
-                                    FROM EventInfo
-                                    WHERE id = {eventInfoId}
-                                """
-                    mycursor.execute(newDelta)
-                    delta = mycursor.fetchone()[0]
-                else:
-                    delta = data["recurFrequency"]
+                delta = data["recurFrequency"] or mycursor.execute("SELECT recurFrequency FROM EventInfo WHERE id = %s", (eventInfoId,))
 
                 duration = curEndDate - curStartDate
                 if delta == "Monthly":
                     weekdays = [MO, TU, WE, TH, FR, SA, SU]
-                    dayOfWeek = weekdays[curStartDate.weekday()] # day of the week of event
-                    nthWeekday = (curStartDate.day // 7) + 1 # what number ___day of the month is this event on?
-            
-                itemIds = []
+                    dayOfWeek = weekdays[curStartDate.weekday()]
+                    nthWeekday = (curStartDate.day // 7) + 1
 
+                itemIds = []
                 for item in data["items"]:
-                    insertItem = f"""
-                                    INSERT INTO Item (name, creatorId)
-                                    VALUES ("{item["description"]}", "minnichjs21@gcc.edu"); 
-                                """ # TODO: change creator
-                    getItemId = "SELECT LAST_INSERT_ID();"
-                    mycursor.execute(insertItem)
-                    mycursor.execute(getItemId)
+                    mycursor.execute("INSERT INTO Item (name, creatorId) VALUES (%s, %s)", (item["description"], "minnichjs21@gcc.edu"))
+                    mycursor.execute("SELECT LAST_INSERT_ID()")
                     itemIds.append((mycursor.fetchone()[0], item))
 
                 while curStartDate <= endDate:
                     if existing_event_index < len(existing_events):
-                        print("Updating existing event")
                         existing_event = existing_events[existing_event_index]
-                        eventUpdate = f"""
+                        mycursor.execute("""
                             UPDATE Event
-                            SET startTime = '{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}', endTime = '{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}'
-                            WHERE id = {existing_event[0]}
-                        """
-                        mycursor.execute(eventUpdate)
+                            SET startTime = %s, endTime = %s
+                            WHERE id = %s
+                        """, (curStartDate.strftime("%Y-%m-%d %H:%M:%S"), curEndDate.strftime("%Y-%m-%d %H:%M:%S"), existing_event[0]))
                         existing_event_index += 1
                     else:
-                        insertEvent = f"""INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views, numRsvps)
-                                    VALUES ({eventInfoId}, "{curStartDate.strftime("%Y-%m-%d %H:%M:%S")}", "{curEndDate.strftime("%Y-%m-%d %H:%M:%S")}", "{dateCreated}"), 0, 0;"""
-                        mycursor.execute(insertEvent)
-                        mycursor.execute("SET @eventId = last_insert_id();")
+                        mycursor.execute("""
+                            INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views, numRsvps)
+                            VALUES (%s, %s, %s, %s, 0, 0)
+                        """, (eventInfoId, curStartDate.strftime("%Y-%m-%d %H:%M:%S"), curEndDate.strftime("%Y-%m-%d %H:%M:%S"), dateCreated))
+                        mycursor.execute("SELECT LAST_INSERT_ID()")
+                        new_event_id = mycursor.fetchone()[0]
                         for el in itemIds:
-                            insertItem = f"""
-                                            INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
-                                            VALUES (@eventId, {el[0]}, {el[1]["amountNeeded"]}, 0);
-                                        """
-                            mycursor.execute(insertItem)
-                        
+                            mycursor.execute("""
+                                INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
+                                VALUES (%s, %s, %s, 0)
+                            """, (new_event_id, el[0], el[1]["amountNeeded"]))
+
                     if delta == "Daily":
-                        curStartDate = curStartDate + timedelta(days=1)
+                        curStartDate += timedelta(days=1)
                     elif delta == "Weekly":
-                        curStartDate = curStartDate + timedelta(weeks=1)
+                        curStartDate += timedelta(weeks=1)
                     elif delta == "Monthly":
-                        curStartDate = (curStartDate + relativedelta(months=1)).replace(day=1) # first day of the next month
-                        curStartDate = curStartDate + relativedelta(weekday=dayOfWeek(nthWeekday)) # next event date
+                        curStartDate = (curStartDate + relativedelta(months=1)).replace(day=1)
+                        curStartDate += relativedelta(weekday=dayOfWeek(nthWeekday))
                     else:
                         return "Invalid recurring frequency", 400
                     curEndDate = curStartDate + duration
 
-                    removeTag = f"""
-                                DELETE FROM EventInfoToTag WHERE eventInfoId = {eventInfoId};
-                            """
-                    mycursor.execute(removeTag)
-                    tags = data["tags"]
-                    for tag in tags:
-                        updateTag = f"""
-                                        UPDATE Tag
-                                        SET numTimesUsed = numTimesUsed + 1
-                                        WHERE name="{tag["name"]}"
-                                    """
-                        mycursor.execute(updateTag)
-
-                        updateTag = f"""
-                                        INSERT INTO EventInfoToTag(eventInfoId, tagId)
-                                        VALUES ({eventInfoId} , {tag["id"]});
-                                    """
-                        print(updateTag)
-                        mycursor.execute(updateTag)
                 if existing_event_index < len(existing_events):
-                    outdated_events = existing_events[existing_event_index:]
-                    for event in outdated_events:
+                    for event in existing_events[existing_event_index:]:
                         mycursor.execute("DELETE FROM EventToItem WHERE eventId = %s", (event[0],))
                         mycursor.execute("DELETE FROM EventToUser WHERE eventId = %s", (event[0],))
                         mycursor.execute("DELETE FROM Event WHERE id = %s", (event[0],))
-            else:
-                print("Updating only event")
-                itemIds = []
 
+                mycursor.execute("DELETE FROM EventInfoToTag WHERE eventInfoId = %s", (eventInfoId,))
+                for tag in data["tags"]:
+                    mycursor.execute("UPDATE Tag SET numTimesUsed = numTimesUsed + 1 WHERE name = %s", (tag["name"],))
+                    mycursor.execute("INSERT INTO EventInfoToTag(eventInfoId, tagId) VALUES (%s, %s)", (eventInfoId, tag["id"]))
+
+            else:
+                itemIds = []
                 for item in data["items"]:
-                    insertItem = f"""
-                                    INSERT INTO Item (name, creatorId)
-                                    VALUES ("{item["description"]}", "minnichjs21@gcc.edu"); 
-                                """ # TODO: change creator
-                    getItemId = "SELECT LAST_INSERT_ID();"
-                    mycursor.execute(insertItem)
-                    mycursor.execute(getItemId)
+                    mycursor.execute("INSERT INTO Item (name, creatorId) VALUES (%s, %s)", (item["description"], "minnichjs21@gcc.edu"))
+                    mycursor.execute("SELECT LAST_INSERT_ID()")
                     itemIds.append((mycursor.fetchone()[0], item))
 
-                eventUpdate = f"""
+                mycursor.execute("""
                     UPDATE Event
-                    SET startTime = '{db_startDateTime}', endTime = '{db_endDateTime}'
-                    WHERE id = {eventId}
-                """
-                mycursor.execute(eventUpdate)
+                    SET startTime = %s, endTime = %s
+                    WHERE id = %s
+                """, (db_startDateTime, db_endDateTime, eventId))
 
                 for el in itemIds:
-                        insertItem = f"""
-                                        INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
-                                        VALUES (@eventId, {el[0]}, {el[1]["amountNeeded"]}, 0);
-                                    """
-                        mycursor.execute(insertItem)
+                    mycursor.execute("""
+                        INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
+                        VALUES (%s, %s, %s, 0)
+                    """, (eventId, el[0], el[1]["amountNeeded"]))
 
-                removeTag = f"""
-                            DELETE FROM EventInfoToTag WHERE eventInfoId = {eventInfoId};
-                        """
-                mycursor.execute(removeTag)
-                tags = data["tags"]
-                for tag in tags:
-                    updateTag = f"""
-                                    UPDATE Tag
-                                    SET numTimesUsed = numTimesUsed + 1
-                                    WHERE name="{tag["name"]}"
-                                """
-                    mycursor.execute(updateTag)
+                mycursor.execute("DELETE FROM EventInfoToTag WHERE eventInfoId = %s", (eventInfoId,))
+                for tag in data["tags"]:
+                    mycursor.execute("UPDATE Tag SET numTimesUsed = numTimesUsed + 1 WHERE name = %s", (tag["name"],))
+                    mycursor.execute("INSERT INTO EventInfoToTag(eventInfoId, tagId) VALUES (%s, %s)", (eventInfoId, tag["id"]))
 
-                    updateTag = f"""
-                                    INSERT INTO EventInfoToTag(eventInfoId, tagId)
-                                    VALUES ({eventInfoId} , {tag["id"]});
-                                """
-                    print(updateTag)
-                    mycursor.execute(updateTag)
         else:
-            print("Updating single event")
             currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            eventInfoInsert = f"""
+            eventInfoInsert = """
                 INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency, creatorName)
-                VALUES ('{data["creatorId"]}', 0, '{data["title"]}', '{data["description"]}', '{data["locationName"]}', '', {data["rsvpLimit"]}, {int(data["isPublic"])}, {int(data["isWeatherSensitive"])}, 0, '{currentDateTime}', '{data["venmo"]}', '{data["recurFrequency"]}', '{data["creatorName"]}');
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            mycursor.execute(eventInfoInsert)
+            eventInfoValues = (
+                data["creatorId"], 0, data["title"], data["description"], data["locationName"], "",
+                data["rsvpLimit"], int(data["isPublic"]), int(data["isWeatherSensitive"]), 0,
+                currentDateTime, data["venmo"], data["recurFrequency"], data["creatorName"]
+            )
+            mycursor.execute(eventInfoInsert, eventInfoValues)
             eventInfoId = mycursor.lastrowid
-            eventUpdate = f"""
+
+            mycursor.execute("""
                 UPDATE Event
-                SET eventInfoId = {eventInfoId}, startTime = '{db_startDateTime}', endTime = '{db_endDateTime}'
-                WHERE id = {eventId}
-            """
-            mycursor.execute(eventUpdate)
+                SET eventInfoId = %s, startTime = %s, endTime = %s
+                WHERE id = %s
+            """, (eventInfoId, db_startDateTime, db_endDateTime, eventId))
+
             itemIds = []
-
             for item in data["items"]:
-                insertItem = f"""
-                                INSERT INTO Item (name, creatorId)
-                                VALUES ("{item["description"]}", "minnichjs21@gcc.edu"); 
-                            """ # TODO: change creator
-                getItemId = "SELECT LAST_INSERT_ID();"
-                mycursor.execute(insertItem)
-                mycursor.execute(getItemId)
+                mycursor.execute("INSERT INTO Item (name, creatorId) VALUES (%s, %s)", (item["description"], data["creatorId"]))
+                mycursor.execute("SELECT LAST_INSERT_ID()")
                 itemIds.append((mycursor.fetchone()[0], item))
+
             for el in itemIds:
-                insertItem = f"""
-                                INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
-                                VALUES ({eventId}, {el[0]}, {el[1]["amountNeeded"]}, 0);
-                            """
-                mycursor.execute(insertItem)
+                mycursor.execute("""
+                    INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
+                    VALUES (%s, %s, %s, 0)
+                """, (eventId, el[0], el[1]["amountNeeded"]))
 
-            removeTag = f"""
-                        DELETE FROM EventInfoToTag WHERE eventInfoId = {eventInfoId};
-                    """
-            mycursor.execute(removeTag)
-            tags = data["tags"]
-            for tag in tags:
-                updateTag = f"""
-                                UPDATE Tag
-                                SET numTimesUsed = numTimesUsed + 1
-                                WHERE name="{tag["name"]}"
-                            """
-                mycursor.execute(updateTag)
-
-                updateTag = f"""
-                                INSERT INTO EventInfoToTag(eventInfoId, tagId)
-                                VALUES ({eventInfoId} , {tag["id"]});
-                            """
-                print(updateTag)
-                mycursor.execute(updateTag)
+            mycursor.execute("DELETE FROM EventInfoToTag WHERE eventInfoId = %s", (eventInfoId,))
+            for tag in data["tags"]:
+                mycursor.execute("UPDATE Tag SET numTimesUsed = numTimesUsed + 1 WHERE name = %s", (tag["name"],))
+                mycursor.execute("INSERT INTO EventInfoToTag(eventInfoId, tagId) VALUES (%s, %s)", (eventInfoId, tag["id"]))
 
         conn.commit()
         mycursor.close()
@@ -1815,17 +1828,29 @@ def edit_user_to_item():
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         if data['quantity'] == 0:
-            deleteUserToitem = f"""
-                    DELETE FROM UserToItem 
-                    WHERE (userId, eventId, itemId) = ('{data['userId']}', {data['eventId']}, {data['itemId']})
-                """
-            mycursor.execute(deleteUserToitem)
+           if data["quantity"] == 0:
+            deleteUserToitem = """
+                DELETE FROM UserToItem 
+                WHERE (userId, eventId, itemId) = (%s, %s, %s)
+            """
+            mycursor.execute(deleteUserToitem, (
+                data["userId"],
+                data["eventId"],
+                data["itemId"]
+            ))
         else:
-            updateUserToitem = f"""
-                    INSERT INTO UserToItem (userId, eventId, itemId, quantity) VALUES ('{data['userId']}', {data['eventId']}, {data['itemId']}, {data['quantity']})
-                    ON DUPLICATE KEY UPDATE quantity = {data['quantity']};
-                """
-            mycursor.execute(updateUserToitem)
+            updateUserToitem = """
+                INSERT INTO UserToItem (userId, eventId, itemId, quantity) 
+                VALUES (%s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE quantity = %s
+            """
+            mycursor.execute(updateUserToitem, (
+                data["userId"],
+                data["eventId"],
+                data["itemId"],
+                data["quantity"],
+                data["quantity"]
+            ))
         conn.commit()
         return jsonify({"message": "Quantity signed up for was updated successfully"})
     except mysql.connector.Error as err:
@@ -1852,12 +1877,12 @@ def rsvp():
         userId = body.get("userId")
         eventId = body.get("eventId")
 
-        mycursor.execute(f"""
+        mycursor.execute("""
             SELECT EventInfo.RSVPLimit, Event.numRsvps
             FROM Event
             JOIN EventInfo ON Event.eventInfoId = EventInfo.id
-            WHERE Event.id = {eventId}
-        """)
+            WHERE Event.id = %s
+        """, (eventId,))
         result = mycursor.fetchone()
         rsvpLimit = result[0]
         numRsvps = result[1]
@@ -1874,14 +1899,14 @@ def rsvp():
             INSERT INTO EventToUser (userId, eventId, lastMsgSeen)
             VALUES ('{userId}', {eventId}, @lastMsg);
         """
-        mycursor.execute(insertRsvp)
+        mycursor.execute(insertRsvp, (userId, eventId))
 
-        updateNumRsvps = f"""
+        updateNumRsvps = """
             UPDATE Event
             SET numRsvps = numRsvps + 1
-            WHERE id = {eventId};
+            WHERE id = %s;
         """
-        mycursor.execute(updateNumRsvps)
+        mycursor.execute(updateNumRsvps, (eventId,))
         
         conn.commit()
         mycursor.close()
@@ -1901,16 +1926,16 @@ def unrsvp():
         userId = body.get("userId")
         eventId = body.get("eventId")
         
-        deleteRsvp = f"""
+        deleteRsvp = """
             DELETE FROM EventToUser
-            WHERE userId = '{userId}' AND eventId = {eventId};
+            WHERE userId = %s AND eventId = %s;
         """
-        mycursor.execute(deleteRsvp)
-        deleteItemSignUps = f"""
+        mycursor.execute(deleteRsvp, (userId, eventId))
+        deleteItemSignUps = """
             DELETE FROM UserToItem
-            WHERE userId = '{userId}' AND eventId = {eventId};
+            WHERE userId = %s AND eventId = %s;
         """
-        mycursor.execute(deleteItemSignUps)
+        mycursor.execute(deleteItemSignUps, (userId, eventId))
         
         conn.commit()
         mycursor.close()
@@ -1941,11 +1966,11 @@ def check_rsvp():
         userId = body.get("userId")
         eventId = body.get("eventId")
 
-        checkRsvp = f"""
+        checkRsvp = """
             SELECT * FROM EventToUser
-            WHERE userId = '{userId}' AND eventId = {eventId};
+            WHERE userId = %s AND eventId = %s;
         """
-        mycursor.execute(checkRsvp)
+        mycursor.execute(checkRsvp, (userId, eventId))
         result = mycursor.fetchone()
         
         mycursor.close()
@@ -1978,12 +2003,12 @@ def get_rsvps():
         if eventId is None:
             return jsonify({"message": "Invalid eventId"}), 400
 
-        mycursor.execute(f"""
+        mycursor.execute("""
                         SELECT User.id, User.fname, User.lname
                         FROM User
                         JOIN EventToUser ON User.id = EventToUser.userId
-                        WHERE EventToUser.eventId = {eventId}
-                    """)
+                        WHERE EventToUser.eventId = %s
+                    """, (eventId,))
         users_response = mycursor.fetchall()
         users = [{'id': user[0], 'fname': user[1], 'lname': user[2]} for user in users_response]
 
@@ -2009,13 +2034,13 @@ def get_my_groups(userId):
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         mycursor.execute(
-            f"""
+            """
             SELECT GroupOfUser.id, GroupOfUser.groupName, GroupOfUser.creatorId, GroupOfUser.chatId, GroupOfUser.numTimesReported
             FROM GroupOfUserToUser
             INNER JOIN GroupOfUser 
             ON GroupOfUserToUser.groupId = GroupOfUser.id 
-            WHERE GroupOfUserToUser.userId = "{userId}"
-            """
+            WHERE GroupOfUserToUser.userId = %s
+            """, (userId,)
         )
         group_responses = mycursor.fetchall()
         headers = [x[0] for x in mycursor.description]
@@ -2045,9 +2070,9 @@ def get_group(groupId):
        
         # Get group info
         mycursor.execute(
-            f"""
-            SELECT * FROM GroupOfUser WHERE id = {groupId};
             """
+            SELECT * FROM GroupOfUser WHERE id = %s;
+            """, (groupId,)
         )
         response = mycursor.fetchall()
         headers = [x[0] for x in mycursor.description]
@@ -2064,13 +2089,13 @@ def get_group(groupId):
 
 def append_users_to_group_object(group, mycursor):
     mycursor.execute(
-        f"""
+        """
         SELECT User.id, User.fname, User.lname
         FROM GroupOfUserToUser
         INNER JOIN User 
         ON GroupOfUserToUser.userId = User.id 
-        WHERE GroupOfUserToUser.groupId = {group["id"]};
-        """
+        WHERE GroupOfUserToUser.groupId = %s;
+        """, (group["id"],)
     )
     users_response = mycursor.fetchall()
     users = [{
@@ -2103,23 +2128,23 @@ def edit_group():
         users = body.get("users")
 
         # Update users in group
-        removeGroupUsers = f"""
-            DELETE FROM GroupOfUserToUser WHERE groupId = {groupId}
+        removeGroupUsers = """
+            DELETE FROM GroupOfUserToUser WHERE groupId = %s
         """
-        mycursor.execute(removeGroupUsers)
+        mycursor.execute(removeGroupUsers, (groupId,))
 
-        removeChatUsers = f"""
-            DELETE ChatToUser FROM GroupOfUser JOIN ChatToUser ON GroupOfUser.chatId = ChatToUser.chatId WHERE GroupOfUser.id = {groupId};
+        removeChatUsers = """
+            DELETE ChatToUser FROM GroupOfUser JOIN ChatToUser ON GroupOfUser.chatId = ChatToUser.chatId WHERE GroupOfUser.id = %s;
         """
-        mycursor.execute(removeChatUsers)
+        mycursor.execute(removeChatUsers, (groupId,))
 
         add_users_to_group(users, groupId, mycursor)
 
         # Update name of group
-        updateGroupName = f"""
-            UPDATE GroupOfUser SET groupName = "{groupName}" WHERE id = {groupId};
+        updateGroupName = """
+            UPDATE GroupOfUser SET groupName = %s WHERE id = %s;
         """
-        mycursor.execute(updateGroupName)
+        mycursor.execute(updateGroupName, (groupName, groupId))
         
         conn.commit()
         mycursor.close()
@@ -2154,24 +2179,24 @@ def create_group():
         users_and_creator.append({ "id": creatorId })
 
         # Create chat for group
-        createChat = f"""
-            INSERT INTO Chat (name, chatType) VALUES ("{groupName}", 'Group');
+        createChat = """
+            INSERT INTO Chat (name, chatType) VALUES (%s, 'Group');
         """
-        mycursor.execute(createChat)
+        mycursor.execute(createChat, (groupName,))
         chatId = mycursor.lastrowid
 
         # Create group
-        createGroup = f"""
-           INSERT INTO GroupOfUser (groupName, creatorId, chatId, numTimesReported) VALUES ("{groupName}", "{creatorId}", {chatId}, 0);
+        createGroup = """
+           INSERT INTO GroupOfUser (groupName, creatorId, chatId, numTimesReported) VALUES (%s, %s, %s, %s);
         """
-        mycursor.execute(createGroup)
+        mycursor.execute(createGroup, (groupName, creatorId, chatId, 0))
         groupId = mycursor.lastrowid
 
         # add relationship from chat to group 
-        addGroupOfUserToChat = f"""
-                INSERT INTO GroupOfUserToChat (chatId, groupOfUserId) VALUES ({chatId}, {groupId});
+        addGroupOfUserToChat = """
+                INSERT INTO GroupOfUserToChat (chatId, groupOfUserId) VALUES (%s, %s);
             """
-        mycursor.execute(addGroupOfUserToChat)
+        mycursor.execute(addGroupOfUserToChat, (chatId, groupId))
 
         add_users_to_group(users_and_creator, groupId, mycursor)
         
@@ -2185,18 +2210,18 @@ def create_group():
 
 def add_users_to_group(users, groupId, mycursor):
     # Get chat id of group in question
-    getChatId = f"SELECT chatId, creatorId FROM GroupOfUser WHERE GroupOfUser.id = {groupId};"
-    mycursor.execute(getChatId)
+    getChatId = "SELECT chatId, creatorId FROM GroupOfUser WHERE GroupOfUser.id = %s;"
+    mycursor.execute(getChatId, (groupId,))
     response = mycursor.fetchone()
     chatId = response[0]
     creatorId = response[1]
 
     # Add each selected user to created group & group chat
     for user in users:
-        addUserToGroup = f"""
-            INSERT INTO GroupOfUserToUser (groupId, userId) VALUES ({groupId}, "{user["id"]}");
+        addUserToGroup = """
+            INSERT INTO GroupOfUserToUser (groupId, userId) VALUES (%s, %s);
         """
-        mycursor.execute(addUserToGroup)
+        mycursor.execute(addUserToGroup, (groupId, user["id"]))
 
 @app.post('/remove_user_from_group')
 def remove_user_from_group():
@@ -2208,16 +2233,16 @@ def remove_user_from_group():
         currentUserId = body.get("currentUserId")
         groupId = body.get("groupId")
 
-        removeUserFromGroup = f"""
-            DELETE FROM GroupOfUserToUser WHERE userId = "{currentUserId}" AND groupId = {groupId};
+        removeUserFromGroup = """
+            DELETE FROM GroupOfUserToUser WHERE userId = %s AND groupId = %s;
         """
-        mycursor.execute(removeUserFromGroup)
+        mycursor.execute(removeUserFromGroup, (currentUserId, groupId))
 
-        removeUserFromGroupChat = f"""
+        removeUserFromGroupChat = """
             DELETE ChatToUser FROM GroupOfUser JOIN ChatToUser ON GroupOfUser.chatId = ChatToUser.chatId
-            WHERE ChatToUser.userId = "{currentUserId}" AND GroupOfUser.id = {groupId};
+            WHERE ChatToUser.userId = %s AND GroupOfUser.id = %s;
         """ 
-        mycursor.execute(removeUserFromGroupChat)
+        mycursor.execute(removeUserFromGroupChat, (currentUserId, groupId))
         
         conn.commit()
         mycursor.close()
@@ -2236,28 +2261,28 @@ def delete_group():
         body = request.json
         groupId = body.get("groupId")
 
-        removeReportsOfGroup = f"""
-            DELETE FROM Report WHERE reportedGroupId = {groupId};
+        removeReportsOfGroup = """
+            DELETE FROM Report WHERE reportedGroupId = %s;
         """
-        mycursor.execute(removeReportsOfGroup)
+        mycursor.execute(removeReportsOfGroup, (groupId,))
 
         getChatId = f"SET @chatId = (SELECT chatId FROM GroupOfUserToChat WHERE groupOfUserId = {groupId});"
 
-        removeGroupOfUserToChat = f"""
-            DELETE FROM GroupOfUserToChat WHERE groupOfUserId = {groupId};
+        removeGroupOfUserToChat = """
+            DELETE FROM GroupOfUserToChat WHERE groupOfUserId = %s;
         """
-        mycursor.execute(getChatId)
+        mycursor.execute(getChatId, (groupId,))
         mycursor.execute(removeGroupOfUserToChat)
 
-        removeGroupUsers = f"""
-            DELETE FROM GroupOfUserToUser WHERE groupId = {groupId};
+        removeGroupUsers = """
+            DELETE FROM GroupOfUserToUser WHERE groupId = %s;
         """
-        mycursor.execute(removeGroupUsers)
+        mycursor.execute(removeGroupUsers, (groupId,))
 
-        removeGroup = f"""
-            DELETE FROM GroupOfUser WHERE id = {groupId};
+        removeGroup = """
+            DELETE FROM GroupOfUser WHERE id = %s;
         """
-        mycursor.execute(removeGroup)
+        mycursor.execute(removeGroup, (groupId,))
 
         removeChat = f"""
             DELETE FROM Chat WHERE id = @chatId;
@@ -2337,16 +2362,16 @@ def reportEvent():
         eventReportedBy = body.get("reportedBy")
         eventId = body.get("reportedEventId")
 
-        mycursor.execute(f""" 
-            SELECT eventInfoId FROM Event WHERE id = {eventId};
-        """)
+        mycursor.execute(""" 
+            SELECT eventInfoId FROM Event WHERE id = %s;
+        """, (eventId,))
         eventInfoId = mycursor.fetchone()[0]
 
-        reportEvent = f"""
+        reportEvent = """
             INSERT INTO Report (details, reportedBy, reportedEventInfoId)
-            VALUES ("{eventDetails}", "{eventReportedBy}", {eventInfoId});
+            VALUES (%s, %s, %s);
         """
-        print(reportEvent)
+        print(reportEvent, (eventDetails, eventReportedBy, eventInfoId ))
         mycursor.execute(reportEvent)
         
         conn.commit()
@@ -2380,16 +2405,16 @@ def reportGroup():
         groupReportedBy = body.get("reportedBy")
         groupId = body.get("reportedGroupId")
 
-        mycursor.execute(f""" 
-            SELECT id FROM GroupOfUser WHERE id = {groupId};
-        """)
+        mycursor.execute(""" 
+            SELECT id FROM GroupOfUser WHERE id = %s;
+        """, (groupId,))
         reportedGroupId = mycursor.fetchone()[0]
 
-        reportGroup = f"""
+        reportGroup = """
             INSERT INTO Report (details, reportedBy, reportedGroupId)
-            VALUES ("{groupDetails}", "{groupReportedBy}", {reportedGroupId});
+            VALUES (%s, %s, %s);
         """
-        mycursor.execute(reportGroup)
+        mycursor.execute(reportGroup, (groupDetails, groupReportedBy, reportedGroupId))
 
         conn.commit()
         mycursor.close()
@@ -2422,11 +2447,11 @@ def reportMessage():
         messageReportedBy = body.get("reportedBy")
         messageId = body.get("reportedMessageId")
 
-        reportMessage = f"""
+        reportMessage = """
             INSERT INTO Report (details, reportedBy, reportedMessageId)
-            VALUES ("{messageDetails}", "{messageReportedBy}", {messageId});
+            VALUES (%s, %s, %s);
         """
-        mycursor.execute(reportMessage)
+        mycursor.execute(reportMessage, (messageDetails, messageReportedBy, messageId))
         conn.commit()
         mycursor.close()
         conn.close()
@@ -2458,11 +2483,11 @@ def reportUser():
         userReportedBy = body.get("reportedBy")
         userId = body.get("reportedUserId")
 
-        reportUser = f"""
+        reportUser = """
             INSERT INTO Report (details, reportedBy, reportedUserId)
-            VALUES ("{userDetails}", "{userReportedBy}", "{userId}");
+            VALUES (%s, %s, %s);
         """
-        mycursor.execute(reportUser)
+        mycursor.execute(reportUser, (userDetails, userReportedBy, userId))
         conn.commit()
         mycursor.close()
         conn.close()
@@ -2480,10 +2505,10 @@ def delete_report():
         body = request.json
         reportId = body.get("reportId")
 
-        removeGroupUsers = f"""
-            DELETE FROM Report WHERE id = {reportId};
+        removeGroupUsers = """
+            DELETE FROM Report WHERE id = %s;
         """
-        mycursor.execute(removeGroupUsers)
+        mycursor.execute(removeGroupUsers, (reportId,))
 
         conn.commit()
         mycursor.close()
@@ -2513,14 +2538,14 @@ def warn_user():
         if user_email.lower() == reportedUserId:
             usersInWarnChat = 1
 
-        getChatIdBetweenUsers = f"""
+        getChatIdBetweenUsers = """
             SELECT Chat.chatId FROM (
                 SELECT Chat.id AS chatId, COUNT(ChatToUser.userId) AS userCount FROM ChatToUser JOIN (
-                    SELECT Chat.id FROM Chat JOIN ChatToUser ON Chat.id = ChatToUser.chatId WHERE Chat.chatType = "Individual" GROUP BY Chat.id HAVING COUNT(ChatToUser.userId) = {usersInWarnChat}
-                ) AS Chat ON Chat.id = ChatToUser.chatId WHERE ChatToUser.userId = "{user_email.lower()}" OR ChatToUser.userId = "{reportedUserId}" GROUP BY Chat.id
-            ) AS Chat WHERE Chat.userCount = {usersInWarnChat};
+                    SELECT Chat.id FROM Chat JOIN ChatToUser ON Chat.id = ChatToUser.chatId WHERE Chat.chatType = "Individual" GROUP BY Chat.id HAVING COUNT(ChatToUser.userId) = %s
+                ) AS Chat ON Chat.id = ChatToUser.chatId WHERE ChatToUser.userId = %s OR ChatToUser.userId = %s GROUP BY Chat.id
+            ) AS Chat WHERE Chat.userCount = %s;
         """
-        mycursor.execute(getChatIdBetweenUsers)
+        mycursor.execute(getChatIdBetweenUsers, (usersInWarnChat, user_email.lower(), reportedUserId, usersInWarnChat))
         response = mycursor.fetchone()
 
         #If one exists, we'll reuse it
@@ -2534,23 +2559,23 @@ def warn_user():
             mycursor.execute(createWarnChat)
             warnChatId = mycursor.lastrowid
 
-            addWarnerToWarnChat = f"""
-                INSERT INTO ChatToUser (chatId, userId) VALUES ({warnChatId}, "{user_email.lower()}");
+            addWarnerToWarnChat = """
+                INSERT INTO ChatToUser (chatId, userId) VALUES (%s, %s);
             """
-            mycursor.execute(addWarnerToWarnChat)
+            mycursor.execute(addWarnerToWarnChat, (warnChatId, user_email.lower()))
 
             if usersInWarnChat == 2:
-                addWarneeToWarnChat = f"""
-                    INSERT INTO ChatToUser (chatId, userId) VALUES ({warnChatId}, "{reportedUserId}");
+                addWarneeToWarnChat = """
+                    INSERT INTO ChatToUser (chatId, userId) VALUES (%s, %s);
                 """
-                mycursor.execute(addWarneeToWarnChat)
+                mycursor.execute(addWarneeToWarnChat, (warnChatId, reportedUserId))
 
         # Finally, we will post an automated message from the warner to the group chat with the warnee.
-        createWarningMessage = f"""
+        createWarningMessage = """
             INSERT INTO Message (chatId, senderId, messageContent, timeSent) 
-                VALUES ({warnChatId}, "{user_email.lower()}", "{warningMessage}", "{timeSent}");
+                VALUES (%s, %s, %s, %s);
         """
-        mycursor.execute(createWarningMessage)
+        mycursor.execute(createWarningMessage, (warnChatId, user_email.lower(), warningMessage, timeSent))
 
         conn.commit()
         mycursor.close()
@@ -2582,7 +2607,7 @@ def message():
         date = datetime.strptime(data['timeSent'], "%Y-%m-%d %H:%M:%S")
         dateToStore = (date + timedelta(hours=4)).strftime("%Y-%m-%d %H:%M:%S")
 
-        mycursor.execute(f""" 
+        mycursor.execute("""
             INSERT INTO Message (chatId, senderId, messageContent, timeSent) 
                 VALUES ({data['chatId']}, "{data["senderId"]}", "{data["messageContent"]}", "{dateToStore}");
         """)
@@ -2602,7 +2627,7 @@ def get_message(message_id: int):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"SELECT * FROM Message WHERE id={message_id};")
+        mycursor.execute("SELECT * FROM Message WHERE id = %s", (message_id,))
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
@@ -2624,7 +2649,7 @@ def get_chat_hist(chat_id: int):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"SELECT * FROM Message WHERE chatId={chat_id};")
+        mycursor.execute("SELECT * FROM Message WHERE chatId = %s", (chat_id,))
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
@@ -2657,7 +2682,7 @@ def get_my_chats(user_id: str):
                             JOIN GroupOfUserToUser ON GroupOfUserToChat.groupOfUserId = GroupOfUserToUser.groupId
                             JOIN GroupOfUser ON GroupOfUserToChat.groupOfUserId = GroupOfUser.id
                             JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = GroupOfUserToChat.chatId
-                            WHERE GroupOfUserToUser.userId = '{user_id}'
+                            WHERE GroupOfUserToUser.userId = %s
                             ) AS groupStuff
                             ON Chat.id = groupStuff.chatId 
                             WHERE Chat.chatType = 'Group')
@@ -2669,9 +2694,9 @@ def get_my_chats(user_id: str):
                                 AS msg ON msg.chatId = currUser.chatId
                             JOIN (SELECT ChatToUser.chatId, ChatToUser.lastMsgSeen, User.fname, User.lname FROM ChatToUser 
                                 JOIN User ON ChatToUser.userId = User.id
-                                WHERE ChatToUser.userId != '{user_id}') AS otherUser
+                                WHERE ChatToUser.userId != %s) AS otherUser
                             ON currUser.chatId = otherUser.chatId
-                            WHERE currUser.userId = '{user_id}' AND Chat.chatType = 'Individual')
+                            WHERE currUser.userId = %s AND Chat.chatType = 'Individual')
                             UNION
                             (SELECT Chat.id, EventInfo.title AS name, Chat.chatType, msg.lastMsgId, 
                                 msg.lastMsgId > 0 AND EventToUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs FROM Chat
@@ -2720,37 +2745,37 @@ def get_chat(chat_id: str):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"""(SELECT Chat.id, GroupOfUser.groupName AS name, Chat.chatType FROM Chat
+        mycursor.execute("""(SELECT Chat.id, GroupOfUser.groupName AS name, Chat.chatType FROM Chat
                             JOIN GroupOfUser ON GroupOfUser.chatId = Chat.id 
-                            WHERE Chat.id = {chat_id})
+                            WHERE Chat.id = %s)
                             UNION 
                             (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
                             JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
                             JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            WHERE Chat.id = {chat_id})
+                            WHERE Chat.id = %s)
                             UNION
                             (SELECT Chat.id, "" AS name, Chat.chatType FROM Chat 
                             JOIN ChatToUser ON Chat.id = ChatToUser.chatId
-                            WHERE Chat.id = {chat_id})
-                            LIMIT 1""")
+                            WHERE Chat.id = %s)
+                            LIMIT 1""", (chat_id, chat_id, chat_id))
         response = mycursor.fetchall()
         headers = mycursor.description
         chat = sqlResponseToList(response, headers)[0]
-        mycursor.execute(f"""(SELECT id, fname, lname FROM User
+        mycursor.execute("""(SELECT id, fname, lname FROM User
                                 JOIN GroupOfUserToUser ON User.id = GroupOfUserToUser.userId
                                 JOIN GroupOfUserToChat ON GroupOfUserToUser.groupId = GroupOfUserToChat.groupOfUserId
-                                WHERE GroupOfUserToChat.chatId = {chat_id})
+                                WHERE GroupOfUserToChat.chatId = %s)
                             UNION
                             (SELECT User.id, fname, lname FROM User
                                 JOIN EventToUser ON User.id = EventToUser.userId
                                 JOIN Event ON EventToUser.eventId = Event.id
                                 JOIN EventInfoToChat ON EventInfoToChat.eventInfoId = Event.eventInfoId
-                                WHERE EventInfoToChat.chatId = {chat_id})
+                                WHERE EventInfoToChat.chatId = %s)
                             UNION
                             (SELECT id, fname, lname 
                                 FROM User WHERE id IN (
                                 SELECT userId FROM ChatToUser
-                                WHERE chatId = {chat_id}))""")
+                                WHERE chatId = %s))""", (chat_id, chat_id, chat_id))
         response = mycursor.fetchall()
         headers = mycursor.description
         users = sqlResponseToList(response, headers)
@@ -2767,11 +2792,11 @@ def get_individual_chat_id(curr_user_id: str, other_user_id: str):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"""SELECT ChatToUser.chatId FROM ChatToUser 
-                            JOIN (SELECT * FROM ChatToUser WHERE userId = '{other_user_id}') AS otherUserTable
+        mycursor.execute("""SELECT ChatToUser.chatId FROM ChatToUser 
+                            JOIN (SELECT * FROM ChatToUser WHERE userId = %s) AS otherUserTable
                             ON ChatToUser.chatId = otherUserTable.chatId
-                            WHERE ChatToUser.userId = '{curr_user_id}'
-                            LIMIT 1;""")
+                            WHERE ChatToUser.userId = %s
+                            LIMIT 1;""", (other_user_id, curr_user_id))
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
@@ -2793,10 +2818,10 @@ def get_event_chat_id(event_id: int):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute(f"""SELECT chatId FROM Event
+        mycursor.execute("""SELECT chatId FROM Event
                                 JOIN EventInfoToChat ON Event.eventInfoId = EventInfoToChat.eventInfoId
-                                WHERE Event.id = {event_id}
-                                LIMIT 1""")
+                                WHERE Event.id = %s
+                                LIMIT 1""", (event_id,))
         response = mycursor.fetchall()
         headers = mycursor.description
         conn.commit()
@@ -2827,15 +2852,15 @@ def update_msg_last_seen():
         mycursor = conn.cursor()
 
         if chat_type == 'Group':
-            mycursor.execute(f"""UPDATE GroupOfUserToUser 
-                             SET lastMsgSeen = {msg_id}
+            mycursor.execute("""UPDATE GroupOfUserToUser 
+                             SET lastMsgSeen = %s
                              WHERE groupId = (SELECT groupOfUserId FROM GroupOfUserToChat WHERE groupOfUserId = 
-                                (SELECT groupOfUserId FROM GroupOfUserToChat WHERE chatId = {chat_id}))
-                            AND userId = '{user_id}'""")
+                                (SELECT groupOfUserId FROM GroupOfUserToChat WHERE chatId = %s))
+                            AND userId = %s""", (msg_id, chat_id, user_id))
         elif chat_type == 'Individual':
-            mycursor.execute(f"""UPDATE ChatToUser 
-                             SET lastMsgSeen = {msg_id}
-                             WHERE chatId = {chat_id} AND userId = '{user_id}'""")
+            mycursor.execute("""UPDATE ChatToUser 
+                             SET lastMsgSeen = %s
+                             WHERE chatId = %s AND userId = %s""", (msg_id, chat_id, user_id))
         elif chat_type == 'Event':
             mycursor.execute(f"""SET @eventInfoId = (SELECT eventInfoId FROM EventInfoToChat
                                 WHERE chatId = {chat_id});""")
@@ -2929,10 +2954,11 @@ def upload():
             date = datetime.strptime(data['timeSent'], "%Y-%m-%d %H:%M:%S")
             dateToStore = (date + timedelta(hours=4)).strftime("%Y-%m-%d %H:%M:%S")
 
-            mycursor.execute(f""" 
-                INSERT INTO Message (chatId, senderId, imagePath, timeSent) 
-                    VALUES ({data.get('chatId')}, "{data.get("senderId")}", "{data.get('imageType')}", "{dateToStore}");
-            """)
+            mycursor.execute("""
+                INSERT INTO Message (chatId, senderId, imagePath, timeSent)
+                VALUES (%s, %s, %s, %s)
+            """, (data.get('chatId'), data.get('senderId'), data.get('imageType'), dateToStore))
+
             messageId = mycursor.lastrowid
             conn.commit()
             mycursor.close()

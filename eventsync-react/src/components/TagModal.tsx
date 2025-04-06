@@ -129,7 +129,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
             variant="contained" 
             sx={{ color: "black", minWidth: '40px', minHeight: '40px', padding: 0 }}
             onClick={handleOpenModal}
-            title="edit tags"
+            title="Edit Tags"
         >
             <AddIcon />
         </Button>
@@ -148,7 +148,20 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                     flexDirection="row"
                     paddingTop={2}
                 >
-                    <TextField variant="outlined" value={createCustomTagText} onChange={(event) => setCreateCustomTagText(event.target.value)}  ></TextField>
+
+{/* onChange={(event) => {
+                                const value = event.target.value;
+                                if (value.length <= 50) {
+                                    setLocationText(value);
+                                } 
+                            }} */}
+                    <TextField variant="outlined" value={createCustomTagText} onChange={(event) => 
+                    { 
+                    const value = event.target.value;
+                        if (value.length <= 25){
+                            setCreateCustomTagText(event.target.value);
+                        }
+                    }}></TextField>
                     <Button sx={{backgroundColor: "#1c284c"}} size="small" variant="contained" onClick={handleCreateCustomTag}>Add Tag</Button>
                 </Box>
             </Box>

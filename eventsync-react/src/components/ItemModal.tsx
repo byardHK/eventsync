@@ -53,7 +53,7 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
                 variant="contained"
                 sx={{ color: "black", minWidth: '40px', minHeight: '40px', padding: 0 }}
                 onClick={handleOpen}
-                title="edit tags"
+                title="Edit Items"
             >
                 <AddIcon/>
             </Button>
@@ -64,18 +64,40 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
                         <Box key={index} display="flex" alignItems="center" mb={2}>
                             <TextField
                                 placeholder={item.description}
-                                onChange={(e) => changeItemDescription(e.target.value, index)}
-                                sx={{width: 350}}
+                                value={item.description}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value.length <= 25) {
+                                        changeItemDescription(value, index);
+                                    }
+                                }}
+                                sx={{ width: 350 }}
                                 margin="normal"
+                                error={item.description.length >= 25}
                             />
-                            <IconButton onClick={() => changeItemQuantity(-1, index)}>
+
+                            <IconButton 
+                                onClick={() => changeItemQuantity(-1, index)} 
+                                disabled={item.amountNeeded <= 1}
+                            >
                                 <RemoveIcon />
                             </IconButton>
                             <TextField
                                 type="number"
                                 value={item.amountNeeded}
-                                onChange={(e) => changeItemQuantity(Number(e.target.value) - item.amountNeeded, index)}
-                                inputProps={{ min: 1, style: { MozAppearance: 'textfield' } }}
+                                onChange={(e) => {
+                                    const value = Number(e.target.value);
+                                    if (value >= 1 && value <= 50) {
+                                        changeItemQuantity(value - item.amountNeeded, index);
+                                    }
+                                }}
+                                inputProps={{
+                                    min: 1,
+                                    max: 10,
+                                    style: {
+                                        MozAppearance: 'textfield'
+                                    }
+                                }}
                                 sx={{
                                     '& input[type=number]': {
                                         MozAppearance: 'textfield',
@@ -88,11 +110,11 @@ function ItemModal(prop: { itemsToParent: (data: Item[]) => void }) {
                                 margin="normal"
                                 style={{ width: '150px' }}
                             />
-                            <IconButton onClick={() => changeItemQuantity(1, index)}>
+                            <IconButton 
+                                onClick={() => changeItemQuantity(1, index)} 
+                                disabled={item.amountNeeded >= 50}
+                            >
                                 <AddIcon />
-                            </IconButton>
-                            <IconButton onClick={() => deleteItem(index)}>
-                                <DeleteIcon style={{ color: '#ad1f39'}} />
                             </IconButton>
                         </Box>
                     ))}

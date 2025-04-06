@@ -25,7 +25,7 @@ import { BASE_URL } from '../components/Constants';
 import ReportModal from '../components/ReportModal';
 
 function ChatPage() {
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [messages, setMessages] = useState<Message[] | undefined>();
     const { chatId } = useParams<{ chatId: string }>() ;
     const [msg, setMsg] = useState<Message>();
     const [chat, setChat] = useState<Chat>();
@@ -62,6 +62,10 @@ function ChatPage() {
 
 	useEffect(() => {
         const fetchChat = async () => {
+            if (!userDetails || !userDetails.email) {
+                console.error('User details are missing');
+                return; 
+            }
             try {
                 const response = await axios.get<{chat: chatResponse, users: User[]}>(`${BASE_URL}/get_chat/${chatId}`, {
                     headers: {
@@ -94,7 +98,7 @@ function ChatPage() {
 		return (() => {
 			pusher.unsubscribe(channelName)
 		})
-	}, []);
+	}, [userDetails]);
 
     function stringToEnum(value: String): chatType {
         if (value === "Individual") {
@@ -108,7 +112,7 @@ function ChatPage() {
 
     useEffect(() => {
         if(msg) {
-            setMessages([...messages,msg]);
+            setMessages(messages ? [...messages, msg] : [msg]);
         }
     }, [msg]);
 
@@ -130,6 +134,10 @@ function ChatPage() {
       }, [messages, chat]);
 
     async function retrieveHistory() {
+        if (!userDetails || !userDetails.email) {
+            console.error('User details are missing');
+            return; 
+        }
         const response = await axios.get<MessageList>(`${BASE_URL}/get_chat_hist/${chatId}`, {
             headers: {
                 'Authorization': `Bearer ${userDetails.token}`,
@@ -172,13 +180,19 @@ function ChatPage() {
                 <BackButton/>
                 {chatTitle()}
             </Box>
-            <ChatList 
-                messages={messages} 
-                currentUserId={currentUserId} 
-                groupChat={!(chat?.chatType == chatType.INDIVIDUAL)!} 
-                getName={getName}
-            >
-            </ChatList>
+            {messages ? 
+                (messages.length === 0 ?
+                    <Typography color="white" align="center">No messages yet</Typography>
+                    :
+                    <ChatList 
+                        messages={messages} 
+                        currentUserId={currentUserId} 
+                        groupChat={!(chat?.chatType == chatType.INDIVIDUAL)!} 
+                        getName={getName}
+                    />
+                ) :
+                <Typography color="white" align="center">Loading messages...</Typography>
+            }
             <ChatInput channelName={""} currentUserId={currentUserId} chatId={chatId ?? "-1"}></ChatInput>
         </Grid2>
 	)
@@ -355,7 +369,12 @@ const ChatInput = (props: { channelName: String, currentUserId: string, chatId: 
             // multiline
             // maxRows={2}
             value={message} 
-            onChange={(event) => setMessage(event.target.value)}
+            onChange={(event) => {
+                const val = event.target.value
+                if(val.length <= 200){
+                    setMessage(event.target.value)
+                }
+            }}
             sx={{backgroundColor: "#FFFFFF"}}
             fullWidth
         />

@@ -81,7 +81,9 @@ function FriendsPage() {
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
-        setSearchInput(value);
+        if(value.length <= 30){
+            setSearchInput(value);
+        }
         setFilteredUsers(users.filter(user => `${user.fname} ${user.lname}`.toLowerCase().includes(value.toLowerCase())));
     };
 
@@ -265,8 +267,8 @@ function FriendsPage() {
                         <Box paddingBottom="10px">
                             <UserList users={filteredUsers} refreshData={() => userDetails.email && refreshData(userDetails.email)} onAddFriend={handleCloseDialog} />
                         </Box>
-                        <Box sx={{ width: "100%", backgroundColor: "white", position: "sticky", bottom: 0, paddingBottom:"10px"}}>
-                            <Button variant="contained" sx={{backgroundColor: "#1c284c", width: "100%"}} onClick={handleCloseDialog}>Close</Button>
+                        <Box display="flex" justifyContent="center" sx={{ width: "100%", backgroundColor: "white", position: "sticky", bottom: 0, paddingBottom:"10px", paddingTop:"10px"}}>
+                            <Button variant="contained" sx={{backgroundColor: "#1c284c", width: "75%"}} onClick={handleCloseDialog}>Close</Button>
                         </Box>
                     </Box>
                 </Dialog>

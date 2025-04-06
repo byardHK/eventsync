@@ -22,7 +22,7 @@ const OnboardingPage = () => {
     const [bio, setBio] = useState("");
     const [isPublic, setIsPublic] = useState(false);
     const [gender, setGender] = useState("Undefined");
-    const [eventCancelled, setEventCancelled] = useState(false);
+    const [eventCancelled, setEventCancelled] = useState(false)
 
 
     const addNewUser = async () => {
@@ -63,9 +63,6 @@ const OnboardingPage = () => {
             console.error("Error submitting new user:", error);
         }
     };
-    
-
-
 
     return (
         <Box
@@ -97,7 +94,12 @@ const OnboardingPage = () => {
                     fullWidth
                     label="First Name"
                     value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
+                    onChange={(e) => {
+                        const val = e.target.value
+                        if(val.length <= 20){
+                            setFirstName(val)
+                        }                       
+                    }}
                     margin="normal"
                 />
                 
@@ -105,7 +107,12 @@ const OnboardingPage = () => {
                     fullWidth
                     label="Last Name"
                     value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
+                    onChange={(e) => {
+                        const val = e.target.value
+                        if(val.length <= 20){
+                            setLastName(val)
+                        }                       
+                    }}
                     margin="normal"
                 />
                 
@@ -137,36 +144,18 @@ const OnboardingPage = () => {
                     multiline
                     rows={3}
                     value={bio}
-                    onChange={(e) => setBio(e.target.value)}
+                    onChange={(e) => {
+                        const val = e.target.value
+                        if(val.length <= 200){
+                            setBio(val)
+                        }                       
+                    }}
                     margin="normal"
                 />
 
                 <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
                     <span>Make profile public?</span>
                     <Switch checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
-                </Box>
-
-                <FormControl fullWidth margin="normal">
-                    <InputLabel>Notification Frequency</InputLabel>
-                    <Select
-                        value={notificationFrequency}
-                        onChange={(e) => setNotificationFrequency(e.target.value)}
-                    >
-                        <MenuItem value="None">None</MenuItem>
-                        <MenuItem value="Daily">Daily</MenuItem>
-                        <MenuItem value="Weekly">Weekly</MenuItem>
-                        <MenuItem value="Monthly">Monthly</MenuItem>
-                    </Select>
-                </FormControl>
-
-                <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
-                    <span>Friend Request Notifications</span>
-                    <Switch checked={receiveFriendRequest} onChange={(e) => setReceiveFriendRequest(e.target.checked)} />
-                </Box>
-
-                <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
-                    <span>Event Invite Notifications</span>
-                    <Switch checked={invitedToEvent} onChange={(e) => setInvitedToEvent(e.target.checked)} />
                 </Box>
                 
                 <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>

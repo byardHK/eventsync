@@ -20,6 +20,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import ReplayIcon from '@mui/icons-material/Replay';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import dayjs from 'dayjs';
 
 function HomePage() {
     const { userDetails } = useUser();
@@ -147,7 +148,13 @@ function HomePage() {
                         <TextField 
                             sx={{backgroundColor: 'white'}}
                             id="outlined-basic" 
-                            onChange={(e) => setSearchKeyword(e.target.value)}
+                            value={searchKeyword}
+                            onChange={(e) => {
+                                const val = e.target.value
+                                if(val.length <= 40){
+                                    setSearchKeyword(e.target.value)
+                                }
+                            }}
                             slotProps={{
                                 input: {
                                     startAdornment: (
@@ -212,6 +219,8 @@ function HomePage() {
                                         label="After"
                                         value={afterDate}
                                         onChange={(newValue) => setAfterDate(newValue)}
+                                        minDateTime={dayjs()}
+                                        maxDateTime={beforeDate || undefined}
                                     />
                                     <Button onClick={resetAfterPicker}>
                                         <ReplayIcon sx={{color: "#1c284c"}}/>
@@ -222,6 +231,7 @@ function HomePage() {
                                         label="Before"
                                         value={beforeDate}
                                         onChange={(newValue) => setBeforeDate(newValue)}
+                                        minDateTime={afterDate || dayjs()}
                                     />
                                     <Button onClick={resetBeforePicker}>
                                         <ReplayIcon sx={{color: "#1c284c"}}/>
@@ -351,9 +361,7 @@ function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents,
         const notFull = hideFullEvents
             ? event.RSVPLimit === 0 || event.numRsvps < event.RSVPLimit
             : true;
-        const selectedAfter = afterDate
-            ? new Date(event.startTime).getTime() > afterDate.toDate().getTime()
-            : true;
+        const selectedAfter = new Date(event.startTime).getTime() > (afterDate ? afterDate.toDate().getTime() : dayjs().subtract(1, 'day').toDate().getTime());
         const selectedBefore = beforeDate
             ? new Date(event.startTime).getTime() < beforeDate.toDate().getTime()
             : true;
@@ -388,16 +396,19 @@ function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents,
                 justifyContent="center"
                 paddingBottom={2}
             >
-                {currentEvents.map((event) => (
-                    <StyledCard key={event.id} event={event} viewEvent={viewEvent} showTags/>
-                ))}
+                { currentEvents.length === 0 ?
+                    !isComingSoon ?
+                        <Typography paddingTop={3} color="white">Select interests to see recommended events</Typography>
+                        :
+                        <></>
+                    :
+                    currentEvents.map((event) => (
+                        <StyledCard key={event.id} event={event} viewEvent={viewEvent} showTags/>
+                    ))
+                }
             </Grid2>
-            {currentEvents.length < filteredEvents.length && (
-                <Button 
-                    onClick={handlePageChange} 
-                    variant="contained"  
-                    sx={{ marginTop: 0, marginBottom: 10, backgroundColor:"#71A9F7", color: "black" }}
-                >
+            {currentEvents.length < filteredEvents.length && currentEvents.length !== 0 && (
+                <Button onClick={handlePageChange} variant="contained"  sx={{ marginTop: 0, marginBottom: 10, backgroundColor:"#71A9F7", color: "black" }}>
                     Load More
                 </Button>
             )}

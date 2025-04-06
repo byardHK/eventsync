@@ -48,7 +48,13 @@ function ChatHomePage() {
               <TextField 
                 sx={{backgroundColor: 'white', width: "75%"}}
                 id="outlined-basic"
-                onChange={(e) => setSearchKeyword(e.target.value)}
+                value={searchKeyword}
+                onChange={(e) => {
+                  const val = e.target.value
+                  if (val.length <= 35) {
+                    setSearchKeyword(e.target.value);
+                  }
+                }}
                 slotProps={{
                     input: {
                       startAdornment: (
@@ -78,13 +84,19 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
 
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
-    const [chats, setChats] = useState<ChatDisplay[]>([]); 
+    const [chats, setChats] = useState<ChatDisplay[] | undefined>(); 
+    const [loading, setLoading] = useState(true);
     
     const navigate = useNavigate();
 
 
     useEffect(() => {
         const fetchData = async () => {
+          if (!currentUserId) {
+            console.error('User ID is missing');
+            return;  // Prevent the request from being made if the user ID is invalid
+          }
+          
           try {
             var response = await axios.get<ChatDisplay[]>(`${BASE_URL}/get_my_chats/${currentUserId}`,{
               headers: {
@@ -108,20 +120,22 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
             };
             }
             setChats(sortedChats(response.data));
+            setLoading(false);
             console.log(response);
             
           } catch (error) {
             console.error('Error fetching data:', error);
+            setLoading(false);
           }
         };
         fetchData();
-    }, []);
+      }, [currentUserId, userDetails.token]);
 
-    const filteredChats = chats.filter(chat => {
+    const filteredChats = chats ? chats.filter(chat => {
       return searchKeyword
           ? chat.name.toLowerCase().includes(searchKeyword.toLowerCase())
           : true;
-        });
+        }) : [];
 
     const sortedChats = (chats: ChatDisplay[]) => {
       const sortedChats = [...chats].sort((a, b) => {
@@ -146,13 +160,26 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
       navigate(`/viewChat/${chat.id}`);
   }
 
-    return (
-      <Box display="flex" flexDirection="column" paddingBottom={7} paddingTop={18}>
-        {filteredChats.map((chat, index) => (
-          <StyledCard key={index} chat={chat} viewChat={viewChat} chatName={chat.name}></StyledCard>
-        ))}
-      </Box>
+  return (
+    <Box display="flex" flexDirection="column" paddingBottom={7} paddingTop={18}>
+      {loading ? (
+        <Typography color="white" paddingTop={2}>
+          Loading chats...
+        </Typography>
+      ) : (
+        chats && chats.length > 0 ? (
+          filteredChats.map((chat, index) => (
+            <StyledCard key={index} chat={chat} viewChat={viewChat} chatName={chat.name} />
+          ))
+        ) : (
+          <Typography color="white" paddingTop={2}>
+            No chats available
+          </Typography>
+        )
+      )}
+    </Box>
   );
+  
 }
 
 function StyledCard({chat, viewChat, chatName} : {chat: ChatDisplay, viewChat: (chat:ChatDisplay) => void, chatName: String}){

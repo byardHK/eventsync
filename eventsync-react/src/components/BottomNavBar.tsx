@@ -16,9 +16,12 @@ function BottomNavBar({ userId }: { userId: string }) {
     const location = useLocation();
     const currentPage = location.pathname;
 
-    
     useEffect(() => {
         async function fetchFriendRequests() {
+            if (!userDetails.email) {
+                console.error('User ID is missing');
+                return;  
+              }
             try {
                 const response = await axios.get(`${BASE_URL}/get_friend_requests/${userId}/`,{
                     headers: {
