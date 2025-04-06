@@ -2103,12 +2103,12 @@ def edit_group():
         removeGroupUsers = """
             DELETE FROM GroupOfUserToUser WHERE groupId = %s
         """
-        mycursor.execute(removeGroupUsers, (groupId))
+        mycursor.execute(removeGroupUsers, (groupId,))
 
         removeChatUsers = """
             DELETE ChatToUser FROM GroupOfUser JOIN ChatToUser ON GroupOfUser.chatId = ChatToUser.chatId WHERE GroupOfUser.id = %s;
         """
-        mycursor.execute(removeChatUsers, (groupId))
+        mycursor.execute(removeChatUsers, (groupId,))
 
         add_users_to_group(users, groupId, mycursor)
 
@@ -2154,21 +2154,21 @@ def create_group():
         createChat = """
             INSERT INTO Chat (name, chatType) VALUES (%s, 'Group');
         """
-        mycursor.execute(createChat, groupName)
+        mycursor.execute(createChat, (groupName,))
         chatId = mycursor.lastrowid
 
         # Create group
         createGroup = """
-           INSERT INTO GroupOfUser (groupName, creatorId, chatId, numTimesReported) VALUES (%s, %s, %s, 0);
+           INSERT INTO GroupOfUser (groupName, creatorId, chatId, numTimesReported) VALUES (%s, %s, %s, %s);
         """
-        mycursor.execute(createGroup, (groupName, creatorId, chatId))
+        mycursor.execute(createGroup, (groupName, creatorId, chatId, 0))
         groupId = mycursor.lastrowid
 
         # add relationship from chat to group 
         addGroupOfUserToChat = """
                 INSERT INTO GroupOfUserToChat (chatId, groupOfUserId) VALUES (%s, %s);
             """
-        mycursor.execute(addGroupOfUserToChat, chatId, groupId)
+        mycursor.execute(addGroupOfUserToChat, (chatId, groupId))
 
         add_users_to_group(users_and_creator, groupId, mycursor)
         
@@ -2183,7 +2183,7 @@ def create_group():
 def add_users_to_group(users, groupId, mycursor):
     # Get chat id of group in question
     getChatId = "SELECT chatId, creatorId FROM GroupOfUser WHERE GroupOfUser.id = %s;"
-    mycursor.execute(getChatId, groupId)
+    mycursor.execute(getChatId, (groupId,))
     response = mycursor.fetchone()
     chatId = response[0]
     creatorId = response[1]
