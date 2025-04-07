@@ -214,12 +214,30 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
                 <Typography variant="h5" fontWeight="bold">Group Members</Typography>
                 <br></br>
                 {group.users.map((user) => (
-                    <MenuItem
-                      key={user.id}
-                      onClick={() => {navigate(`/profile/${user.id}`)}}
+                    // <MenuItem
+                    //   key={user.id}
+                    //   onClick={() => {navigate(`/profile/${user.id}`)}}
+                    // >
+                    //   {`${user.fname} ${user.lname}`}
+                    // </MenuItem>
+                    <Card
+                        key={user.id}
+                        sx={{
+                            width: "200px", 
+                            padding: "10px", 
+                            backgroundColor: "#71A9F7", 
+                            display: "flex", 
+                            justifyContent: "space-between", 
+                            alignItems: "center", 
+                            margin: "5px 0"
+                        }}
+                        square={false}
+                        onClick={() => {navigate(`/profile/${user.id}`)}}
                     >
-                      {`${user.fname} ${user.lname}`}
-                    </MenuItem>
+                        <Box flexGrow={1} textAlign="left" marginLeft={5}>
+                            {`${user.fname} ${user.lname}`}
+                        </Box>
+                    </Card>
                   ))}
                   <br></br>
                   <Button variant="contained" fullWidth sx={{marginTop: "auto", backgroundColor:"#1c284c"}} onClick={()=> {setViewGroupMembersModalOpen(false)}}>Close</Button>
