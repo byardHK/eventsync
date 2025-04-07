@@ -1801,6 +1801,20 @@ def edit_event(eventId):
             mycursor.execute(eventInfoInsert, eventInfoValues)
             eventInfoId = mycursor.lastrowid
 
+            # Create chat for event
+            createChat = """
+                INSERT INTO Chat (name, chatType) VALUES (%s, 'Event');
+            """
+            mycursor.execute(createChat, (data["title"],))  # Make sure to pass as a tuple
+            chatId = mycursor.lastrowid
+
+            # Add relationship from chat to eventInfo
+            addEventInfoToChat = """
+                INSERT INTO EventInfoToChat (chatId, eventInfoId) 
+                VALUES (%s, %s);
+            """
+            mycursor.execute(addEventInfoToChat, (chatId, eventInfoId))
+
             mycursor.execute("""
                 UPDATE Event
                 SET eventInfoId = %s, startTime = %s, endTime = %s
