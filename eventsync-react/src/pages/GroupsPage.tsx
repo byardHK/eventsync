@@ -161,6 +161,7 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
     const [leavingGroupModalOpen, setLeavingGroupModalOpen] = useState<boolean>(false); 
     const [deleteGroupModalOpen, setDeleteGroupModalOpen] = useState<boolean>(false); 
     const [viewGroupMembersModalOpen, setViewGroupMembersModalOpen] = useState<boolean>(false);
+    const { userDetails } = useUser();
 
     function LeaveGroupModal(){
         return <Dialog
@@ -231,6 +232,11 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
             await axios.post(`${BASE_URL}/delete_group`, {
                 groupId: group.id,
                 creatorId: group.creatorId
+            },{
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                },
             });
         } catch (error) {
             console.error('Error fetching data:', error);

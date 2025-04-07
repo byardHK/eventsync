@@ -2320,51 +2320,70 @@ def delete_group():
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
 
-        body = request.json
         groupId = body.get("groupId")
 
+        # Remove reports related to the group
         removeReportsOfGroup = """
             DELETE FROM Report WHERE reportedGroupId = %s;
         """
         mycursor.execute(removeReportsOfGroup, (groupId,))
 
-        getChatId = f"SET @chatId = (SELECT chatId FROM GroupOfUserToChat WHERE groupOfUserId = {groupId});"
+        # Get chatId associated with the groupId
+        mycursor.execute("""
+            SELECT chatId FROM GroupOfUserToChat WHERE groupOfUserId = %s;
+        """, (groupId,))
+        chat_id_result = mycursor.fetchone()
 
+        if not chat_id_result:
+            return jsonify({"error": "Group not found"}), 404
+        
+        chatId = chat_id_result[0]
+
+        # Remove relationships in the GroupOfUserToChat table
         removeGroupOfUserToChat = """
             DELETE FROM GroupOfUserToChat WHERE groupOfUserId = %s;
         """
-        mycursor.execute(getChatId, (groupId,))
-        mycursor.execute(removeGroupOfUserToChat)
+        mycursor.execute(removeGroupOfUserToChat, (groupId,))
 
+        # Remove relationships in GroupOfUserToUser table
         removeGroupUsers = """
             DELETE FROM GroupOfUserToUser WHERE groupId = %s;
         """
         mycursor.execute(removeGroupUsers, (groupId,))
 
+        # Remove group information from GroupOfUser table
         removeGroup = """
             DELETE FROM GroupOfUser WHERE id = %s;
         """
         mycursor.execute(removeGroup, (groupId,))
 
-        removeChat = f"""
-            DELETE FROM Chat WHERE id = @chatId;
+        # Remove the chat
+        removeChat = """
+            DELETE FROM Chat WHERE id = %s;
         """
-        mycursor.execute(removeChat)
-        
-        mycursor.execute("SELECT id FROM Message WHERE chatId = @chatId")
+        mycursor.execute(removeChat, (chatId,))
+
+        # Delete associated messages
+        mycursor.execute("SELECT id FROM Message WHERE chatId = %s", (chatId,))
         msg_ids = mycursor.fetchall()
         delete_uploads(msg_ids)
-        removeMessages = f"""
-            DELETE FROM Message WHERE chatId = @chatId;
+
+        # Remove the messages
+        removeMessages = """
+            DELETE FROM Message WHERE chatId = %s;
         """
-        mycursor.execute(removeMessages)
-        
+        mycursor.execute(removeMessages, (chatId,))
+
         conn.commit()
         mycursor.close()
         conn.close()
-        return jsonify({"message": "creation successful"})
+
+        return jsonify({"message": "Group deleted successfully"})
+    
     except mysql.connector.Error as err:
         print(f"Error: {err}")
+        return jsonify({"error": "Database error"}), 500
+
     return {}
 
 @app.route('/get_reports/<string:userId>/')
@@ -2705,10 +2724,13 @@ def message():
         date = datetime.strptime(data['timeSent'], "%Y-%m-%d %H:%M:%S")
         dateToStore = (date + timedelta(hours=4)).strftime("%Y-%m-%d %H:%M:%S")
 
-        mycursor.execute("""
-            INSERT INTO Message (chatId, senderId, messageContent, timeSent) 
-                VALUES ({data['chatId']}, "{data["senderId"]}", "{data["messageContent"]}", "{dateToStore}");
-        """)
+        query = """
+            INSERT INTO Message (chatId, senderId, messageContent, timeSent)
+            VALUES (%s, %s, %s, %s);
+        """
+
+        # Execute the query with parameters
+        mycursor.execute(query, (data['chatId'], data['senderId'], data['messageContent'], dateToStore))
         msgId = mycursor.lastrowid
         conn.commit()
         mycursor.close()
