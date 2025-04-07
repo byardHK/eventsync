@@ -22,7 +22,8 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
-#CORS(app, origins=["http://localhost:3000"])
+# CORS(app, origins=["http://localhost:3000"])
+
 
 db_config = {
     'host': '10.18.101.62',  
