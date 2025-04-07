@@ -264,7 +264,7 @@ function FriendsPage() {
                                 }}
                             />
                         </Box>
-                        <Box paddingBottom="10px">
+                        <Box paddingBottom="10px" >
                             <UserList users={filteredUsers} refreshData={() => userDetails.email && refreshData(userDetails.email)} onAddFriend={handleCloseDialog} />
                         </Box>
                         <Box display="flex" justifyContent="center" sx={{ width: "100%", backgroundColor: "white", position: "sticky", bottom: 0, paddingBottom:"10px", paddingTop:"10px"}}>
@@ -345,7 +345,7 @@ function UserList({ users, refreshData, onAddFriend }: { users: EventSyncUser[];
     };
 
     return (
-        <Box display="flex" flexDirection="column" gap={2}>
+        <Box display="flex" flexDirection="column" gap={2} minHeight="350px">
             {Array.isArray(users) && users.map((user, index) => (
                 <Card
                     key={index}

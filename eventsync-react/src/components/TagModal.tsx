@@ -88,7 +88,12 @@ function TagModal({savedTags, handleSave}: TagModalProps){
 
     async function deleteCustomTag (tag: Tag) {
         try {
-            await axios.delete(`${BASE_URL}/delete_custom_tag/${tag.id}/`);
+            await axios.delete(`${BASE_URL}/delete_custom_tag/${tag.id}/`, {
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
             setGetTagsTrigger(getTagsTrigger+1);
         } catch (error) {
             console.error('Error deleting tag:', error);
@@ -97,6 +102,9 @@ function TagModal({savedTags, handleSave}: TagModalProps){
 
     useEffect(() => {
         const fetchData = async () => {
+            if(!userId){
+                return;
+            }
             try {
                 const response = await axios.get(`${BASE_URL}/get_tags/${userId}`, {
                     headers: {
@@ -122,7 +130,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
             }
         };
         fetchData();
-    }, [getTagsTrigger]);
+    }, [getTagsTrigger, userDetails]);
 
     return <>
         <Button 
