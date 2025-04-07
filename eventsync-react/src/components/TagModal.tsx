@@ -102,6 +102,9 @@ function TagModal({savedTags, handleSave}: TagModalProps){
 
     useEffect(() => {
         const fetchData = async () => {
+            if(!userId){
+                return;
+            }
             try {
                 const response = await axios.get(`${BASE_URL}/get_tags/${userId}`, {
                     headers: {
@@ -127,7 +130,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
             }
         };
         fetchData();
-    }, [getTagsTrigger]);
+    }, [getTagsTrigger, userDetails]);
 
     return <>
         <Button 
