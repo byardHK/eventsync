@@ -174,7 +174,7 @@ function HomePage() {
                         {filtersVisible ? "Close Filters" : "Open Filters"}
                         {filtersVisible ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                     </Button> */}
-                    <Box sx={{width: "95%", position: 'fixed', top: '150px', "z-index": 10, border: filtersVisible ? 2 : undefined, borderColor: "#1c284c" }}>
+                    <Box sx={{width: "95%", position: 'fixed', top: '150px', "z-index": 100, border: filtersVisible ? 2 : undefined, borderColor: "#1c284c" }}>
                         <Collapse in={filtersVisible} sx={{width: "100%"}} >
                             <Box 
                                 sx={{backgroundColor: 'white'}}

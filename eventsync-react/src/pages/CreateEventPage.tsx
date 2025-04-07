@@ -150,6 +150,9 @@ function CreateEventPage() {
     useEffect(() => {
         if (eventId) {
             const fetchEvent = async () => {
+                if(!currentUserId){
+                    return;
+                }
                 try {
                     const response = await axios.get(`${BASE_URL}/get_event/${eventId}/${currentUserId}`,{
                         headers: {
@@ -180,7 +183,7 @@ function CreateEventPage() {
             };
             fetchEvent();
         }
-    }, [eventId]);
+    }, [eventId, userDetails]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault();
