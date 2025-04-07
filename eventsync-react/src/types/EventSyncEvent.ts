@@ -1,7 +1,8 @@
 import Tag from "./Tag";
 
 type EventSyncEvent = {
-    eventName : string;
+    eventName: string;
+    description: string;
     // attendees : Number; TODO
     startTime: string;
     endTime: string;

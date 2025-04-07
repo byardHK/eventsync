@@ -353,7 +353,8 @@ function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents,
     
     const filteredEvents = events.filter(event => {
         const matchesKeyword = searchKeyword
-            ? event.eventName.toLowerCase().includes(searchKeyword.toLowerCase())
+            ? event.eventName.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+              (event.description && event.description.toLowerCase().includes(searchKeyword.toLowerCase()))
             : true;
         const matchesTags = tags.length > 0
             ? tags.every(tag => event.tags && event.tags.map(t => t.name).includes(tag))
@@ -407,8 +408,8 @@ function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents,
                     ))
                 }
             </Grid2>
-            {currentEvents.length < filteredEvents.length && currentEvents.length !== 0 && (
-                <Button onClick={handlePageChange} variant="contained"  sx={{ marginTop: 0, marginBottom: 10, backgroundColor:"#71A9F7", color: "black" }}>
+            {currentEvents.length < (isComingSoon ? sortedFilteredEvents.length : eventRecommended.length) && currentEvents.length !== 0 && (
+                <Button onClick={handlePageChange} variant="contained" sx={{ marginTop: 0, marginBottom: 10, backgroundColor: "#71A9F7", color: "black" }}>
                     Load More
                 </Button>
             )}
