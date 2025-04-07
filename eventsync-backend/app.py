@@ -2775,45 +2775,82 @@ def get_my_chats(user_id: str):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute("""(SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType, 
-                                groupStuff.lastMsgId, groupStuff.unreadMsgs FROM Chat
-                            JOIN (SELECT GroupOfUser.chatId, GroupOfUser.groupName, 
-                                    msg.lastMsgId, FALSE AS unreadMsgs FROM GroupOfUserToChat
-                            JOIN GroupOfUserToUser ON GroupOfUserToChat.groupOfUserId = GroupOfUserToUser.groupId
-                            JOIN GroupOfUser ON GroupOfUserToChat.groupOfUserId = GroupOfUser.id
-                            JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = GroupOfUserToChat.chatId
-                            WHERE GroupOfUserToUser.userId = %s
-                            ) AS groupStuff
-                            ON Chat.id = groupStuff.chatId 
-                            WHERE Chat.chatType = 'Group')
-                            UNION 
-                            (SELECT Chat.id, CONCAT(otherUser.fname, " ", otherUser.lname) AS name, Chat.chatType, msg.lastMsgId, 
-                                msg.lastMsgId IS NOT NULL AND msg.lastMsgId > 0 AND currUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs FROM Chat 
-                            JOIN ChatToUser AS currUser ON Chat.id = currUser.chatId
-                            LEFT JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) 
-                                AS msg ON msg.chatId = currUser.chatId
-                            JOIN (SELECT ChatToUser.chatId, ChatToUser.lastMsgSeen, User.fname, User.lname FROM ChatToUser 
-                                JOIN User ON ChatToUser.userId = User.id
-                                WHERE ChatToUser.userId != %s) AS otherUser
-                            ON currUser.chatId = otherUser.chatId
-                            WHERE currUser.userId = %s AND Chat.chatType = 'Individual')
-                            UNION
-                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType, msg.lastMsgId, 
-                                msg.lastMsgId > 0 AND EventToUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs FROM Chat
-                            JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
-                            JOIN Event ON Event.eventInfoId = EventInfoToChat.eventInfoId
-                            JOIN EventToUser ON EventToUser.eventId = Event.id
-                            JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            JOIN (SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId) AS msg ON msg.chatId = Chat.id
-                            WHERE EventToUser.userId = %s AND Chat.chatType = 'Event')
-                            UNION
-                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType, 0 AS lastMsgId,
-                                FALSE AS unreadMsgs
-                            FROM Chat
-                            JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
-                            JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            WHERE EventInfo.creatorId = %s AND Chat.chatType = 'Event')
-                            """, (user_id, user_id, user_id, user_id, user_id))
+        query = """
+        (
+            SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType, 
+                groupStuff.lastMsgId, groupStuff.unreadMsgs
+            FROM Chat
+            JOIN (
+                SELECT GroupOfUser.chatId, GroupOfUser.groupName, 
+                    msg.lastMsgId,
+                    GroupOfUserToUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs 
+                FROM GroupOfUserToChat
+                JOIN GroupOfUserToUser ON GroupOfUserToChat.groupOfUserId = GroupOfUserToUser.groupId
+                JOIN GroupOfUser ON GroupOfUserToChat.groupOfUserId = GroupOfUser.id
+                JOIN (
+                    SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId
+                ) AS msg ON msg.chatId = GroupOfUserToChat.chatId
+                WHERE GroupOfUserToUser.userId = %s
+            ) AS groupStuff ON Chat.id = groupStuff.chatId 
+            WHERE Chat.chatType = 'Group'
+        )
+        UNION
+        (
+            SELECT Chat.id, CONCAT(otherUser.fname, ' ', otherUser.lname) AS name, Chat.chatType, 
+                msg.lastMsgId, 
+                msg.lastMsgId IS NOT NULL AND msg.lastMsgId > 0 AND currUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs
+            FROM Chat 
+            JOIN ChatToUser AS currUser ON Chat.id = currUser.chatId
+            LEFT JOIN (
+                SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId
+            ) AS msg ON msg.chatId = currUser.chatId
+            JOIN (
+                SELECT ChatToUser.chatId, ChatToUser.lastMsgSeen, User.fname, User.lname
+                FROM ChatToUser 
+                JOIN User ON ChatToUser.userId = User.id
+                WHERE ChatToUser.userId != %s
+            ) AS otherUser ON currUser.chatId = otherUser.chatId
+            WHERE currUser.userId = %s AND Chat.chatType = 'Individual'
+        )
+        UNION
+        (
+            SELECT Chat.id, EventInfo.title AS name, Chat.chatType, msg.lastMsgId, 
+                msg.lastMsgId > 0 AND EventToUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs
+            FROM Chat
+            JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
+            JOIN Event ON Event.eventInfoId = EventInfoToChat.eventInfoId
+            JOIN EventToUser ON EventToUser.eventId = Event.id
+            JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
+            LEFT JOIN (
+                SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId
+            ) AS msg ON msg.chatId = Chat.id
+            WHERE EventToUser.userId = %s AND EventInfo.creatorId != %s
+                AND Chat.chatType = 'Event'
+        )
+        UNION
+        (
+            SELECT Chat.id, event.title AS name, Chat.chatType, msg.lastMsgId,
+                msg.lastMsgId IS NOT NULL AND (
+                    event.creatorLastMsgSeen IS NULL OR
+                    (msg.lastMsgId > 0 AND event.creatorLastMsgSeen < msg.lastMsgId)
+                ) AS unreadMsgs 
+            FROM Chat
+            JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
+            LEFT JOIN (
+                SELECT chatId, MAX(id) AS lastMsgId FROM Message GROUP BY chatId
+            ) AS msg ON msg.chatId = EventInfoToChat.chatId
+            JOIN (
+                SELECT Event.eventInfoId, Event.creatorLastMsgSeen, EventInfo.title, EventInfo.creatorId 
+                FROM Event 
+                JOIN EventInfo ON EventInfo.id = Event.eventInfoId 
+                WHERE EventInfo.creatorId = %s
+            ) AS event ON event.eventInfoId = EventInfoToChat.eventInfoId
+            WHERE Chat.chatType = 'Event'
+        );
+        """
+
+        mycursor.execute(query, (user_id, user_id, user_id, user_id, user_id, user_id))
+
         response = mycursor.fetchall()
         print(response)
         headers = mycursor.description
