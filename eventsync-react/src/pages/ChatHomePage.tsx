@@ -119,7 +119,7 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
                   }
                 }
                 const newChat: ChatDisplay = {
-                  id: chat.id,
+                  id: chat.myChatId,
                   name: chat.name,
                   unreadMsgs: chat.unreadMsgs,
                   lastMsgId: chat.lastMsgId,
