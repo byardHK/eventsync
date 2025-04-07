@@ -1931,9 +1931,9 @@ def rsvp():
                                 (SELECT eventId FROM Event WHERE eventInfoId = 
                                     (SELECT eventInfoId WHERE id = {eventId})));"""
         mycursor.execute(getLastMsgSeen)
-        insertRsvp = f"""
+        insertRsvp = """
             INSERT INTO EventToUser (userId, eventId, lastMsgSeen)
-            VALUES ('{userId}', {eventId}, @lastMsg);
+            VALUES (%s, %s, @lastMsg);
         """
         mycursor.execute(insertRsvp, (userId, eventId))
 
