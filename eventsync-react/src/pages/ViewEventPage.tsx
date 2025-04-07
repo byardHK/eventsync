@@ -258,11 +258,7 @@ function ViewEventPage() {
                     <BackButton />
                 </Box>
 
-                {event === null ? (
-                    <Typography color="white" fontWeight="bold" variant="h4" align="center" sx={{ paddingY: 10 }}>
-                        Event not found or no longer exists.
-                    </Typography>
-                ) : event ? (
+                {event ? ( 
                     <GetEvent
                         event={event}
                         initialItems={event.items}
@@ -388,7 +384,7 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
                 alignItems="center"
                 justifyContent="center"
                 width="100%"
-                paddingTop={12}
+                paddingTop={17}
                 paddingBottom={18}
             >
                 <Accordion defaultExpanded disableGutters sx={{backgroundColor: "#1c284c", width: "100%", border: "1px solid #FFF"}}>
