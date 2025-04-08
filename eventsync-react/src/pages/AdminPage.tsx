@@ -336,15 +336,35 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         const [reportCount, setReportCount] = useState<number | undefined>();
 
         async function loadMessage() {
-            const msg : Message = (await axios.get(`${BASE_URL}/get_message/${report.reportedMessageId}`)).data[0];
-            const user : User = (await axios.get(`${BASE_URL}/api/get_user/${msg.senderId}`)).data[0];
-            setMessage(msg);
-            setReportCount(user.numTimesReported);
-            console.log(res.data[0]);
-            if(res.data[0].imagePath) {
-                loadImage(res.data[0].id);
+            try {
+                // Fetch the message with the headers correctly passed as the second argument
+                const msg: Message = await axios.get(`${BASE_URL}/get_message/${report.reportedMessageId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const sender = msg.data[0].senderId
+                if (!sender){
+                    return;
+                }
+                // Fetch the user using msg.data[0].senderId (or adjust if msg.data is structured differently)
+                const user: User = await axios.get(`${BASE_URL}/api/get_user/${sender}`, {
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+        
+                // Set the state with the retrieved message and user report count
+                setMessage(msg.data[0]);
+                setReportCount(user.numTimesReported);
+            } catch (error) {
+                console.error("Error loading message or user:", error);
             }
         }
+        
 
         async function loadImage(id: number) {
             try {
@@ -352,6 +372,7 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
                     responseType: 'blob',
                     headers: {
                         'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json'                       
                     }
                 });
                 const blob = new Blob([response.data], { type: 'image/jpeg' });
@@ -454,6 +475,9 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         const [reportCount, setReportCount] = useState<number | undefined>(); 
 
         async function loadGroup() {
+            if(!report.reportedGroupId){
+                return;
+            }
             const group = (await axios.get(
                 `${BASE_URL}/get_group/${report.reportedGroupId}`,
                 {
@@ -463,8 +487,16 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
                     }
                 }
             )).data;
-            const user : User = (await axios.get(`${BASE_URL}/api/get_user/${group.creatorId}`)).data[0];
+            const user : User = (await axios.get(`${BASE_URL}/api/get_user/${group.creatorId}`, 
+                {
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            )).data[0];
             setGroup(group);
+
             setReportCount(user.numTimesReported);
         }
 
@@ -502,8 +534,22 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         const [reportCount, setReportCount] = useState<number | undefined>(); 
 
         async function loadEvent() {
-            const event = (await axios.get(`${BASE_URL}/get_event_info/${report.reportedEventInfoId}/`)).data[0];
-            const user : User = (await axios.get(`${BASE_URL}/api/get_user/${event.creatorId}`)).data[0];
+            const event = (await axios.get(`${BASE_URL}/get_event_info/${report.reportedEventInfoId}/`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            )).data[0];
+            const user : User = (await axios.get(`${BASE_URL}/api/get_user/${event.creatorId}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            )).data[0];
             setEventInfo(event);
             setReportCount(user.numTimesReported);
         }

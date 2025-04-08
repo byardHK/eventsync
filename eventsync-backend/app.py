@@ -2103,6 +2103,8 @@ def get_my_groups(userId):
         print(f"Error: {err}")
     return {}
 
+
+
 @app.get('/get_group/<int:groupId>')
 def get_group(groupId):
     user_email, error_response, status_code = get_authenticated_user()
@@ -2115,18 +2117,25 @@ def get_group(groupId):
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
 
-        # make sure the person is in the group
-        query = """
-            SELECT * 
-            FROM GroupOfUserToUser 
-            WHERE groupId = %s AND userId = %s;
-        """
-        mycursor.execute(query, (groupId, user_email))
+        # make sure they're an  admin
+        admin_query = "SELECT isAdmin FROM User WHERE id = %s"
+        mycursor.execute(admin_query, (user_email,))
         result = mycursor.fetchone()
+        if not result or result[0] != 1: 
+            # make sure the person is in the group if they're not an admin
+            query = """
+                SELECT * 
+                FROM GroupOfUserToUser 
+                WHERE groupId = %s AND userId = %s;
+            """
+            mycursor.execute(query, (groupId, user_email))
+            result = mycursor.fetchone()
+            print(result)
 
-        if result is None:
-            return jsonify({"error": "Unauthorized or invalid group/user association"}), 403
-       
+            if result is None:
+                print("result is none")
+                return jsonify({"error": "Unauthorized or invalid group/user association"}), 403
+
         # Get group info
         mycursor.execute(
             """
@@ -2134,6 +2143,7 @@ def get_group(groupId):
             """, (groupId,)
         )
         response = mycursor.fetchall()
+        print(response)
         headers = [x[0] for x in mycursor.description]
         group = dict(zip(headers, response[0]))
 
