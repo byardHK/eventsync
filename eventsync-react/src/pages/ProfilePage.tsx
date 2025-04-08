@@ -245,9 +245,15 @@ function ProfilePage() {
     };
 
     const goToMessages = async () => {
-        if (user) {
+        if (profileId) {
             try {
-                const response = await axios.get(`${BASE_URL}/get_individual_chat_id/${user.id}/${userId}`);
+                console.log(user);
+                const response = await axios.get(`${BASE_URL}/get_individual_chat_id/${userId}/${profileId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${userDetails?.token}`,
+                        "Content-Type": "application/json",
+                    }
+                });
                 navigate(`/viewChat/${response.data[0].chatId}`);
             } catch (error) {
                 console.error("Error redirecting to chat:", error);
