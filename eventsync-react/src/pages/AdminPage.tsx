@@ -156,7 +156,11 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         try {
             await axios.post(`${BASE_URL}/delete_report`, {
                 reportId: report.id
-            });
+            },
+            {headers: {
+                'Authorization': `Bearer ${userDetails?.token}`,
+                'Content-Type': 'application/json',
+            }});
         } catch (error) {
             console.error('Error fetching data:', error);
         }
@@ -209,7 +213,12 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         const [message, setMessage] = useState<Message>();
 
         async function loadMessage() {
-            const res = await axios.get(`${BASE_URL}/get_message/${report.reportedMessageId}`);
+            const res = await axios.get(`${BASE_URL}/get_message/${report.reportedMessageId}`,
+                {headers: {
+                'Authorization': `Bearer ${userDetails?.token}`,
+                'Content-Type': 'application/json',
+                }}
+            );
             setMessage(res.data[0]);
         }
 
@@ -238,7 +247,12 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         const [user, setUser] = useState<User>();
 
         async function loadUser() {
-            const res = await axios.get(`${BASE_URL}/api/get_user/${report.reportedUserId}`);
+            const res = await axios.get(`${BASE_URL}/api/get_user/${report.reportedUserId}`, 
+                {headers: {
+                    'Authorization': `Bearer ${userDetails?.token}`,
+                    'Content-Type': 'application/json',
+                }}
+            );
             setUser(res.data[0]);
         }
 
@@ -304,7 +318,12 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         const [eventInfo, setEventInfo] = useState<EventInfo>();
 
         async function loadEvent() {
-            const res = await axios.get(`${BASE_URL}/get_event_info/${report.reportedEventInfoId}/`);
+            const res = await axios.get(`${BASE_URL}/get_event_info/${report.reportedEventInfoId}/`,
+                {headers: {
+                    'Authorization': `Bearer ${userDetails?.token}`,
+                    'Content-Type': 'application/json',
+                }}
+            );
             setEventInfo(res.data[0]);
         }
 
@@ -338,14 +357,14 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         async function loadMessage() {
             try {
                 // Fetch the message with the headers correctly passed as the second argument
-                const msg: Message = await axios.get(`${BASE_URL}/get_message/${report.reportedMessageId}`, {
+                const msg: Message = (await axios.get(`${BASE_URL}/get_message/${report.reportedMessageId}`, {
                     headers: {
                         'Authorization': `Bearer ${userDetails.token}`,
                         'Content-Type': 'application/json'
                     }
-                });
+                })).data[0];
                 
-                const sender = msg.data[0].senderId
+                const sender = msg.senderId
                 if (!sender){
                     return;
                 }
@@ -358,7 +377,7 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
                 });
         
                 // Set the state with the retrieved message and user report count
-                setMessage(msg.data[0]);
+                setMessage(msg);
                 setReportCount(user.numTimesReported);
             } catch (error) {
                 console.error("Error loading message or user:", error);
@@ -413,7 +432,6 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
                 />   : 
                 <Typography>Loading image</Typography>}
                 </div>}
-                <Typography>{`Sent by: ${message.senderId}` }</Typography>
             </Box> :
             <Box>
                 <Typography>{`Warn the author of this message (${message.senderId})?`}</Typography>
@@ -436,8 +454,18 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
         const [reportCount, setReportCount] = useState<number | undefined>(); 
 
         async function loadUser() {
-            const userRes = (await axios.get(`${BASE_URL}/api/get_user/${report.reportedUserId}`)).data[0];
-            const user : User = (await axios.get(`${BASE_URL}/api/get_user/${userRes.id}`)).data[0];
+            const userRes = (await axios.get(`${BASE_URL}/api/get_user/${report.reportedUserId}`,
+                {headers: {
+                    'Authorization': `Bearer ${userDetails?.token}`,
+                    'Content-Type': 'application/json',
+                }}
+            )).data[0];
+            const user : User = (await axios.get(`${BASE_URL}/api/get_user/${userRes.id}`,
+                {headers: {
+                    'Authorization': `Bearer ${userDetails?.token}`,
+                    'Content-Type': 'application/json',
+                }}
+            )).data[0];
             setUser(userRes);
             setReportCount(user.numTimesReported)
         }

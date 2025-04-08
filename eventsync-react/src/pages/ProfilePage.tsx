@@ -29,7 +29,6 @@ function ProfilePage() {
     const [bioInput, setBioInput] = useState<string>(aboutMe);
     const [profileDetails, setProfileDetails] = useState<any>({});
     const [reportModalOpen, setReportModalOpen] = useState<boolean>(false);
-    const [user, setUser] = useState<User>();
     const [userTagsTrigger, setUserTagsTrigger] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
     const [isFriend, setIsFriend] = useState<boolean>(false);
@@ -247,7 +246,6 @@ function ProfilePage() {
     const goToMessages = async () => {
         if (profileId) {
             try {
-                console.log(user);
                 const response = await axios.get(`${BASE_URL}/get_individual_chat_id/${userId}/${profileId}`, {
                     headers: {
                         'Authorization': `Bearer ${userDetails?.token}`,
@@ -421,7 +419,7 @@ function ProfilePage() {
                             top: "50%",
                             left: "50%",
                             transform: "translate(-50%, -50%)",
-                            width: 400,
+                            width: 250,
                             bgcolor: "background.paper",
                             borderRadius: 2,
                             boxShadow: 24,
@@ -450,7 +448,8 @@ function ProfilePage() {
                             helperText={bioError || `${bioInput.length}/200 characters`}
                             inputProps={{ maxLength: 200 }}
                         />
-                        <Box mt={3} textAlign="center">
+                        <Box mt={3} display="flex" flexDirection="row" justifyContent="space-between">
+                        <Button variant="contained" sx={{ backgroundColor: "#1c284c", color: "white" }}onClick={()=>{setBioModalOpen(false)}}>Close</Button>
                             <Button
                                 variant="contained"
                                 sx={{ backgroundColor: "#1c284c", color: "white" }}
@@ -556,7 +555,15 @@ function ProfilePage() {
         // Render another user's profile
         <Box display="flex" flexDirection="column" alignItems="center" width="85%" maxWidth="350px" margin="auto">
             {/* Back Button */}
-            <ReportModal input={user} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="user" />
+            <ReportModal 
+                input={{
+                    id: userDetails.email,
+                    fname: userDetails.firstName,
+                    lname: userDetails.lastName,
+                    numTimesReported: userDetails.numTimesReported
+                } as User}
+                open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="user"
+            />
             <Box display="flex" flexDirection="row" justifyContent="space-between" width="100%">
                 <BackButton></BackButton>
                 <IconButton onClick={() => setReportModalOpen(true)}>

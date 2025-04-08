@@ -394,14 +394,7 @@ def add_custom_tag():
 def delete_custom_tag(tagId):
     user_email, error_response, status_code = get_authenticated_user()
     if error_response:
-        return error_response, status_code  
-
-    body = request.json
-    if not body or "userId" not in body or "name" not in body:
-        return jsonify({"error": "Missing required fields in request body"}), 400
-
-    if body["userId"].lower() != user_email.lower():
-        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+        return error_response, status_code
     
     try:
         conn = mysql.connector.connect(**db_config)
@@ -2484,8 +2477,7 @@ def reportEvent():
             INSERT INTO Report (details, reportedBy, reportedEventInfoId)
             VALUES (%s, %s, %s);
         """
-        print(reportEvent, (eventDetails, eventReportedBy, eventInfoId ))
-        mycursor.execute(reportEvent)
+        mycursor.execute(reportEvent, (eventDetails, eventReportedBy, eventInfoId))
         
         conn.commit()
         mycursor.close()

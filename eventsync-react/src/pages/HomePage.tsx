@@ -302,6 +302,7 @@ function HomePage() {
 
 function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents, afterDate, beforeDate, friends}: {searchKeyword: string, tags: string[], userTags: string[], isComingSoon: boolean, hideFullEvents: boolean, afterDate: Dayjs | null, beforeDate: Dayjs | null, friends: string[]}) {
     const [events, setEvents] = useState<EventSyncEvent[]>([]);    
+    const [eventsLoaded, setEventsLoaded] = useState<boolean>(false);
     const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [eventsPerPage] = useState(10);
@@ -321,6 +322,7 @@ function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents,
             const res: EventSyncEvent[] = response.data;
             const sortedEvents = res.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
             setEvents(sortedEvents);
+            setEventsLoaded(true);
           } catch (error) {
             console.error('Error fetching data:', error);
           }
@@ -395,13 +397,13 @@ function EventList({searchKeyword, tags, userTags, isComingSoon, hideFullEvents,
                 display="flex"
                 alignItems="center" 
                 justifyContent="center"
-                paddingBottom={2}
+                paddingBottom={7}
             >
                 { currentEvents.length === 0 ?
                     !isComingSoon ?
                         <Typography paddingTop={3} color="white">Select interests to see recommended events</Typography>
                         :
-                        <></>
+                        <Typography paddingTop={2} color="white">{eventsLoaded ? "No events match filters" : "Loading events..."}</Typography>
                     :
                     currentEvents.map((event) => (
                         <StyledCard key={event.id} event={event} viewEvent={viewEvent} showTags/>

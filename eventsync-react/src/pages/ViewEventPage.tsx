@@ -411,7 +411,7 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
                         <br></br>
                         <Box display="flex" flexDirection="row" gap={1}>
                             <LocationOnIcon style={{color:"white"}}></LocationOnIcon>
-                            <Typography sx={{color: "white"}}>{event.locationName}</Typography>
+                            <Typography sx={{color: "white", wordBreak: "break-word"}}>{event.locationName}</Typography>
                         </Box>
                         <br></br>
                         {event.creatorName ?
@@ -432,8 +432,8 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
                         >
                             <Typography sx={{color: "white"}} variant="h4" component="span">Description</Typography>
                         </AccordionSummary>
-                        <AccordionDetails>
-                            <Typography sx={{color: "white"}}>{event.description}</Typography>
+                        <AccordionDetails sx={{minHeight:"100px"}}>
+                            <Typography sx={{color: "white", wordBreak: "break-word" }}>{event.description}</Typography>
                         </AccordionDetails>
                     </Accordion>
                     :

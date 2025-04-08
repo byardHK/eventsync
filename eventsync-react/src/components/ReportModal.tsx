@@ -55,8 +55,8 @@ async function reportMessage(message: Message, currentUserId: string, reportDeta
 };
 
 async function reportUser(user: User, currentUserId: string, reportDetails: string, token: string|null) {
-    console.log(user);
     try {
+        console.log(user);
         const response = await axios.post(`${BASE_URL}/reportUser`, {
             details: reportDetails,
             reportedBy: currentUserId,
