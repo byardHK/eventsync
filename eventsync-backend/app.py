@@ -1692,72 +1692,79 @@ def edit_event(eventId):
 
             reqStrFormat = '%Y-%m-%dT%H:%M:%S.%fZ'
             dateCreated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            curStartDate = datetime.strptime(data["startDateTime"], reqStrFormat)
-            curEndDate = datetime.strptime(data["endDateTime"], reqStrFormat)
+
+            # Fetch all existing events for the recurrence
             mycursor.execute("""
-                    SELECT id, startTime, endTime
-                    FROM Event
-                    WHERE eventInfoId = %s
-                    ORDER BY startTime
-                """, (eventInfoId,))
+                SELECT id, startTime, endTime
+                FROM Event
+                WHERE eventInfoId = %s
+                ORDER BY startTime
+            """, (eventInfoId,))
             existing_events = mycursor.fetchall()
+
+            # Use the first event in the series to determine the startDate
+            if existing_events:
+                first_event = existing_events[0]
+                curStartDate = first_event[1]
+                curEndDate = first_event[2]
+            else:
+                curStartDate = datetime.strptime(data["startDateTime"], reqStrFormat)
+                curEndDate = datetime.strptime(data["endDateTime"], reqStrFormat)
+
+            endDate = datetime.strptime(data["endRecurDateTime"], reqStrFormat) if data["endRecurDateTime"] else curEndDate
+            delta = data["recurFrequency"]
+            duration = curEndDate - curStartDate
+
+            if delta == "Monthly":
+                weekdays = [MO, TU, WE, TH, FR, SA, SU]
+                dayOfWeek = weekdays[curStartDate.weekday()]
+                nthWeekday = (curStartDate.day // 7) + 1
+
+            itemIds = []
+            for item in data["items"]:
+                mycursor.execute("INSERT INTO Item (name, creatorId) VALUES (%s, %s)", (item["description"], "minnichjs21@gcc.edu"))
+                mycursor.execute("SELECT LAST_INSERT_ID()")
+                itemIds.append((mycursor.fetchone()[0], item))
+
             existing_event_index = 0
-
-            if len(existing_events) > 1:
-                endDate = datetime.strptime(data["endRecurDateTime"], reqStrFormat) if data["endRecurDateTime"] else existing_events[-1][2]
-
-                delta = data["recurFrequency"] or mycursor.execute("SELECT recurFrequency FROM EventInfo WHERE id = %s", (eventInfoId,))
-
-                duration = curEndDate - curStartDate
-                if delta == "Monthly":
-                    weekdays = [MO, TU, WE, TH, FR, SA, SU]
-                    dayOfWeek = weekdays[curStartDate.weekday()]
-                    nthWeekday = (curStartDate.day // 7) + 1
-
-                itemIds = []
-                for item in data["items"]:
-                    mycursor.execute("INSERT INTO Item (name, creatorId) VALUES (%s, %s)", (item["description"], "minnichjs21@gcc.edu"))
-                    mycursor.execute("SELECT LAST_INSERT_ID()")
-                    itemIds.append((mycursor.fetchone()[0], item))
-
-                while curStartDate <= endDate:
-                    if existing_event_index < len(existing_events):
-                        existing_event = existing_events[existing_event_index]
-                        mycursor.execute("""
-                            UPDATE Event
-                            SET startTime = %s, endTime = %s
-                            WHERE id = %s
-                        """, (curStartDate.strftime("%Y-%m-%d %H:%M:%S"), curEndDate.strftime("%Y-%m-%d %H:%M:%S"), existing_event[0]))
-                        existing_event_index += 1
-                    else:
-                        mycursor.execute("""
-                            INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views, numRsvps)
-                            VALUES (%s, %s, %s, %s, 0, 0)
-                        """, (eventInfoId, curStartDate.strftime("%Y-%m-%d %H:%M:%S"), curEndDate.strftime("%Y-%m-%d %H:%M:%S"), dateCreated))
-                        mycursor.execute("SELECT LAST_INSERT_ID()")
-                        new_event_id = mycursor.fetchone()[0]
-                        for el in itemIds:
-                            mycursor.execute("""
-                                INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
-                                VALUES (%s, %s, %s, 0)
-                            """, (new_event_id, el[0], el[1]["amountNeeded"]))
-
-                    if delta == "Daily":
-                        curStartDate += timedelta(days=1)
-                    elif delta == "Weekly":
-                        curStartDate += timedelta(weeks=1)
-                    elif delta == "Monthly":
-                        curStartDate = (curStartDate + relativedelta(months=1)).replace(day=1)
-                        curStartDate += relativedelta(weekday=dayOfWeek(nthWeekday))
-                    else:
-                        return "Invalid recurring frequency", 400
-                    curEndDate = curStartDate + duration
-
+            while curStartDate <= endDate:
                 if existing_event_index < len(existing_events):
-                    for event in existing_events[existing_event_index:]:
-                        mycursor.execute("DELETE FROM EventToItem WHERE eventId = %s", (event[0],))
-                        mycursor.execute("DELETE FROM EventToUser WHERE eventId = %s", (event[0],))
-                        mycursor.execute("DELETE FROM Event WHERE id = %s", (event[0],))
+                    existing_event = existing_events[existing_event_index]
+                    mycursor.execute("""
+                        UPDATE Event
+                        SET startTime = %s, endTime = %s
+                        WHERE id = %s
+                    """, (curStartDate.strftime("%Y-%m-%d %H:%M:%S"), curEndDate.strftime("%Y-%m-%d %H:%M:%S"), existing_event[0]))
+                    existing_event_index += 1
+                else:
+                    mycursor.execute("""
+                        INSERT INTO Event (eventInfoId, startTime, endTime, eventCreated, views, numRsvps)
+                        VALUES (%s, %s, %s, %s, 0, 0)
+                    """, (eventInfoId, curStartDate.strftime("%Y-%m-%d %H:%M:%S"), curEndDate.strftime("%Y-%m-%d %H:%M:%S"), dateCreated))
+                    mycursor.execute("SELECT LAST_INSERT_ID()")
+                    new_event_id = mycursor.fetchone()[0]
+                    for el in itemIds:
+                        mycursor.execute("""
+                            INSERT INTO EventToItem (eventId, itemId, amountNeeded, quantitySignedUpFor)
+                            VALUES (%s, %s, %s, 0)
+                        """, (new_event_id, el[0], el[1]["amountNeeded"]))
+
+                if delta == "Daily":
+                    curStartDate += timedelta(days=1)
+                elif delta == "Weekly":
+                    curStartDate += timedelta(weeks=1)
+                elif delta == "Monthly":
+                    curStartDate = (curStartDate + relativedelta(months=1)).replace(day=1)
+                    curStartDate += relativedelta(weekday=dayOfWeek(nthWeekday))
+                else:
+                    return "Invalid recurring frequency", 400
+                curEndDate = curStartDate + duration
+
+            if existing_event_index < len(existing_events):
+                for event in existing_events[existing_event_index:]:
+                    mycursor.execute("DELETE FROM EventToItem WHERE eventId = %s", (event[0],))
+                    mycursor.execute("DELETE FROM EventToUser WHERE eventId = %s", (event[0],))
+                    mycursor.execute("DELETE FROM Event WHERE id = %s", (event[0],))
 
                 mycursor.execute("DELETE FROM EventInfoToTag WHERE eventInfoId = %s", (eventInfoId,))
                 for tag in data["tags"]:
@@ -1783,10 +1790,10 @@ def edit_event(eventId):
                         VALUES (%s, %s, %s, 0)
                     """, (eventId, el[0], el[1]["amountNeeded"]))
 
-                mycursor.execute("DELETE FROM EventInfoToTag WHERE eventInfoId = %s", (eventInfoId,))
-                for tag in data["tags"]:
-                    mycursor.execute("UPDATE Tag SET numTimesUsed = numTimesUsed + 1 WHERE name = %s", (tag["name"],))
-                    mycursor.execute("INSERT INTO EventInfoToTag(eventInfoId, tagId) VALUES (%s, %s)", (eventInfoId, tag["id"]))
+            mycursor.execute("DELETE FROM EventInfoToTag WHERE eventInfoId = %s", (eventInfoId,))
+            for tag in data["tags"]:
+                mycursor.execute("UPDATE Tag SET numTimesUsed = numTimesUsed + 1 WHERE name = %s", (tag["name"],))
+                mycursor.execute("INSERT INTO EventInfoToTag(eventInfoId, tagId) VALUES (%s, %s)", (eventInfoId, tag["id"]))
 
         else:
             currentDateTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

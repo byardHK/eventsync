@@ -225,17 +225,24 @@ function ViewEventPage() {
 
     async function navigateToChat() {
         try {
-            if(event) {
-                const response = await axios.get(`${BASE_URL}/get_event_chat_id/${event.id}/`,{
+            if (event) {
+                const response = await axios.get(`${BASE_URL}/get_event_chat_id/${event.id}/`, {
                     headers: {
                         'Authorization': `Bearer ${userDetails.token}`,
                         'Content-Type': 'application/json',
                     },
                 });
-                navigate(`/viewChat/${response.data[0].chatId}`);
+
+                if (Array.isArray(response.data) && response.data.length > 0) {
+                    navigate(`/viewChat/${response.data[0].chatId}`);
+                } else {
+                    console.error('No chat ID found for the event.');
+                    alert('No chat is associated with this event.');
+                }
             }
         } catch (error) {
             console.error('Error navigating to event chat:', error);
+            alert('Failed to navigate to the event chat.');
         }
     }
 
