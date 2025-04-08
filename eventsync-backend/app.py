@@ -1809,6 +1809,20 @@ def edit_event(eventId):
             mycursor.execute(eventInfoInsert, eventInfoValues)
             eventInfoId = mycursor.lastrowid
 
+            # Create chat for event
+            createChat = """
+                INSERT INTO Chat (name, chatType) VALUES (%s, 'Event');
+            """
+            mycursor.execute(createChat, (data["title"],))  # Make sure to pass as a tuple
+            chatId = mycursor.lastrowid
+
+            # Add relationship from chat to eventInfo
+            addEventInfoToChat = """
+                INSERT INTO EventInfoToChat (chatId, eventInfoId) 
+                VALUES (%s, %s);
+            """
+            mycursor.execute(addEventInfoToChat, (chatId, eventInfoId))
+
             mycursor.execute("""
                 UPDATE Event
                 SET eventInfoId = %s, startTime = %s, endTime = %s
@@ -1924,9 +1938,9 @@ def rsvp():
                                 (SELECT eventId FROM Event WHERE eventInfoId = 
                                     (SELECT eventInfoId WHERE id = {eventId})));"""
         mycursor.execute(getLastMsgSeen)
-        insertRsvp = f"""
+        insertRsvp = """
             INSERT INTO EventToUser (userId, eventId, lastMsgSeen)
-            VALUES ('{userId}', {eventId}, @lastMsg);
+            VALUES (%s, %s, @lastMsg);
         """
         mycursor.execute(insertRsvp, (userId, eventId))
 
@@ -2806,8 +2820,9 @@ def get_my_chats(user_id: str):
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
         query = """
-        (
-            SELECT Chat.id, groupStuff.groupName AS name, Chat.chatType, 
+        SELECT * FROM
+        ((
+            SELECT Chat.id AS myChatId, groupStuff.groupName AS name, Chat.chatType, 
                 groupStuff.lastMsgId, groupStuff.unreadMsgs
             FROM Chat
             JOIN (
@@ -2826,7 +2841,7 @@ def get_my_chats(user_id: str):
         )
         UNION
         (
-            SELECT Chat.id, CONCAT(otherUser.fname, ' ', otherUser.lname) AS name, Chat.chatType, 
+            SELECT Chat.id AS myChatId, CONCAT(otherUser.fname, ' ', otherUser.lname) AS name, Chat.chatType, 
                 msg.lastMsgId, 
                 msg.lastMsgId IS NOT NULL AND msg.lastMsgId > 0 AND currUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs
             FROM Chat 
@@ -2844,7 +2859,7 @@ def get_my_chats(user_id: str):
         )
         UNION
         (
-            SELECT Chat.id, EventInfo.title AS name, Chat.chatType, msg.lastMsgId, 
+            SELECT Chat.id AS myChatId, EventInfo.title AS name, Chat.chatType, msg.lastMsgId, 
                 msg.lastMsgId > 0 AND EventToUser.lastMsgSeen < msg.lastMsgId AS unreadMsgs
             FROM Chat
             JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
@@ -2859,7 +2874,7 @@ def get_my_chats(user_id: str):
         )
         UNION
         (
-            SELECT Chat.id, event.title AS name, Chat.chatType, msg.lastMsgId,
+            SELECT Chat.id AS myChatId, event.title AS name, Chat.chatType, msg.lastMsgId,
                 msg.lastMsgId IS NOT NULL AND (
                     event.creatorLastMsgSeen IS NULL OR
                     (msg.lastMsgId > 0 AND event.creatorLastMsgSeen < msg.lastMsgId)
@@ -2876,7 +2891,8 @@ def get_my_chats(user_id: str):
                 WHERE EventInfo.creatorId = %s
             ) AS event ON event.eventInfoId = EventInfoToChat.eventInfoId
             WHERE Chat.chatType = 'Event'
-        );
+        )) as chats
+        LEFT JOIN Message ON Message.id = chats.lastMsgId
         """
 
         mycursor.execute(query, (user_id, user_id, user_id, user_id, user_id, user_id))

@@ -16,7 +16,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import Message from '../types/Message';
 import dayjs, { Dayjs } from "dayjs";
 import CircleIcon from '@mui/icons-material/Circle';
-import chatType from '../types/chatType';
+import ChatAPI from '../types/ChatAPI';
 
 
 function ChatHomePage() {
@@ -98,28 +98,37 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
           }
           
           try {
-            var response = await axios.get<ChatDisplay[]>(`${BASE_URL}/get_my_chats/${currentUserId}`,{
+            var response = await axios.get<ChatAPI[]>(`${BASE_URL}/get_my_chats/${currentUserId}`,{
               headers: {
                   'Authorization': `Bearer ${userDetails.token}`,
                   'Content-Type': 'application/json',
               },
           });
+          var chats: ChatDisplay[] = []; 
             for(var chat of response.data) {
-              if(chat.lastMsgId && chat.lastMsgId > 0) {
-                try{
-                  const msgResponse = await axios.get<Message[]>(`${BASE_URL}/get_message/${chat.lastMsgId}`,{
-                    headers: {
-                        'Authorization': `Bearer ${userDetails.token}`,
-                        'Content-Type': 'application/json',
-                    },
-                  }); 
-                  chat.lastMsg = msgResponse.data[0];
-              }catch(error) {
-                console.error('Error fetching data:', error);
+                var newMessage: Message | null = null;
+                if(chat.id) {
+                  newMessage = {
+                    id: chat.id,
+                    senderId: chat.senderId,
+                    messageContent: chat.messageContent,
+                    imagePath: chat.imagePath,
+                    groupId: chat.groupId,
+                    chatId: chat.chatId,
+                    timeSent: chat.timeSent
+                  }
                 }
+                const newChat: ChatDisplay = {
+                  id: chat.myChatId,
+                  name: chat.name,
+                  unreadMsgs: chat.unreadMsgs,
+                  lastMsgId: chat.lastMsgId,
+                  lastMsg: newMessage,
+                  chatType: chat.chatType
+                }
+                chats.push(newChat);
             };
-            }
-            setChats(sortedChats(response.data));
+            setChats(sortedChats(chats));
             setLoading(false);
             console.log(response);
             
