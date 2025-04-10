@@ -22,7 +22,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
-# CORS(app, origins=["http://localhost:3000"])
+#CORS(app, origins=["http://localhost:3000"])
 
 
 db_config = {
@@ -110,9 +110,6 @@ def update_user_profile():
     body = request.json
     if not body or "userId" not in body:
         return jsonify({"error": "Missing required fields in request body"}), 400
-    
-    print("body", body["userId"].lower())
-    print("token",  user_email.lower())
 
     if body["userId"].lower() != user_email.lower():
         return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
@@ -396,9 +393,28 @@ def delete_custom_tag(tagId):
     if error_response:
         return error_response, status_code
     
+    if not user_email:
+        return jsonify({"error": "Missing required fields in request body"}), 400
+
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
+
+        # check to see that it's the user's tag
+        query = """ 
+            select userId from Tag where id = %s;
+        """
+        mycursor.execute(query, (tagId,))
+        result = mycursor.fetchone()
+
+        owner_id = result[0]
+
+        if owner_id.lower() != user_email.lower():
+            mycursor.close()
+            conn.close()
+            print("here")
+            return jsonify({"error": "Unauthorized: tag does not belong to user"}), 403
+
         mycursor.execute("DELETE FROM UserToTag WHERE tagId = %s;", (tagId,))
         mycursor.execute("DELETE FROM EventInfoToTag WHERE tagId = %s;", (tagId,))
         mycursor.execute("DELETE FROM Tag WHERE id = %s;", (tagId,))
