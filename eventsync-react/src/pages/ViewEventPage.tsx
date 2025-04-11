@@ -289,6 +289,7 @@ function ViewEventPage() {
                     <RsvpModal />
                     <RsvpListModal eventId={intEventId} />
                     <Button
+                        disabled={!isRsvped}
                         variant="contained"
                         onClick={navigateToChat}
                         sx={{ width: "100px", height: "60px", backgroundColor: "#71A9F7", color: "black" }}
