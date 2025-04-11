@@ -204,11 +204,15 @@ function StyledCard({chat, viewChat, chatName} : {chat: ChatDisplay, viewChat: (
 
     }));
 
-  function getNameStr(name: String) {
-    if(name.length < 16) {
+  function getMessageStr(name: string | null) {
+    if(!name) {
+      return "";
+    }
+
+    if(name.length < 45) {
         return name
     }
-    return name.substring(0, 13) + "..."
+    return name.substring(0, 42) + "..."
   }
 
   return (
@@ -235,7 +239,7 @@ function StyledCard({chat, viewChat, chatName} : {chat: ChatDisplay, viewChat: (
                   </Box>
                   <Box width="70%">
                     {chat.lastMsg ? 
-                    <Typography>{chat.lastMsg.messageContent}</Typography> // {chat.lastMsg.messageContent}
+                    <Typography>{getMessageStr(chat.lastMsg.messageContent)}</Typography> // {chat.lastMsg.messageContent}
                       : 
                     <Typography>No messages</Typography>}
                   </Box>

@@ -183,7 +183,14 @@ function SplitButton({group, onSave, currentUserId}: SplitButtonProps) {
             await axios.post(`${BASE_URL}/remove_user_from_group`, {
                 currentUserId: currentUserId,
                 groupId: group.id
-            });
+            },
+            {
+                headers: {
+                    'Authorization': `Bearer ${userDetails.token}`,
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
         } catch (error) {
             console.error('Error fetching data:', error);
         }

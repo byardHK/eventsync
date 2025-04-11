@@ -391,8 +391,8 @@ def add_custom_tag():
 def delete_custom_tag(tagId):
     user_email, error_response, status_code = get_authenticated_user()
     if error_response:
-        return error_response, status_code  
-
+        return error_response, status_code
+    
     if not user_email:
         return jsonify({"error": "Missing required fields in request body"}), 400
 
@@ -2493,8 +2493,7 @@ def reportEvent():
             INSERT INTO Report (details, reportedBy, reportedEventInfoId)
             VALUES (%s, %s, %s);
         """
-        print(reportEvent, (eventDetails, eventReportedBy, eventInfoId ))
-        mycursor.execute(reportEvent)
+        mycursor.execute(reportEvent, (eventDetails, eventReportedBy, eventInfoId))
         
         conn.commit()
         mycursor.close()
