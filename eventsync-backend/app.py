@@ -22,7 +22,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
-#CORS(app, origins=["http://localhost:3000"])
+# CORS(app, origins=["http://localhost:3000"])
 
 
 db_config = {
@@ -2495,6 +2495,11 @@ def reportEvent():
         """
         mycursor.execute(reportEvent, (eventDetails, eventReportedBy, eventInfoId))
         
+        incrementNumTimesReported = """
+            UPDATE (EventInfo JOIN User ON EventInfo.creatorId = User.id) SET User.numTimesReported = User.numTimesReported+1 WHERE EventInfo.id = %s;
+        """
+        mycursor.execute(incrementNumTimesReported, (eventInfoId,))
+
         conn.commit()
         mycursor.close()
         conn.close()
@@ -2537,6 +2542,11 @@ def reportGroup():
         """
         mycursor.execute(reportGroup, (groupDetails, groupReportedBy, reportedGroupId))
 
+        incrementNumTimesReported = """
+            UPDATE (GroupOfUser JOIN User ON GroupOfUser.creatorId = User.id) SET User.numTimesReported = User.numTimesReported+1 WHERE GroupOfUser.id = %s;
+        """
+        mycursor.execute(incrementNumTimesReported, (reportedGroupId,))
+
         conn.commit()
         mycursor.close()
         conn.close()
@@ -2573,6 +2583,12 @@ def reportMessage():
             VALUES (%s, %s, %s);
         """
         mycursor.execute(reportMessage, (messageDetails, messageReportedBy, messageId))
+
+        incrementNumTimesReported = """
+            UPDATE (Message JOIN User ON Message.senderId = User.id) SET User.numTimesReported = User.numTimesReported+1 WHERE Message.id = %s;
+        """
+        mycursor.execute(incrementNumTimesReported, (messageId,))
+
         conn.commit()
         mycursor.close()
         conn.close()
@@ -2609,6 +2625,13 @@ def reportUser():
             VALUES (%s, %s, %s);
         """
         mycursor.execute(reportUser, (userDetails, userReportedBy, userId))
+
+        
+        incrementNumTimesReported = """
+            UPDATE User SET User.numTimesReported = User.numTimesReported+1 WHERE User.id = %s;
+        """
+        mycursor.execute(incrementNumTimesReported, (userId,))
+
         conn.commit()
         mycursor.close()
         conn.close()

@@ -369,12 +369,12 @@ function AdminReportCard({report, reloadReports, userDetails} : AdminReportCardP
                     return;
                 }
                 // Fetch the user using msg.data[0].senderId (or adjust if msg.data is structured differently)
-                const user: User = await axios.get(`${BASE_URL}/api/get_user/${sender}`, {
+                const user: User = (await axios.get(`${BASE_URL}/api/get_user/${sender}`, {
                     headers: {
                         'Authorization': `Bearer ${userDetails.token}`,
                         'Content-Type': 'application/json'
                     }
-                });
+                })).data[0];
         
                 // Set the state with the retrieved message and user report count
                 setMessage(msg);
