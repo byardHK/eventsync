@@ -328,6 +328,7 @@ function FriendsList({ friends, refreshData }: { friends: EventSyncUser[]; refre
 
 function UserList({ users, refreshData, onAddFriend }: { users: EventSyncUser[]; refreshData: () => void; onAddFriend: () => void }) {
     const { userDetails } = useUser();
+    const navigate = useNavigate();
 
     const addFriend = async (userId: string, friendId: string) => {
         try {
@@ -348,6 +349,7 @@ function UserList({ users, refreshData, onAddFriend }: { users: EventSyncUser[];
         <Box display="flex" flexDirection="column" gap={2} minHeight="350px">
             {Array.isArray(users) && users.map((user, index) => (
                 <Card
+                    onClick={() => {navigate(`/profile/${user.id}`)}}
                     key={index}
                     sx={{
                         width: "200px", 
@@ -377,6 +379,7 @@ function UserList({ users, refreshData, onAddFriend }: { users: EventSyncUser[];
 
 function RequestsList({ requests, refreshData, onRequestAction }: { requests: EventSyncUser[]; refreshData: () => void; onRequestAction: () => void }) {
     const { userDetails } = useUser();
+    const navigate = useNavigate();
 
     const acceptFriend = async (userId: string, friendId: string) => {
         try {
@@ -414,6 +417,7 @@ function RequestsList({ requests, refreshData, onRequestAction }: { requests: Ev
             {Array.isArray(requests) && requests.map((user, index) => (
                 <Card
                     key={index}
+                    onClick={() => {navigate(`/profile/${user.id}`)}}
                     sx={{
                         width: "300px", 
                         padding: "10px", 
@@ -440,6 +444,7 @@ function RequestsList({ requests, refreshData, onRequestAction }: { requests: Ev
 
 function PendingList({ pending, refreshData }: { pending: EventSyncUser[]; refreshData: () => void }) {
     const { userDetails } = useUser();
+    const navigate = useNavigate();
 
     const removeRequest = async (userId: string, friendId: string) => {
         try {
@@ -459,6 +464,7 @@ function PendingList({ pending, refreshData }: { pending: EventSyncUser[]; refre
         <Box>
             {Array.isArray(pending) && pending.map((user, index) => (
                 <Card
+                    onClick={() => {navigate(`/profile/${user.id}`)}}
                     key={index}
                     sx={{
                         width: "300px", 

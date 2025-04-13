@@ -209,10 +209,10 @@ function StyledCard({chat, viewChat, chatName} : {chat: ChatDisplay, viewChat: (
       return "";
     }
 
-    if(name.length < 45) {
+    if(name.length < 35) {
         return name
     }
-    return name.substring(0, 42) + "..."
+    return name.substring(0, 32) + "..."
   }
 
   return (
@@ -239,7 +239,10 @@ function StyledCard({chat, viewChat, chatName} : {chat: ChatDisplay, viewChat: (
                   </Box>
                   <Box width="70%">
                     {chat.lastMsg ? 
-                    <Typography>{getMessageStr(chat.lastMsg.messageContent)}</Typography> // {chat.lastMsg.messageContent}
+                      !chat.lastMsg.imagePath ?
+                        <Typography sx={{wordBreak: "break-word"}}>{getMessageStr(chat.lastMsg.messageContent)}</Typography> // {chat.lastMsg.messageContent}
+                        :
+                        <Typography>Image</Typography>
                       : 
                     <Typography>No messages</Typography>}
                   </Box>

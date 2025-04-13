@@ -402,7 +402,7 @@ function ProfilePage() {
                             alignItems: 'center',
                         }}
                     >
-                        <Typography>{aboutMe || ""}</Typography>
+                        <Typography sx={{wordBreak: "break-word"}}>{aboutMe || ""}</Typography>
                     </Box>
                 </Box>
 
@@ -557,10 +557,7 @@ function ProfilePage() {
             {/* Back Button */}
             <ReportModal 
                 input={{
-                    id: userDetails.email,
-                    fname: userDetails.firstName,
-                    lname: userDetails.lastName,
-                    numTimesReported: userDetails.numTimesReported
+                    id: profileDetails.email
                 } as User}
                 open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="user"
             />
@@ -572,7 +569,7 @@ function ProfilePage() {
             </Box>
 
             {/* Profile Card */}
-            <Card sx={{ width: '100%', height: "80vh", marginTop: '16px', borderRadius: '16px', padding: '16px', backgroundColor: '#f9f9f9' }}>
+            <Card sx={{ width: '100%', height: "85vh", marginTop: '16px', borderRadius: '16px', padding: '16px', backgroundColor: '#f9f9f9' }}>
                 {/* Profile Picture & Name */}
                 <Box textAlign="center" mt={2}>
                     <Box
@@ -607,7 +604,7 @@ function ProfilePage() {
                             alignItems: 'center'
                         }}
                     >
-                        <Typography>{profileDetails.bio}</Typography>
+                        <Typography sx={{wordBreak: "break-word"}}>{profileDetails.bio}</Typography>
                     </Box>
                 </Box>
 
@@ -624,7 +621,7 @@ function ProfilePage() {
                     <br />
                 </Box>
                     {isFriend &&
-                <Box width="100%" mt={2} textAlign='center' paddingTop={5}>
+                <Box width="100%" mt={2} textAlign='center' paddingTop={2}>
                     <Button sx={{ backgroundColor: "#1c284c" }} variant="contained" onClick={goToMessages}>
                         Message
                     </Button>

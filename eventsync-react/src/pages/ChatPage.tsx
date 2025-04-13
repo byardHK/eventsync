@@ -175,6 +175,7 @@ function ChatPage() {
             flexDirection="column"
             style={{maxHeight: '89vh', overflow: 'auto'}}
             paddingTop={10}
+            paddingBottom={5}
         >
             <Box display="flex" flexDirection="row" alignItems="center" justifyContent="flex-start" className="chat-header" sx={{ borderBottom: "solid", borderBottomColor: "#FFFFFF", borderBottomWidth: "1px"}} style={{ position: 'fixed', paddingTop: "10px", backgroundColor: "#1c284c", width: "100%", right: 0, left: 0, marginRight: "0", marginLeft: "auto"}}>
                 <BackButton/>
@@ -245,7 +246,7 @@ const ChatList = ({messages, currentUserId, groupChat, getName}: { messages: Mes
                 {currentUserId === message.senderId ? (
                 <ListItemButton className="self">
                     <div className="msg">
-                        <ListItemText className="message">{message.messageContent}</ListItemText>
+                        <ListItemText sx={{wordBreak: "break-word"}} className="message">{message.messageContent}</ListItemText>
                         {message.id && message.imagePath &&
                         <div>
                             <ImageComponent id={message.id} />
