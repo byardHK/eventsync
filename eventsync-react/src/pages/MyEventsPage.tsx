@@ -91,29 +91,31 @@ type EventListsProps = {
 };
 
 function EventLists({showingAttending}: EventListsProps) {
-    const [attendingEvents, setAttendingEvents] = useState<EventSyncEvent[] | undefined>();  
-    const [hostingEvents, setHostingEvents] = useState<EventSyncEvent[] | undefined>();    
+    const [attendingEvents, setAttendingEvents] = useState<EventSyncEvent[] | undefined>();
+    const [hostingEvents, setHostingEvents] = useState<EventSyncEvent[] | undefined>();
     const [eventsChanged, setEventsChanged] = useState<Boolean>(false);
     const { userDetails } = useUser();
     const currentUserId = userDetails.email;
 
     useEffect(() => {
         const fetchData = async () => {
-          try {
-            const response = await axios.get(`${BASE_URL}/get_my_events/${currentUserId}`,{
-                headers: {
-                    'Authorization': `Bearer ${userDetails.token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-            const res: EventSyncMyEvents = response.data;
-            console.log(res);
-            setAttendingEvents(res.attending);
-            setHostingEvents(res.hosting);
-            
-          } catch (error) {
-            console.error('Error fetching data:', error);
-          }
+            try {
+                const response = await axios.get(`${BASE_URL}/get_my_events/${currentUserId}`,{
+                    headers: {
+                        'Authorization': `Bearer ${userDetails.token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                const res: EventSyncMyEvents = response.data;
+                console.log(res);
+                const sortedAttending = res.attending.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+                const sortedHosting = res.hosting.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+
+                setAttendingEvents(sortedAttending);
+                setHostingEvents(sortedHosting);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
         };
         fetchData();
         setEventsChanged(false);
@@ -132,17 +134,17 @@ function EventLists({showingAttending}: EventListsProps) {
                 alignItems="center"
                 sx={{
                     paddingTop: showingAttending
-                       ? 8
-                       : 14
-                  }}
+                        ? 8
+                        : 14
+                }}
                 paddingBottom={8}
             >
                 {showingAttending ?
                     <EventList events={attendingEvents ? attendingEvents : []} canDeleteEvents={false} setEventsChanged={setEventsChanged} loading={!attendingEvents}/> :
-                    <EventList events={hostingEvents ? hostingEvents : []} canDeleteEvents={true} setEventsChanged={setEventsChanged} loading={!hostingEvents}/>              
+                    <EventList events={hostingEvents ? hostingEvents : []} canDeleteEvents={true} setEventsChanged={setEventsChanged} loading={!hostingEvents}/>
                 }
             </Box>
-        </Box> 
+        </Box>
     );
 };
 
