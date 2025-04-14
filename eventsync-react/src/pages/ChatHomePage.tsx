@@ -154,10 +154,10 @@ function ChatList({searchKeyword}: {searchKeyword: string}) {
         if(!b.lastMsg) {
           return 1
         }
-        if (a.lastMsg.timeSent > b.lastMsg.timeSent) {
+        if (dayjs(a.lastMsg.timeSent) > dayjs(b.lastMsg.timeSent)) {
           return -1;
         }
-        if (a.lastMsg.timeSent > b.lastMsg.timeSent) {
+        if (dayjs(a.lastMsg.timeSent) > dayjs(b.lastMsg.timeSent)) {
           return 1;
         }
         return 0;
