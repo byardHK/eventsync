@@ -6,12 +6,14 @@ import { useLocation } from "react-router-dom";
 
 function BackButton() {
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleBackClick = () => {
-        if (navigate.length == 0) {
-            navigate('/'); 
-        } else {
+        console.log(navigate.length);
+        if (location.key !== 'default') {
             navigate(-1);
+        } else {
+            navigate('/'); 
         }
     };
 
