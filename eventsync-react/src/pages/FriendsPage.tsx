@@ -364,9 +364,10 @@ function UserList({ users, refreshData, onAddFriend }: { users: EventSyncUser[];
                     {`${user.fname} ${user.lname}`}
                     <Button 
                         variant="contained" sx={{backgroundColor: "#1c284c", color: "white"}} 
-                        onClick={() => {
-                            userDetails.email && addFriend(userDetails.email, user.id)
-                            onAddFriend();
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                userDetails.email && addFriend(userDetails.email, user.id)
+                                onAddFriend();
                         }}
                     >
                         <AddIcon/>
