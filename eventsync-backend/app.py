@@ -21,8 +21,8 @@ UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
-# CORS(app, origins=["http://localhost:3000"])
+#CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
+CORS(app, origins=["http://localhost:3000"])
 
 
 db_config = {
@@ -968,49 +968,64 @@ def add_friend(userId, friendId):
 def remove_friend(userId, friendId):
     user_email, error_response, status_code = get_authenticated_user()
     if error_response:
-        return error_response, status_code  
+        return error_response, status_code
 
     if userId.lower() != user_email.lower():
         return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
-    
+
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
 
-        query = """SET @chatId = (SELECT ChatToUser.chatId FROM ChatToUser 
-            JOIN (SELECT * FROM ChatToUser WHERE
-                userId = %s OR userId = %s ) AS table2
-            ON ChatToUser.chatId = table2.chatId
-            WHERE ChatToUser.userId = %s OR ChatToUser.userId = %s);
-                """
-        mycursor.execute(query, (userId, userId, friendId, friendId))
-        mycursor.execute("DELETE FROM Chat WHERE id = @chatId")
-        mycursor.execute("DELETE FROM ChatToUser WHERE chatId = @chatId")
-        mycursor.execute("SELECT id FROM Message WHERE chatId = @chatId")
-        msg_ids = mycursor.fetchall()
-        delete_uploads(msg_ids)
-        removeMessages = f"""
-            DELETE FROM Message WHERE chatId = @chatId;
+        # 1. Find 1-on-1 chats between the two users
+        chat_id_query = """
+            SELECT chatId
+            FROM ChatToUser
+            GROUP BY chatId
+            HAVING COUNT(*) = 2 AND
+                SUM(userId = %s OR userId = %s) = 2
         """
-        mycursor.execute(removeMessages)
+        mycursor.execute(chat_id_query, (userId, friendId))
+        chat_ids = [row[0] for row in mycursor.fetchall()]
 
-        query = """
-                DELETE FROM UserToUser
-                WHERE (user1Id = %s AND user2Id = %s) OR (user1Id = %s AND user2Id = %s);
-                """
-        mycursor.execute(query, (userId, friendId, friendId, userId))
-        
+        for chat_id in chat_ids:
+            # Clean up messages and uploads
+            mycursor.execute("SELECT id FROM Message WHERE chatId = %s", (chat_id,))
+            msg_ids = mycursor.fetchall()
+            delete_uploads(msg_ids)  # your custom cleanup
+
+            mycursor.execute("DELETE FROM Message WHERE chatId = %s", (chat_id,))
+            mycursor.execute("DELETE FROM ChatToUser WHERE chatId = %s", (chat_id,))
+            mycursor.execute("DELETE FROM Chat WHERE id = %s", (chat_id,))
+
+
+        # Remove friendship
+        delete_friend_query = """
+            DELETE FROM UserToUser
+            WHERE (user1Id = %s AND user2Id = %s) OR (user1Id = %s AND user2Id = %s)
+        """
+        mycursor.execute(delete_friend_query, (userId, friendId, friendId, userId))
+
+        # Remove from each other's created groups
+        remove_from_groups_query = """
+            DELETE GOUTU FROM GroupOfUserToUser AS GOUTU
+            JOIN GroupOfUser AS GOU ON GOUTU.groupId = GOU.id
+            WHERE GOUTU.userId = %s AND GOU.creatorId = %s
+        """
+        mycursor.execute(remove_from_groups_query, (friendId, userId))
+        mycursor.execute(remove_from_groups_query, (userId, friendId))
+
         conn.commit()
         mycursor.close()
         conn.close()
-        if mycursor.rowcount == 0:
-            return jsonify({"Message":"Friend not found"}), 404
-        else:
-            return jsonify({"Message":"Friend removed successfully"}), 200
-        
+
+        return jsonify({"Message": "Friend removed successfully"}), 200
+
     except mysql.connector.Error as err:
         print(f"Error: {err}")
-    return {}
+        return jsonify({"error": "Server error occurred"}), 500
+
+
 
 @app.route('/delete_one_event/<int:eventId>/', methods=['DELETE'])
 def delete_one_event(eventId):
