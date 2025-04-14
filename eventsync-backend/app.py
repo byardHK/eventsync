@@ -1270,8 +1270,8 @@ def post_event():
         db_endDateTime = datetime.strptime(endDateTime, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%Y-%m-%d %H:%M:%S')
 
         insertEventInfo = """
-            INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, recurFrequency, creatorName)
-            VALUES (%s, 0, %s, %s, %s, %s, %s, %s, %s, 0, %s, %s, %s, %s);
+            INSERT INTO EventInfo (creatorId, groupId, title, description, locationName, locationlink, RSVPLimit, isPublic, isWeatherDependant, numTimesReported, eventInfoCreated, venmo, creatorName)
+            VALUES (%s, 0, %s, %s, %s, %s, %s, %s, %s, 0, %s, %s, %s);
         """
         values = (
             data["creatorId"],
@@ -1284,7 +1284,6 @@ def post_event():
             data["isWeatherSensitive"],
             currentDateTime,
             data["venmo"],
-            data["recurFrequency"],
             data["creatorName"]
         )
         mycursor.execute(insertEventInfo, values)
@@ -1638,6 +1637,34 @@ def get_event(event_id: int, user_id: str):
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
+
+@app.route('/get_events_by_eventInfoId/<int:eventInfoId>', methods=['GET'])
+def get_events_by_eventInfoId(eventInfoId):
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
+    if not user_email:
+        return jsonify({"error": "Unauthorized: Missing valid authenticated user"}), 403
+    try:
+        conn = mysql.connector.connect(**db_config)
+        mycursor = conn.cursor(dictionary=True)
+        query = """
+            SELECT Event.id, Event.startTime, Event.endTime, Event.eventInfoId, Event.views, Event.numRsvps
+            FROM Event
+            WHERE Event.eventInfoId = %s
+            ORDER BY Event.startTime
+        """
+        mycursor.execute(query, (eventInfoId,))
+        events = mycursor.fetchall()
+
+        mycursor.close()
+        conn.close()
+        if not events:
+            return jsonify({"error": "No events found for the given eventInfoId"}), 404
+        return jsonify(events), 200
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": "Database query failed"}), 500
 
 @app.route('/editEvent/<int:eventId>', methods=['PUT'])
 def edit_event(eventId):

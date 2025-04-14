@@ -169,14 +169,32 @@ function CreateEventPage() {
                     setEndDateTime(dayjs(event.endTime));
                     setLocationText(event.locationName);
                     setTags(event.tags || []);
-                    setChecked(event.isRecurring || false);
                     setRecurFrequency(event.recurFrequency || "");
-                    setEndRecurDateTime(event.endRecurDateTime ? dayjs(event.endRecurDateTime) : null);
                     setVenmoText(event.venmo || "");
                     setIsWeatherSensitive(event.isWeatherSensitive || false);
                     setIsPrivateEvent(event.isPublic !== undefined ? !event.isPublic : false);
                     setRsvpLimit(event.rsvpLimit !== undefined ? event.rsvpLimit : 0);
                     setCreatorName(event.creatorName);
+
+                    const recurringResponse = await axios.get(`${BASE_URL}/get_events_by_eventInfoId/${event.eventInfoId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${userDetails.token}`,
+                            'Content-Type': 'application/json',
+                        },
+                    });
+                    const recurringEvents = recurringResponse.data;
+
+                    if (recurringEvents.length > 1) {
+                        setChecked(true);
+                        const sortedRecurringEvents = recurringEvents.sort(
+                            (a: any, b: any) => new Date(a.endTime).getTime() - new Date(b.endTime).getTime()
+                        );
+                        const lastEventEndTime = dayjs(sortedRecurringEvents[sortedRecurringEvents.length - 1].endTime);
+                        setEndRecurDateTime(lastEventEndTime.add(1, "hour"));
+                    } else {
+                        setChecked(false);
+                        setEndRecurDateTime(null);
+                    }
                 } catch (error) {
                     console.error('Error fetching event:', error);
                 }
