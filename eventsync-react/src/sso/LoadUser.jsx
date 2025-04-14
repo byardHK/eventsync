@@ -71,7 +71,7 @@ export const LoadUser = () => {
 
         requestUserData();
 
-        const refreshInterval = setInterval(() => requestUserData(), 45 * 60 * 1000);
+        const refreshInterval = setInterval(() => requestUserData(), 5 * 60 * 1000);
         return () => clearInterval(refreshInterval);
     }, [accounts]);
 
