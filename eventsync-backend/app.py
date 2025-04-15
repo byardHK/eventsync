@@ -21,8 +21,8 @@ UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
-#CORS(app, origins=["http://localhost:3000"])
+#CORS(app, origins=["https://eventsync.gcc.edu", "https://eventsync.gcc.edu:443"])
+CORS(app, origins=["http://localhost:3000"])
 
 
 db_config = {
@@ -2876,15 +2876,57 @@ def get_chat_hist(chat_id: int):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        
-        mycursor.execute("SELECT * FROM Message WHERE chatId = %s", (chat_id,))
-        response = mycursor.fetchall()
-        headers = mycursor.description
 
-        conn.commit()
-        mycursor.close()
-        conn.close()
-        return jsonify({"chats": sqlResponseToList(response, headers)})
+        accessGranted = False
+
+        query = "SELECT chatType FROM Chat WHERE id = %s"
+        mycursor.execute(query, (chat_id,))
+        result = mycursor.fetchone()
+        print("CHAT TYPE --------")
+        print(result)
+        print("----------------")
+
+        if result and result[0] == "Event":
+            print("access granted")
+            accessGranted = True
+
+        if(accessGranted == False):
+            query = "SELECT * FROM ChatToUser WHERE chatId = %s AND userId = %s"
+            mycursor.execute(query, (chat_id, user_email))
+            result = mycursor.fetchone()
+            print("CHAT --------")
+            print(result)
+            print("----------------")
+
+            if(result != None):
+                print("access granted")
+                accessGranted = True
+
+        if(accessGranted == False):
+            query =  """SELECT * FROM GroupOfUserToUser
+                JOIN GroupOfUserToChat ON GroupOfUserToUser.groupId = GroupOfUserToChat.groupOfUserId
+                WHERE GroupOfUserToChat.chatId = %s AND GroupOfUserToUser.userId = %s"""
+            mycursor.execute(query, (chat_id, user_email))
+            result = mycursor.fetchone()
+            print("GROUP CHAT --------")
+            print(result)
+            print("----------------")
+
+            if(result != None):
+                accessGranted = True
+
+
+        print("access granted", accessGranted)
+        if(accessGranted):
+        
+            mycursor.execute("SELECT * FROM Message WHERE chatId = %s", (chat_id,))
+            response = mycursor.fetchall()
+            headers = mycursor.description
+
+            conn.commit()
+            mycursor.close()
+            conn.close()
+            return jsonify({"chats": sqlResponseToList(response, headers)})
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
@@ -2892,12 +2934,12 @@ def get_chat_hist(chat_id: int):
 @app.route('/get_my_chats/<string:user_id>', methods=['GET'])
 def get_my_chats(user_id: str):
 
-    # user_email, error_response, status_code = get_authenticated_user()
-    # if error_response:
-    #     return error_response, status_code  
+    user_email, error_response, status_code = get_authenticated_user()
+    if error_response:
+        return error_response, status_code  
 
-    # if user_id.lower() != user_email.lower():
-    #     return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
+    if user_id.lower() != user_email.lower():
+        return jsonify({"error": "Unauthorized: userId does not match token email"}), 403
 
     try:
         conn = mysql.connector.connect(**db_config)
@@ -3003,44 +3045,84 @@ def get_chat(chat_id: str):
     try:
         conn = mysql.connector.connect(**db_config)
         mycursor = conn.cursor()
-        mycursor.execute("""(SELECT Chat.id, GroupOfUser.groupName AS name, Chat.chatType FROM Chat
-                            JOIN GroupOfUser ON GroupOfUser.chatId = Chat.id 
-                            WHERE Chat.id = %s)
-                            UNION 
-                            (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
-                            JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
-                            JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
-                            WHERE Chat.id = %s)
-                            UNION
-                            (SELECT Chat.id, "" AS name, Chat.chatType FROM Chat 
-                            JOIN ChatToUser ON Chat.id = ChatToUser.chatId
-                            WHERE Chat.id = %s)
-                            LIMIT 1""", (chat_id, chat_id, chat_id))
-        response = mycursor.fetchall()
-        headers = mycursor.description
-        chat = sqlResponseToList(response, headers)[0]
-        mycursor.execute("""(SELECT id, fname, lname FROM User
-                                JOIN GroupOfUserToUser ON User.id = GroupOfUserToUser.userId
-                                JOIN GroupOfUserToChat ON GroupOfUserToUser.groupId = GroupOfUserToChat.groupOfUserId
-                                WHERE GroupOfUserToChat.chatId = %s)
-                            UNION
-                            (SELECT User.id, fname, lname FROM User
-                                JOIN EventToUser ON User.id = EventToUser.userId
-                                JOIN Event ON EventToUser.eventId = Event.id
-                                JOIN EventInfoToChat ON EventInfoToChat.eventInfoId = Event.eventInfoId
-                                WHERE EventInfoToChat.chatId = %s)
-                            UNION
-                            (SELECT id, fname, lname 
-                                FROM User WHERE id IN (
-                                SELECT userId FROM ChatToUser
-                                WHERE chatId = %s))""", (chat_id, chat_id, chat_id))
-        response = mycursor.fetchall()
-        headers = mycursor.description
-        users = sqlResponseToList(response, headers)
-        conn.commit()
-        mycursor.close()
-        conn.close()
-        return jsonify({f"users": users, "chat": chat})
+        
+        accessGranted = False
+
+        query = "SELECT chatType FROM Chat WHERE id = %s"
+        mycursor.execute(query, (chat_id,))
+        result = mycursor.fetchone()
+        print("CHAT TYPE --------")
+        print(result)
+        print("----------------")
+
+        if result and result[0] == "Event":
+            print("access granted")
+            accessGranted = True
+
+        if(accessGranted == False):
+            query = "SELECT * FROM ChatToUser WHERE chatId = %s AND userId = %s"
+            mycursor.execute(query, (chat_id, user_email))
+            result = mycursor.fetchone()
+            print("CHAT --------")
+            print(result)
+            print("----------------")
+
+            if(result != None):
+                print("access granted")
+                accessGranted = True
+
+        if(accessGranted == False):
+            query =  """SELECT * FROM GroupOfUserToUser
+                JOIN GroupOfUserToChat ON GroupOfUserToUser.groupId = GroupOfUserToChat.groupOfUserId
+                WHERE GroupOfUserToChat.chatId = %s AND GroupOfUserToUser.userId = %s"""
+            mycursor.execute(query, (chat_id, user_email))
+            result = mycursor.fetchone()
+            print("GROUP CHAT --------")
+            print(result)
+            print("----------------")
+
+            if(result != None):
+                accessGranted = True
+        print("access granted", accessGranted)
+        if(accessGranted):
+            mycursor.execute("""(SELECT Chat.id, GroupOfUser.groupName AS name, Chat.chatType FROM Chat
+                                JOIN GroupOfUser ON GroupOfUser.chatId = Chat.id 
+                                WHERE Chat.id = %s)
+                                UNION 
+                                (SELECT Chat.id, EventInfo.title AS name, Chat.chatType FROM Chat
+                                JOIN EventInfoToChat ON Chat.id = EventInfoToChat.chatId
+                                JOIN EventInfo ON EventInfo.id = EventInfoToChat.eventInfoId
+                                WHERE Chat.id = %s)
+                                UNION
+                                (SELECT Chat.id, "" AS name, Chat.chatType FROM Chat 
+                                JOIN ChatToUser ON Chat.id = ChatToUser.chatId
+                                WHERE Chat.id = %s)
+                                LIMIT 1""", (chat_id, chat_id, chat_id))
+            response = mycursor.fetchall()
+            headers = mycursor.description
+            chat = sqlResponseToList(response, headers)[0]
+            mycursor.execute("""(SELECT id, fname, lname FROM User
+                                    JOIN GroupOfUserToUser ON User.id = GroupOfUserToUser.userId
+                                    JOIN GroupOfUserToChat ON GroupOfUserToUser.groupId = GroupOfUserToChat.groupOfUserId
+                                    WHERE GroupOfUserToChat.chatId = %s)
+                                UNION
+                                (SELECT User.id, fname, lname FROM User
+                                    JOIN EventToUser ON User.id = EventToUser.userId
+                                    JOIN Event ON EventToUser.eventId = Event.id
+                                    JOIN EventInfoToChat ON EventInfoToChat.eventInfoId = Event.eventInfoId
+                                    WHERE EventInfoToChat.chatId = %s)
+                                UNION
+                                (SELECT id, fname, lname 
+                                    FROM User WHERE id IN (
+                                    SELECT userId FROM ChatToUser
+                                    WHERE chatId = %s))""", (chat_id, chat_id, chat_id))
+            response = mycursor.fetchall()
+            headers = mycursor.description
+            users = sqlResponseToList(response, headers)
+            conn.commit()
+            mycursor.close()
+            conn.close()
+            return jsonify({f"users": users, "chat": chat})
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     return {}
