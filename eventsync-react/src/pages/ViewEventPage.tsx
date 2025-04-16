@@ -381,7 +381,7 @@ function GetEvent({ event, initialItems, expanded, handleChange, isRsvped}: { ev
             <ReportModal input={event} open={reportModalOpen} onClose={() => setReportModalOpen(false)} type="event"/>
             <Box display="flex" justifyContent="space-between" flexDirection="row" sx={{width: "100%", position: 'fixed', paddingTop: 2, top: '0px', backgroundColor: "#1c284c",  "z-index": 10}}>
                 <BackButton></BackButton>
-                <Typography align="center" color="white" fontWeight="bold" variant="h4">{event.title}</Typography>
+                <Typography align="center" color="white" fontWeight="bold" sx={{wordBreak: "break-word"}} variant="h4">{event.title}</Typography>
                 <IconButton onClick={()=>setReportModalOpen(true)}>
                     <FlagIcon style={{ color: '#ad1f39'}}></FlagIcon>
                 </IconButton>

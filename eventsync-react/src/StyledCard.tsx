@@ -40,7 +40,7 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, heigh
 
     const EventCard = styled(Paper)(({ theme }) => ({
         width: 300,
-        height: height ? height : 175,
+        minHeight: height ? height : 175,
         padding: theme.spacing(2),
         textAlign: 'center',
     }));
@@ -48,11 +48,23 @@ function StyledCard({ children, event, showTags, showViews, showShareIcon, heigh
     const start = dayjs(event.startTime);
     const end = dayjs(event.endTime);
 
+    function getMessageStr(name: string | null) {
+        if(!name) {
+          return "";
+        }
+    
+        if(name.length < 35) {
+            return name
+        }
+        return name.substring(0, 32) + "..."
+      }
+    
+
     return (
         <Box display="flex" justifyContent="center" alignItems="center">
             <EventCard elevation={10} sx={{padding:2}}>
                 <Box onClick={() => viewEvent(event)} style={{ cursor: "pointer"}}>
-                    <Typography variant="h5" fontWeight="bold">{event.eventName}</Typography>
+                    <Typography sx={{wordBreak: "break-word"}} variant="h5" fontWeight="bold">{getMessageStr(event.eventName)}</Typography>
                     <br></br>
                     {start.isSame(end, "date") ? (
                         <>

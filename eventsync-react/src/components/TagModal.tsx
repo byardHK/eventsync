@@ -166,7 +166,7 @@ function TagModal({savedTags, handleSave}: TagModalProps){
                     <TextField variant="outlined" value={createCustomTagText} onChange={(event) => 
                     { 
                     const value = event.target.value;
-                        if (value.length <= 25){
+                        if (value.length <= 20){
                             setCreateCustomTagText(event.target.value);
                         }
                     }}></TextField>
