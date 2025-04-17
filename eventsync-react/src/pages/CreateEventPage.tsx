@@ -351,7 +351,7 @@ function CreateEventPage() {
                             value={titleText} 
                             onChange={(event) => {
                                 const value = event.target.value;
-                                if (value.length <= 50) {
+                                if (value.length <= 30) {
                                     setTitleText(value);
                                 } 
                             }}
