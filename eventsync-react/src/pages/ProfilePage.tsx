@@ -506,7 +506,7 @@ function ProfilePage() {
                     <Typography fontWeight="bold" variant="h5">Settings</Typography>
 
                     {/* Privacy Toggle */}
-                    <Box display="flex" alignItems="center" justifyContent="space-between" paddingTop={3}>
+                    {/* <Box display="flex" alignItems="center" justifyContent="space-between" paddingTop={3}>
                         <Typography>Keep info private?</Typography>
                         <Switch
                             style={{ color: "#1c284c" }}
@@ -524,7 +524,7 @@ function ProfilePage() {
                                 }
                             }}
                         />
-                    </Box>
+                    </Box> */}
 
                     {/* Notifications */}
                     <Box mt={2}>

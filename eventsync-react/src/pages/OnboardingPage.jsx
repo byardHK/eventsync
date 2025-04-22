@@ -70,10 +70,10 @@ const OnboardingPage = () => {
             justifyContent="center" // Centers content horizontally
             alignItems="center" // Centers content vertically
             flexDirection="column"
-            bgcolor="rgb(66, 135, 245)"
-            padding="20px"
-            minHeight="100vh" // Ensure full page height
-            width="100vw" // Full width
+            bgcolor="#1c284c"
+             padding="10px"
+            minHeight="75vh" // Ensure full page height
+            width="90vw" // Full width
         >
     <Card
         sx={{
@@ -152,22 +152,16 @@ const OnboardingPage = () => {
                     }}
                     margin="normal"
                 />
-
-                <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
-                    <span>Make profile public?</span>
-                    <Switch checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
-                </Box>
                 
                 <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
                     <span>Event Cancellation Notifications</span>
-                    <Switch checked={eventCancelled} onChange={(e) => setEventCancelled(e.target.checked)} />
+                    <Switch style={{ color: "#1c284c" }} checked={eventCancelled} onChange={(e) => setEventCancelled(e.target.checked)} />
                 </Box>
 
                 <Button
                     variant="contained"
-                    color="primary"
                     fullWidth
-                    sx={{ mt: 2 }}
+                    sx={{ mt: 2, backgroundColor: "#1c284c", color: "white" }}
                     onClick={handleSubmit}
                 >
                     Sign up
