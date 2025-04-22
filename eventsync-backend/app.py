@@ -2753,7 +2753,8 @@ def warn_user():
 
         reportedUserId = body.get("reportedUserId")
         warningMessage = body.get("warningMessage")
-        timeSent = body.get("timeSent")
+        timeSent = datetime.strptime(body.get('timeSent'), "%Y-%m-%d %H:%M:%S")
+        timeSent = (timeSent + timedelta(hours=4)).strftime("%Y-%m-%d %H:%M:%S")
 
         #Try to find a chat between the warner and the warnee exclusively
         usersInWarnChat = 2
