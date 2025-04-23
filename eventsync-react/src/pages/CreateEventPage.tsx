@@ -51,6 +51,8 @@ function CreateEventPage() {
     const [endDateTimeError, setEndDateTimeError] = useState(false);
     const [descriptionError, setDescriptionError] = useState(false);
     const [locationError, setLocationError] = useState(false);
+    const [recurFrequencyError, setRecurFrequencyError] = useState(false);
+    const [endRecurDateTimeError, setEndRecurDateTimeError] = useState(false);
 
     function reloadEventTags() {
         setEventTagsTrigger(eventTagsTrigger+1);
@@ -169,7 +171,9 @@ function CreateEventPage() {
                     setEndDateTime(dayjs(event.endTime));
                     setLocationText(event.locationName);
                     setTags(event.tags || []);
+                    setChecked(event.isRecurring || false);
                     setRecurFrequency(event.recurFrequency || "");
+                    setEndRecurDateTime(event.endRecurDateTime ? dayjs(event.endRecurDateTime) : null);
                     setVenmoText(event.venmo || "");
                     setIsWeatherSensitive(event.isWeatherSensitive || false);
                     setIsPrivateEvent(event.isPublic !== undefined ? !event.isPublic : false);
@@ -211,16 +215,28 @@ function CreateEventPage() {
         setEndDateTimeError(false);
         setDescriptionError(false);
         setLocationError(false);
+        setRecurFrequencyError(false);
+        setEndRecurDateTimeError(false);
 
         if (!titleText.trim()) setTitleError(true);
         if (!startDateTime) setStartDateTimeError(true);
         if (!endDateTime) setEndDateTimeError(true);
         if (!descriptionText.trim()) setDescriptionError(true);
         if (!locationText.trim()) setLocationError(true);
+        if (checked && !recurFrequency) setRecurFrequencyError(true);
+        if (checked && !endRecurDateTime) setEndRecurDateTimeError(true);
 
-        if (!titleText.trim() || !startDateTime || !endDateTime || !descriptionText.trim() || !locationText.trim()) {
+        if (!titleText.trim() || !startDateTime || !endDateTime || !descriptionText.trim() || !locationText.trim() && !checked) {
             setIsGeneralAccordionOpen(true);
             window.scrollTo(0, 0);
+            alert("Please correct the highlighted errors before submitting.");
+            return;
+        }
+        
+        if (checked && (!recurFrequency || !endRecurDateTime)) {
+            setIsGeneralAccordionOpen(false);
+            window.scrollTo(0, 0);
+            alert("Please correct the highlighted errors before submitting.");
             return;
         }
 
@@ -496,22 +512,29 @@ function CreateEventPage() {
                                                 <FormControlLabel value={"Weekly"} control={<Radio sx={{color: "white"}}/>} label="Weekly" />
                                                 <FormControlLabel value={"Monthly"} control={<Radio sx={{color: "white"}}/>} label="Monthly" />
                                             </RadioGroup>
+                                            {recurFrequencyError && (
+                                                <Typography variant="caption" color="error" sx={{ mt: 1 }}>
+                                                    Recur frequency is required
+                                                </Typography>
+                                            )}
                                         </FormControl>
                                     </Box>
-                                    <Box display="flex" 
-                                        // alignItems="center" 
-                                        // justifyContent="center"
-                                        component="form"
-                                        sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
-                                        noValidate
-                                        autoComplete="off">
-                                    <MobileDateTimePicker
-                                        sx={{backgroundColor: "white"}}
-                                        label="End Date"
-                                        value={endRecurDateTime}
-                                        onChange={(newValue) => setEndRecurDateTime(newValue)} 
-                                        minDateTime={startDateTime || dayjs()}
-                                    />
+                                    <Box display="flex" flexDirection="column" gap={1}>
+                                        <MobileDateTimePicker
+                                            sx={{ backgroundColor: "white" }}
+                                            label="Recur End Date"
+                                            value={endRecurDateTime}
+                                            onChange={(newValue) => {
+                                                setEndRecurDateTime(newValue);
+                                                setEndRecurDateTimeError(false); // Clear error on valid input
+                                            }}
+                                            minDateTime={startDateTime || dayjs()}
+                                        />
+                                        {endRecurDateTimeError && (
+                                            <Typography variant="caption" color="error" sx={{ mt: 1 }}>
+                                                Recur end date and time are required
+                                            </Typography>
+                                        )}
                                     </Box>
                                 </div>
                             : null}
